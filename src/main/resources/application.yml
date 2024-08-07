@@ -3,7 +3,7 @@ spring:
     name: diet
 
   datasource:
-    url: jdbc:h2:tcp://localhost/~/dietKgu
+    url: jdbc:h2:tcp://localhost/~/kguDiet
     username: sa
     password: sa
     driver-class-name: org.h2.Driver

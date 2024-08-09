@@ -1,12 +1,16 @@
 package com.kyonggi.diet.review;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.kyonggi.diet.member.Member;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
 @Getter @Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Review {
 
     @Id @GeneratedValue
@@ -15,9 +19,20 @@ public class Review {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
+    @JsonIgnore
     private Member member;
 
-    private double rating;
-    private String title;
-    private String content;
+    private double rating; //별점[1~5]
+    private String title; //제목
+    private String content; //내용
+
+    //==생성 메서드==//
+    public static Review createReview(Member member, double rating, String title, String content) {
+        Review review = new Review();
+        review.setMember(member);
+        review.setRating(rating);
+        review.setTitle(title);
+        review.setContent(content);
+        return review;
+    }
 }

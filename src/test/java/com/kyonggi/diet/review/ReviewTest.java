@@ -1,17 +1,11 @@
-package com.kyonggi.diet;
+package com.kyonggi.diet.review;
 
 import com.kyonggi.diet.diet.Diet;
 import com.kyonggi.diet.member.Member;
-import com.kyonggi.diet.review.Review;
-import com.kyonggi.diet.review.ReviewDTO;
-import com.kyonggi.diet.review.ReviewRepository;
-import com.kyonggi.diet.review.ReviewService;
 import jakarta.persistence.EntityManager;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.*;

@@ -4,12 +4,14 @@ import com.kyonggi.diet.member.MemberDTO;
 import com.kyonggi.diet.member.MemberEntity;
 import com.kyonggi.diet.member.MemberRepository;
 import com.kyonggi.diet.member.service.MemberService;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 
@@ -34,8 +36,22 @@ public class MemberServiceImpl implements MemberService {
     public List<MemberDTO> getAllMembers() {
         List<MemberEntity> list = memberRepository.findAll();
         log.info("List of members = {}", list);
-        List<MemberDTO> listOfMembers = list.stream().map(memberEntity -> mapToMemberDTO(memberEntity)).collect(Collectors.toList());
-        return listOfMembers;
+        if (list.isEmpty()) {
+            throw new EntityNotFoundException("No members found");
+        }
+        return list.stream().map(this::mapToMemberDTO).collect(Collectors.toList());
+    }
+
+    @Override
+    public MemberDTO getMemberById(Long id) {
+        Optional<MemberEntity> optionalMember = memberRepository.findById(id);
+        if (optionalMember.isPresent()) {
+            MemberEntity member = optionalMember.get();
+            log.info("Founded member = {}", member);
+            return mapToMemberDTO(member);
+        }
+        log.warn("멤버 정보를 찾을 수 없습니다. = {} ", id);
+        throw new EntityNotFoundException("ID에 해당하는 멤버 정보를 찾을 수 없습니다.");
     }
 
     /**

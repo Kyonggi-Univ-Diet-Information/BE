@@ -5,9 +5,7 @@ import com.kyonggi.diet.member.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -18,6 +16,7 @@ import java.util.stream.Collectors;
  */
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/api/member")
 @Slf4j
 @CrossOrigin("*")
 public class MemberController {
@@ -34,8 +33,15 @@ public class MemberController {
         log.info("API GET /members called");
         List<MemberDTO> list = memberService.getAllMembers();
         log.info("List of members = {}", list);
-        List<MemberResponse> responses = list.stream().map(memberDTO -> mapToMemberReponse(memberDTO)).collect(Collectors.toList());
-        return responses;
+        return list.stream().map(this::mapToMemberReponse).collect(Collectors.toList());
+    }
+
+    @GetMapping("/{id}")
+    public MemberResponse getMember(@PathVariable Long id) {
+        log.info("API GET /members/{} called", id);
+        MemberDTO memberDTO = memberService.getMemberById(id);
+        log.info("Member = {}", memberDTO);
+        return mapToMemberReponse(memberDTO);
     }
 
     /**

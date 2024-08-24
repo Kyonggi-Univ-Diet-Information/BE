@@ -1,7 +1,7 @@
 package com.kyonggi.diet.review;
 
 import com.kyonggi.diet.diet.Diet;
-import com.kyonggi.diet.member.Member;
+import com.kyonggi.diet.member.MemberEntity;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +22,7 @@ public class ReviewTest {
     @Test
     public void 리뷰_등록() {
         //멤버 객체 생성 및 db저장
-        Member member = new Member();
+        MemberEntity member = new MemberEntity();
         member.setName("1");
         em.persist(member);
 
@@ -56,7 +56,7 @@ public class ReviewTest {
     @Test
     public void 리뷰_수정() {
         //멤버 객체 생성 및 db저장
-        Member member = new Member();
+        MemberEntity member = new MemberEntity();
         member.setName("1");
         em.persist(member);
 
@@ -100,7 +100,7 @@ public class ReviewTest {
     @Test
     public void 리뷰_삭제() {
         //멤버 객체 생성 및 db저장
-        Member member = new Member();
+        MemberEntity member = new MemberEntity();
         member.setName("1");
         em.persist(member);
 

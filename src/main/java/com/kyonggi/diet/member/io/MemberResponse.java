@@ -1,6 +1,9 @@
-package com.kyonggi.diet.member;
+package com.kyonggi.diet.member.io;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.sql.Timestamp;
 
@@ -8,7 +11,7 @@ import java.sql.Timestamp;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class MemberDTO {
+public class MemberResponse {
 
     private String email;
 

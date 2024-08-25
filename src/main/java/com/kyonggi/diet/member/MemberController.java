@@ -1,42 +1,55 @@
 package com.kyonggi.diet.member;
 
+import com.kyonggi.diet.member.io.MemberResponse;
+import com.kyonggi.diet.member.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.modelmapper.ModelMapper;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.Optional;
+import java.util.List;
+import java.util.stream.Collectors;
 
-@Controller
+/**
+ * 멤버 컨트롤러 구현
+ * @author boroboro01
+ */
+@RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/members")
+@RequestMapping("/api/member")
 @Slf4j
+@CrossOrigin("*")
 public class MemberController {
+
     private final MemberService memberService;
+    private final ModelMapper modelMapper;
 
-    @GetMapping("/form")
-    public String form() {
-        return "members/form";
+    /**
+     * 모든 멤버 정보를 반환합니다.
+     * @return list
+     */
+    @GetMapping("/members")
+    public List<MemberResponse> getMembers() {
+        log.info("API GET /members called");
+        List<MemberDTO> list = memberService.getAllMembers();
+        log.info("List of members = {}", list);
+        return list.stream().map(this::mapToMemberReponse).collect(Collectors.toList());
     }
 
-    @PostMapping("/join")
-    public ResponseEntity<Member> join(MemberDTO memberDto) {
-        Member member = Member.createMember(memberDto.getEmail(), memberDto.getSocialType(), memberDto.getName(), memberDto.getProfileUrl());
-        memberService.joinMember(member);
-        log.info("join member = {}", member);
-        return new ResponseEntity<>(HttpStatus.OK);
+    @GetMapping("/{id}")
+    public MemberResponse getMember(@PathVariable Long id) {
+        log.info("API GET /members/{} called", id);
+        MemberDTO memberDTO = memberService.getMemberById(id);
+        log.info("Member = {}", memberDTO);
+        return mapToMemberReponse(memberDTO);
     }
 
-    @PostMapping("/delete")
-    public ResponseEntity<Member> delete(@PathVariable("id") Long memberId) {
-        Optional<Member> member = memberService.findMemberId(memberId);
-        memberService.deleteMember(member);
-        log.info("deleted member = {}", member);
-        return new ResponseEntity<>(HttpStatus.OK);
+    /**
+     * MemberDTO 에서 MemberResponse 으로 변환하는 Mapper Method 입니다.
+     * @param memberDTO (member DTO)
+     * @return MemberResponse
+     */
+    private MemberResponse mapToMemberReponse(MemberDTO memberDTO) {
+        return modelMapper.map(memberDTO, MemberResponse.class);
     }
 }

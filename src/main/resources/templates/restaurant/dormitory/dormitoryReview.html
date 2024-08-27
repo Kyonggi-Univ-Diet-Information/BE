@@ -1,0 +1,38 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Dormitory Restaurant</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+<body>
+    <a href="/">홈</a>
+    <div class="container">
+        <div>
+            <h1>HELLO, Dormitory Restaurant Reviews</h1>
+            <p>기숙사 식당 리뷰</p>
+            <div>
+                <table border="1">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>평점</th>
+                            <th>제목</th>
+                            <th>글쓴이</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="review : ${reviews}">
+                            <td th:text="${review.id}"></td>
+                            <td th:text="${review.rating}"></td>
+                            <td>
+                                <a th:href="'/restaurant/dormitory/reviews/' + ${review.id}" th:text="${review.title}"></a>
+                            </td>
+                            <td th:text="${review.memberName}"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

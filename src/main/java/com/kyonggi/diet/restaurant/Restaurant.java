@@ -1,24 +1,27 @@
-package com.kyonggi.diet.dietFood;
+package com.kyonggi.diet.restaurant;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.kyonggi.diet.diet.Diet;
 import com.kyonggi.diet.review.Review;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.List;
 
 @Entity
 @Getter @Setter
-public class DietFood {
+public class Restaurant {
 
     @Id @GeneratedValue
-    @Column(name = "diet_food_id")
+    @Column(name = "restaurant_id")
     private Long id;
     private String name;
 
+    @OneToMany(mappedBy = "restaurant")
+    private List<Review> reviews;
+
     @Enumerated(value = EnumType.STRING)
-    private DietFoodType dietFoodType;
+    private RestaurantType restaurantType;
 
 }

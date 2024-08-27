@@ -1,7 +1,10 @@
 package com.kyonggi.diet.review;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import com.kyonggi.diet.member.MemberEntity;
+import com.kyonggi.diet.restaurant.Restaurant;
+
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -26,13 +29,22 @@ public class Review {
     private String title; //제목
     private String content; //내용
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JsonIgnore
+    @JoinColumn(name = "restaurant_id")
+    private Restaurant restaurant;
+
     //==생성 메서드==//
-    public static Review createReview(MemberEntity member, double rating, String title, String content) {
+
+
+    public static Review createReview(MemberEntity member, double rating, String title, String content, Restaurant restaurant) {
+
         Review review = new Review();
         review.setMember(member);
         review.setRating(rating);
         review.setTitle(title);
         review.setContent(content);
+        review.setRestaurant(restaurant);
         return review;
     }
 }

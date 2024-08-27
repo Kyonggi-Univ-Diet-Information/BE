@@ -1,5 +1,6 @@
 package com.kyonggi.diet.review;
 
+import com.kyonggi.diet.review.DTO.ReviewDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

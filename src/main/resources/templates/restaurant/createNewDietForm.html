@@ -1,0 +1,84 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Dormitory Restaurant</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+<body>
+<div class="container">
+    <form role="form" action="/restaurant/dormitory/diet/new" th:object="${createNewDietForm}" method="post">
+
+        <!-- 밥 (단일 선택) -->
+        <div>
+            <label>밥</label>
+            <table>
+                <tbody>
+                    <tr th:each="i : ${#numbers.sequence(0, (rices.size() - 1) / 4)}">
+                        <td th:each="j : ${#numbers.sequence(0, 3)}"
+                            th:if="${i * 4 + j < rices.size()}">
+                            <input type="radio" th:field="*{rice}" th:value="${rices[i * 4 + j].id}" />
+                            <span th:text="${rices[i * 4 + j].name}"></span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 반찬 (다중 선택) -->
+        <div>
+            <label>반찬</label>
+            <table>
+                <tbody>
+                    <tr th:each="i : ${#numbers.sequence(0, (sides.size() - 1) / 4)}">
+                        <td th:each="j : ${#numbers.sequence(0, 3)}"
+                            th:if="${i * 4 + j < sides.size()}">
+                            <input type="checkbox" th:field="*{side}" th:value="${sides[i * 4 + j].id}" />
+                            <span th:text="${sides[i * 4 + j].name}"></span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 국 (단일 선택) -->
+        <div>
+            <label>국</label>
+            <table>
+                <tbody>
+                    <tr th:each="i : ${#numbers.sequence(0, (soups.size() - 1) / 4)}">
+                        <td th:each="j : ${#numbers.sequence(0, 3)}"
+                            th:if="${i * 4 + j < soups.size()}">
+                            <input type="radio" th:field="*{soup}" th:value="${soups[i * 4 + j].id}" />
+                            <span th:text="${soups[i * 4 + j].name}"></span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 디저트 (다중 선택) -->
+        <div>
+            <label>디저트</label>
+            <table>
+                <tbody>
+                    <tr th:each="i : ${#numbers.sequence(0, (deserts.size() - 1) / 4)}">
+                        <td th:each="j : ${#numbers.sequence(0, 3)}"
+                            th:if="${i * 4 + j < deserts.size()}">
+                            <input type="checkbox" th:field="*{desert}" th:value="${deserts[i * 4 + j].id}" />
+                            <span th:text="${deserts[i * 4 + j].name}"></span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div>
+            <label>날짜</label>
+            <input type="text" th:field="*{date}" placeholder="ex) 2024-08-23" />
+        </div>
+
+        <button type="submit">Submit</button>
+    </form>
+    <br/>
+</div>
+</body>
+</html>

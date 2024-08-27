@@ -1,7 +1,9 @@
 package com.kyonggi.diet.review;
-
 import com.kyonggi.diet.diet.Diet;
 import com.kyonggi.diet.member.MemberEntity;
+import com.kyonggi.diet.restaurant.Restaurant;
+import com.kyonggi.diet.review.DTO.ReviewDTO;
+
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +33,10 @@ public class ReviewTest {
         diet.setDate("1");
         em.persist(diet);
 
+        Restaurant restaurant = new Restaurant();
+        restaurant.setName("긱식");
+        em.persist(restaurant);
+
         //강제 db 삽입
         em.flush();
 
@@ -38,7 +44,7 @@ public class ReviewTest {
         em.clear();
 
         //리뷰 등록
-        Review review = Review.createReview(member, 4.9, "title", "content");
+        Review review = Review.createReview(member, 4.9, "title", "content", restaurant);
         Long reviewId = reviewService.saveReview(review);
         System.out.println("reviewRating = " + review.getRating() + " id = " + review.getId());
         System.out.println("reviewId = " + reviewId);
@@ -65,6 +71,10 @@ public class ReviewTest {
         diet.setDate("1");
         em.persist(diet);
 
+        Restaurant restaurant = new Restaurant();
+        restaurant.setName("긱식");
+        em.persist(restaurant);
+
         //강제 db 삽입
         em.flush();
 
@@ -72,7 +82,7 @@ public class ReviewTest {
         em.clear();
 
         //Review 객체 생성 및 db 삽입
-        Review review = Review.createReview(member, 4.9, "title", "content");
+        Review review = Review.createReview(member, 4.9, "title", "content", restaurant);
         Long reviewId = reviewService.saveReview(review);
         System.out.println("reviewRating = " + review.getRating() + " reviewTitle = "
                 + review.getTitle() + " reviewContent = " + review.getContent());
@@ -109,6 +119,10 @@ public class ReviewTest {
         diet.setDate("1");
         em.persist(diet);
 
+        Restaurant restaurant = new Restaurant();
+        restaurant.setName("긱식");
+        em.persist(restaurant);
+
         //강제 db 삽입
         em.flush();
 
@@ -116,7 +130,7 @@ public class ReviewTest {
         em.clear();
 
         //리뷰 객체 생성
-        Review review = Review.createReview(member, 4.9, "title", "content");
+        Review review = Review.createReview(member, 4.9, "title", "content", restaurant);
         Long reviewId = reviewService.saveReview(review);
 
         //db에 저장된 Review 추출

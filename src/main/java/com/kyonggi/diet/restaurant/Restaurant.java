@@ -2,15 +2,15 @@ package com.kyonggi.diet.restaurant;
 
 import com.kyonggi.diet.review.Review;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.List;
 
 @Entity
-@Getter @Setter
+@Getter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Restaurant {
 
     @Id @GeneratedValue
@@ -18,10 +18,11 @@ public class Restaurant {
     private Long id;
     private String name;
 
-    @OneToMany(mappedBy = "restaurant")
+    @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Review> reviews;
 
     @Enumerated(value = EnumType.STRING)
+    @Column(unique = true)
     private RestaurantType restaurantType;
 
 }

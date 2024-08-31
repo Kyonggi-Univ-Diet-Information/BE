@@ -1,12 +1,12 @@
-package com.kyonggi.diet.diet;
+package com.kyonggi.diet.diet.DTO;
 
-import com.kyonggi.diet.dietFood.DietFood;
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.util.List;
 
-@Getter @Setter
+@Data
 public class CreateNewDietForm {
 
     private Long rice;

@@ -2,18 +2,17 @@ package com.kyonggi.diet.review;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import com.kyonggi.diet.dietFood.DietFood;
 import com.kyonggi.diet.member.MemberEntity;
 import com.kyonggi.diet.restaurant.Restaurant;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Entity
-@Getter @Setter
+@Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 public class Review {
 
     @Id @GeneratedValue
@@ -25,26 +24,36 @@ public class Review {
     @JsonIgnore
     private MemberEntity member;
 
-    private double rating; //별점[1~5]
-    private String title; //제목
-    private String content; //내용
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnore
     @JoinColumn(name = "restaurant_id")
     private Restaurant restaurant;
 
-    //==생성 메서드==//
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JsonIgnore
+    @JoinColumn(name = "diet_food_id")
+    private DietFood dietFood;
 
 
-    public static Review createReview(MemberEntity member, double rating, String title, String content, Restaurant restaurant) {
+    private double rating; //별점[1~5]
+    private String title; //제목
+    private String content; //내용
 
-        Review review = new Review();
-        review.setMember(member);
-        review.setRating(rating);
-        review.setTitle(title);
-        review.setContent(content);
-        review.setRestaurant(restaurant);
-        return review;
+
+    //==생성==//
+    @Builder
+    public Review(MemberEntity member, Restaurant restaurant, DietFood dietFood, double rating, String title, String content) {
+        this.member = member;
+        this.restaurant = restaurant;
+        this.dietFood = dietFood;
+        this.rating = rating;
+        this.title = title;
+        this.content = content;
+    }
+
+    public void updateReview(Double rating, String title, String content) {
+        this.rating = rating;
+        this.title = title;
+        this.content = content;
     }
 }

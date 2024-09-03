@@ -1,6 +1,6 @@
-package com.kyonggi.diet.dietContent;
+package com.kyonggi.diet.diet;
 
-import com.kyonggi.diet.diet.DTO.DietDTO;
+import com.kyonggi.diet.dietContent.DTO.DietContentDTO;
 import com.kyonggi.diet.dietFood.DietFoodDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,9 +11,9 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class DietContentDTO {
+public class DietDTO {
 
     private Long id;
-    private DietDTO dietDTO;
+    private DietContentDTO dietContentDTO;
     private DietFoodDTO dietFoodDTO;
 }

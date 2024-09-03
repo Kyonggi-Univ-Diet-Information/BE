@@ -1,13 +1,11 @@
-package com.kyonggi.diet.diet;
+package com.kyonggi.diet.dietContent;
 
-import com.kyonggi.diet.diet.DTO.CreateNewDietForm;
-import com.kyonggi.diet.diet.DTO.DietDTO;
-import com.kyonggi.diet.diet.service.DietService;
-import com.kyonggi.diet.diet.service.Impl.DietServiceImpl;
-import com.kyonggi.diet.dietContent.DietContentDTO;
+import com.kyonggi.diet.dietContent.DTO.CreateNewDietForm;
+import com.kyonggi.diet.dietContent.DTO.DietContentDTO;
+import com.kyonggi.diet.dietContent.service.DietContentService;
+import com.kyonggi.diet.diet.DietDTO;
 import com.kyonggi.diet.dietFood.DietFoodDTO;
 import com.kyonggi.diet.dietFood.service.DietFoodService;
-import com.kyonggi.diet.dietFood.service.Impl.DietFoodServiceImpl;
 import com.kyonggi.diet.dietFood.DietFoodType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,28 +18,27 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/restaurant/dormitory/diet")
 @Slf4j
 @CrossOrigin("*")
-public class DietController {
+public class DietContentController {
 
-    private final DietService dietService;
+    private final DietContentService dietContentService;
     private final DietFoodService dietFoodService;
 
     @GetMapping("")
-    public Map<String, DietDTO> dormitoryHome() {
+    public Map<String, DietContentDTO> dormitoryHome() {
             LocalDate today = LocalDate.now();
             LocalDate startOfWeek = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
             LocalDate endOfWeek = today.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
 
-            List<DietDTO> diets = dietService.findDietsBetweenDates(startOfWeek, endOfWeek);
+            List<DietContentDTO> diets = dietContentService.findDietsBetweenDates(startOfWeek, endOfWeek);
 
-            Map<String, DietDTO> dietMap = new HashMap<>();
-            for (DietDTO diet : diets) {
+            Map<String, DietContentDTO> dietMap = new HashMap<>();
+            for (DietContentDTO diet : diets) {
                 LocalDate localDate = LocalDate.parse(diet.getDate());
                 DayOfWeek dayOfWeek = localDate.getDayOfWeek();
 
@@ -81,32 +78,32 @@ public class DietController {
     @PostMapping("/new")
     public ResponseEntity<String> createDiet(@RequestBody CreateNewDietForm form) {
         List<DietFoodDTO> dietFoods = new ArrayList<>();
-        List<DietContentDTO> dietContentDTOS = new ArrayList<>();
+        List<DietDTO> dietDTOS = new ArrayList<>();
         if(dietFoodService.findDietFood(form.getRice()) != null) {
-            dietContentDTOS.add(DietContentDTO.builder()
+            dietDTOS.add(DietDTO.builder()
                     .dietFoodDTO(dietFoodService.findDietFood(form.getRice())).build());
         }
         for (DietFoodDTO side : dietFoodService.findDietFoodsByIdList(form.getSide())) {
-            dietContentDTOS.add(DietContentDTO.builder()
+            dietDTOS.add(DietDTO.builder()
                     .dietFoodDTO(side).build());
         }
         if(dietFoodService.findDietFood(form.getSoup()) != null) {
-            dietContentDTOS.add(DietContentDTO.builder()
+            dietDTOS.add(DietDTO.builder()
                     .dietFoodDTO(dietFoodService.findDietFood(form.getSoup())).build());
         }
         for (DietFoodDTO desert : dietFoodService.findDietFoodsByIdList(form.getDesert())) {
-            dietContentDTOS.add(DietContentDTO.builder()
+            dietDTOS.add(DietDTO.builder()
                     .dietFoodDTO(desert).build());
         }
-        DietDTO dietDTO = DietDTO.builder()
+        DietContentDTO dietContentDTO = DietContentDTO.builder()
                                 .date(form.getDate())
                                         .time(DietTime.LUNCH)
-                                                .contents(dietContentDTOS)
+                                                .contents(dietDTOS)
                                                         .build();
         for (DietFoodDTO dietFood : dietFoodService.findDietFoodsByIdList(form.getSide())) {
             log.info("하잉: {}",dietFood.getName());
         }
-        dietService.save(dietDTO);
+        dietContentService.save(dietContentDTO);
 
         return ResponseEntity.ok("Created Diet!");
     }

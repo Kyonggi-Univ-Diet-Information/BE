@@ -1,6 +1,6 @@
 package com.kyonggi.diet.dietFood;
 
-import com.kyonggi.diet.dietContent.DietContent;
+import com.kyonggi.diet.diet.Diet;
 import com.kyonggi.diet.review.Review;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -29,6 +29,6 @@ public class DietFood {
     private List<Review> reviews;
 
     @OneToMany(mappedBy = "dietFood")
-    private List<DietContent> contents;
+    private List<Diet> contents;
 
 }

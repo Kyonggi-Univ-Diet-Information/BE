@@ -1,7 +1,7 @@
 --Insert into member values(1,'1@naver.com','user1','url1','type1');
 Insert into restaurant values (1, '기숙사', 'DORMITORY');
---insert into diet values (1, '20240801', 'LUNCH');
---insert into diet values (2, '20240802', 'LUNCH');
+--insert into dietContent values (1, '20240801', 'LUNCH');
+--insert into dietContent values (2, '20240802', 'LUNCH');
 --insert into review values (4.8,1,1,1,'A','a');
 --Insert into member values(2,'2@naver.com','user2','url2','type2');
 --insert into review values (3.5,2,1,2,'C','c');

@@ -1,5 +1,5 @@
 package com.kyonggi.diet.review;
-import com.kyonggi.diet.diet.Diet;
+import com.kyonggi.diet.dietContent.DietContent;
 import com.kyonggi.diet.member.MemberEntity;
 import com.kyonggi.diet.restaurant.Restaurant;
 
@@ -34,11 +34,11 @@ public class ReviewTest {
         em.persist(member);
 
         //Diet 객체 생성 및 db저장
-        Diet diet = Diet.builder()
+        DietContent dietContent = DietContent.builder()
                 .date("1")
                 .build();
 
-        em.persist(diet);
+        em.persist(dietContent);
 
         Restaurant restaurant =
                 Restaurant
@@ -77,9 +77,9 @@ public class ReviewTest {
         em.persist(member);
 
         //Diet 객체 생성 및 db저장
-        Diet diet = Diet.builder()
+        DietContent dietContent = DietContent.builder()
                 .date("1").build();
-        em.persist(diet);
+        em.persist(dietContent);
 
         Restaurant restaurant = Restaurant
                                 .builder()
@@ -119,9 +119,9 @@ public class ReviewTest {
         em.persist(member);
 
         //Diet 객체 생성 및 db저장
-        Diet diet = Diet.builder()
+        DietContent dietContent = DietContent.builder()
                 .date("1").build();
-        em.persist(diet);
+        em.persist(dietContent);
 
         Restaurant restaurant = Restaurant
                                 .builder()

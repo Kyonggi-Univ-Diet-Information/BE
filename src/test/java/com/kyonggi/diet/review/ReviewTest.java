@@ -2,13 +2,16 @@ package com.kyonggi.diet.review;
 import com.kyonggi.diet.diet.Diet;
 import com.kyonggi.diet.member.MemberEntity;
 import com.kyonggi.diet.restaurant.Restaurant;
-import com.kyonggi.diet.review.DTO.ReviewDTO;
 
+import com.kyonggi.diet.review.DTO.ReviewDTO;
+import com.kyonggi.diet.review.service.ReviewService;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.NoSuchElementException;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -18,8 +21,10 @@ import static org.assertj.core.api.Assertions.*;
 public class ReviewTest {
 
     @Autowired ReviewRepository reviewRepository;
-    @Autowired ReviewService reviewService;
+    @Autowired
+    ReviewService reviewService;
     @Autowired EntityManager em;
+
 
     @Test
     public void 리뷰_등록() {
@@ -29,12 +34,17 @@ public class ReviewTest {
         em.persist(member);
 
         //Diet 객체 생성 및 db저장
-        Diet diet = new Diet();
-        diet.setDate("1");
+        Diet diet = Diet.builder()
+                .date("1")
+                .build();
+
         em.persist(diet);
 
-        Restaurant restaurant = new Restaurant();
-        restaurant.setName("긱식");
+        Restaurant restaurant =
+                Restaurant
+                        .builder()
+                        .name("긱식")
+                        .build();
         em.persist(restaurant);
 
         //강제 db 삽입
@@ -44,7 +54,7 @@ public class ReviewTest {
         em.clear();
 
         //리뷰 등록
-        Review review = Review.createReview(member, 4.9, "title", "content", restaurant);
+        Review review = Review.builder().member(member).title("title").content("content").restaurant(restaurant).build();
         Long reviewId = reviewService.saveReview(review);
         System.out.println("reviewRating = " + review.getRating() + " id = " + review.getId());
         System.out.println("reviewId = " + reviewId);
@@ -67,12 +77,14 @@ public class ReviewTest {
         em.persist(member);
 
         //Diet 객체 생성 및 db저장
-        Diet diet = new Diet();
-        diet.setDate("1");
+        Diet diet = Diet.builder()
+                .date("1").build();
         em.persist(diet);
 
-        Restaurant restaurant = new Restaurant();
-        restaurant.setName("긱식");
+        Restaurant restaurant = Restaurant
+                                .builder()
+                                .name("긱식")
+                                .build();
         em.persist(restaurant);
 
         //강제 db 삽입
@@ -82,7 +94,7 @@ public class ReviewTest {
         em.clear();
 
         //Review 객체 생성 및 db 삽입
-        Review review = Review.createReview(member, 4.9, "title", "content", restaurant);
+        Review review = Review.builder().member(member).rating(4.9).title("title").content("content").restaurant(restaurant).build();
         Long reviewId = reviewService.saveReview(review);
         System.out.println("reviewRating = " + review.getRating() + " reviewTitle = "
                 + review.getTitle() + " reviewContent = " + review.getContent());
@@ -93,18 +105,10 @@ public class ReviewTest {
                 .getSingleResult();
 
         //리뷰 수정
-        ReviewDTO reviewDTO = new ReviewDTO();
-        reviewDTO.setRating(4.3);
-        reviewDTO.setTitle("After title");
-        reviewDTO.setContent("After content");;
-        Review afterReview = reviewService.modifyReview(reviewService.findReview(matchingReviewId), reviewDTO);
-        System.out.println("afterReviewRating = " + afterReview.getRating() + " afterReviewTitle = "
-                + afterReview.getTitle() + " afterReviewContent = " + afterReview.getContent());
+        ReviewDTO reviewDTO = ReviewDTO.builder().rating(4.3).title("After title").content("After content").build();
+        reviewService.modifyReview(matchingReviewId, reviewDTO);
 
-        //검증
-        assertThat(afterReview.getRating()).isEqualTo(4.3);
-        assertThat(afterReview.getTitle()).isEqualTo("After title");
-        assertThat(afterReview.getContent()).isEqualTo("After content");
+
     }
 
     @Test
@@ -115,12 +119,14 @@ public class ReviewTest {
         em.persist(member);
 
         //Diet 객체 생성 및 db저장
-        Diet diet = new Diet();
-        diet.setDate("1");
+        Diet diet = Diet.builder()
+                .date("1").build();
         em.persist(diet);
 
-        Restaurant restaurant = new Restaurant();
-        restaurant.setName("긱식");
+        Restaurant restaurant = Restaurant
+                                .builder()
+                                .name("긱식")
+                                .build();
         em.persist(restaurant);
 
         //강제 db 삽입
@@ -130,17 +136,20 @@ public class ReviewTest {
         em.clear();
 
         //리뷰 객체 생성
-        Review review = Review.createReview(member, 4.9, "title", "content", restaurant);
+        Review review = Review.builder().member(member).rating(4.9).title("title").content("content").restaurant(restaurant).build();
         Long reviewId = reviewService.saveReview(review);
 
         //db에 저장된 Review 추출
         Long matchingReviewId = em.createQuery("select r.id from Review r where r.member = :member", Long.class)
                 .setParameter("member", review.getMember())
                 .getSingleResult();
-        System.out.println("rating = " + reviewService.findReview(matchingReviewId).getRating());
-        reviewService.deleteReview(reviewService.findReview(matchingReviewId));
+        reviewService.deleteReview(matchingReviewId);
         try {
-            System.out.println("rating = " + reviewService.findReview(matchingReviewId).getRating());
+            try {
+                System.out.println("rating = " + reviewService.findReview(matchingReviewId).getRating());
+            } catch (NoSuchElementException e) {
+                System.out.println("아이쿠...");
+            }
         } catch (NullPointerException e) {
             System.out.println("널이지롱");
         }

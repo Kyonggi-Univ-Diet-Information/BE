@@ -1,16 +1,20 @@
 package com.kyonggi.diet.dietFood;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.kyonggi.diet.diet.Diet;
+import com.kyonggi.diet.dietContent.DietContent;
 import com.kyonggi.diet.review.Review;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
 @Entity
-@Getter @Setter
+@Getter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class DietFood {
 
     @Id @GeneratedValue
@@ -20,5 +24,11 @@ public class DietFood {
 
     @Enumerated(value = EnumType.STRING)
     private DietFoodType dietFoodType;
+
+    @OneToMany(mappedBy = "dietFood", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Review> reviews;
+
+    @OneToMany(mappedBy = "dietFood")
+    private List<DietContent> contents;
 
 }

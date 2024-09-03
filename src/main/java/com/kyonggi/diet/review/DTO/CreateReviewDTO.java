@@ -9,10 +9,9 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class ReviewDTO {
+public class CreateReviewDTO {
 
     private double rating;
     private String title;
     private String content;
-    private String memberName;
 }

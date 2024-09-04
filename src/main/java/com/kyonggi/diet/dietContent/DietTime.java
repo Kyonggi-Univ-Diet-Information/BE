@@ -1,4 +1,4 @@
-package com.kyonggi.diet.diet;
+package com.kyonggi.diet.dietContent;
 
 public enum DietTime {
     BREAKFAST,

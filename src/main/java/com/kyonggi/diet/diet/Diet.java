@@ -1,12 +1,13 @@
 package com.kyonggi.diet.diet;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.kyonggi.diet.dietContent.DietContent;
 import com.kyonggi.diet.dietFood.DietFood;
-import com.kyonggi.diet.review.Review;
 import jakarta.persistence.*;
-import lombok.*;
-
-import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
@@ -19,12 +20,13 @@ public class Diet {
     @Column(name = "diet_id")
     private Long id;
 
-    private String date;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "diet_content_id")
+    @JsonIgnore
+    private DietContent dietContent;
 
-    @Enumerated(value = EnumType.STRING)
-    private DietTime time;
-
-    @OneToMany(mappedBy = "diet")
-    private List<DietContent> contents;
-
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "diet_food_id")
+    @JsonIgnore
+    private DietFood dietFood;
 }

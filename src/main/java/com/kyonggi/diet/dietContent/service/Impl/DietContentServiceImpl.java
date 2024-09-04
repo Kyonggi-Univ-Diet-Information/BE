@@ -1,12 +1,12 @@
-package com.kyonggi.diet.diet.service.Impl;
+package com.kyonggi.diet.dietContent.service.Impl;
 
-import com.kyonggi.diet.diet.DTO.DietDTO;
-import com.kyonggi.diet.diet.Diet;
 import com.kyonggi.diet.diet.DietRepository;
-import com.kyonggi.diet.diet.service.DietService;
+import com.kyonggi.diet.dietContent.DTO.DietContentDTO;
 import com.kyonggi.diet.dietContent.DietContent;
-import com.kyonggi.diet.dietContent.DietContentDTO;
 import com.kyonggi.diet.dietContent.DietContentRepository;
+import com.kyonggi.diet.dietContent.service.DietContentService;
+import com.kyonggi.diet.diet.Diet;
+import com.kyonggi.diet.diet.DietDTO;
 import com.kyonggi.diet.dietFood.DietFood;
 import com.kyonggi.diet.dietFood.service.DietFoodService;
 import jakarta.persistence.EntityNotFoundException;
@@ -25,11 +25,11 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 @Slf4j
-public class DietServiceImpl implements DietService {
+public class DietContentServiceImpl implements DietContentService {
 
-    private final DietRepository dietRepository;
-    private final DietFoodService dietFoodService;
     private final DietContentRepository dietContentRepository;
+    private final DietFoodService dietFoodService;
+    private final DietRepository dietRepository;
     private final ModelMapper modelMapper;
 
     /**
@@ -38,34 +38,34 @@ public class DietServiceImpl implements DietService {
      * @return diet (Diet)
      */
     @Override
-    public Diet findOne(Long id) {
-        return dietRepository.findById(id)
+    public DietContent findOne(Long id) {
+        return dietContentRepository.findById(id)
                 .orElseThrow(()-> new NoSuchElementException("Diet not found with id: " + id));
     }
 
     /**
      * 저장 메서드
-     * @param dietDTO (DietDTO)
+     * @param dietContentDTO (DietDTO)
      */
     @Transactional
     @Override
-    public void save(DietDTO dietDTO) {
-        Diet diet = Diet.builder()
-                                    .date(dietDTO.getDate())
-                                    .time(dietDTO.getTime())
+    public void save(DietContentDTO dietContentDTO) {
+        DietContent dietContent = DietContent.builder()
+                                    .date(dietContentDTO.getDate())
+                                    .time(dietContentDTO.getTime())
                                     .build();
-        dietRepository.save(diet);
+        dietContentRepository.save(dietContent);
 
-        List<DietContent> findContents = dietDTO.getContents().stream()
-                        .map(data -> convertToEntity(data, diet))
+        List<Diet> findContents = dietContentDTO.getContents().stream()
+                        .map(data -> convertToEntity(data, dietContent))
                         .collect(Collectors.toList());
-        dietContentRepository.saveAll(findContents);
+        dietRepository.saveAll(findContents);
     }
 
-    private DietContent convertToEntity(DietContentDTO dto, Diet diet){
+    private Diet convertToEntity(DietDTO dto, DietContent dietContent){
         DietFood dietFood = dietFoodService.convertToEntity(dto.getDietFoodDTO());
-        return DietContent.builder()
-                            .diet(diet)
+        return Diet.builder()
+                            .dietContent(dietContent)
                             .dietFood(dietFood)
                             .build();
     }
@@ -77,9 +77,9 @@ public class DietServiceImpl implements DietService {
      * @return DietDTO
      */
     @Override
-    public DietDTO findDiet(Long id) {
-        Diet diet = findOne(id);
-        return mapToDietDTO(diet);
+    public DietContentDTO findDiet(Long id) {
+        DietContent dietContent = findOne(id);
+        return mapToDietDTO(dietContent);
     }
 
     /**
@@ -87,24 +87,24 @@ public class DietServiceImpl implements DietService {
      * @return List<DietDTO>
      */
     @Override
-    public List<DietDTO> findAll() {
-        List<Diet> diets = dietRepository.findAll();
-        if (diets.isEmpty()) {
+    public List<DietContentDTO> findAll() {
+        List<DietContent> dietContents = dietContentRepository.findAll();
+        if (dietContents.isEmpty()) {
             throw new EntityNotFoundException("Diets not found");
         }
-        return diets.stream()
+        return dietContents.stream()
                 .map(this::mapToDietDTO)
                 .collect(Collectors.toList());
     }
 
     /**
      * Diet 삭제 메서드
-     * @param diet (Diet)
+     * @param dietContent (Diet)
      */
     @Transactional
     @Override
-    public void delete(Diet diet) {
-        dietRepository.delete(diet);
+    public void delete(DietContent dietContent) {
+        dietContentRepository.delete(dietContent);
     }
 
     /**
@@ -114,22 +114,22 @@ public class DietServiceImpl implements DietService {
      * @return List<Diet>
      */
     @Override
-    public List<DietDTO> findDietsBetweenDates(LocalDate startOfWeek, LocalDate endOfWeek) {
-        List<Diet> diets = dietRepository.findDietsBetweenDates(startOfWeek.toString(), endOfWeek.toString());
-        if (diets.isEmpty()) {
+    public List<DietContentDTO> findDietsBetweenDates(LocalDate startOfWeek, LocalDate endOfWeek) {
+        List<DietContent> dietContents = dietContentRepository.findDietsBetweenDates(startOfWeek.toString(), endOfWeek.toString());
+        if (dietContents.isEmpty()) {
             throw new EntityNotFoundException("Can't find diets between start of week and end of week");
         }
-        return diets.stream()
+        return dietContents.stream()
                 .map(this::mapToDietDTO)
                 .collect(Collectors.toList());
     }
 
     /**
      * Diet -> DietDTO
-     * @param diet (Diet)
+     * @param dietContent (Diet)
      * @return DietDTO (DietDTO)
      */
-    private DietDTO mapToDietDTO(Diet diet) {
-        return modelMapper.map(diet, DietDTO.class);
+    private DietContentDTO mapToDietDTO(DietContent dietContent) {
+        return modelMapper.map(dietContent, DietContentDTO.class);
     }
 }

@@ -1,8 +1,6 @@
-package com.kyonggi.diet.diet.DTO;
+package com.kyonggi.diet.dietContent.DTO;
 
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.util.List;
 

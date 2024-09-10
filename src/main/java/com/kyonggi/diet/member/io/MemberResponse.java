@@ -13,8 +13,6 @@ import java.sql.Timestamp;
 @Builder
 public class MemberResponse {
 
-    private String profileId;
-
     private String email;
 
     private String name;

@@ -15,8 +15,6 @@ public class MemberResponse {
 
     private String email;
 
-    private String password;
-
     private String name;
 
     private String profileUrl;

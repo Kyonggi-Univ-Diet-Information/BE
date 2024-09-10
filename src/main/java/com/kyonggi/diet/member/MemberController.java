@@ -1,10 +1,12 @@
 package com.kyonggi.diet.member;
 
+import com.kyonggi.diet.member.io.MemberRequest;
 import com.kyonggi.diet.member.io.MemberResponse;
 import com.kyonggi.diet.member.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,6 +25,16 @@ public class MemberController {
 
     private final MemberService memberService;
     private final ModelMapper modelMapper;
+
+    @ResponseStatus(HttpStatus.CREATED)
+    @PostMapping("/register")
+    public MemberResponse register(@RequestBody MemberRequest memberRequest) {
+        log.info("API GET /register called");
+        MemberDTO memberDTO = mapToMemberDTO(memberRequest);
+        memberDTO = memberService.createMember(memberDTO);
+        log.info("Member DTO details {}", memberDTO);
+        return mapToMemberReponse(memberDTO);
+    }
 
     /**
      * 모든 멤버 정보를 반환합니다.
@@ -51,5 +63,9 @@ public class MemberController {
      */
     private MemberResponse mapToMemberReponse(MemberDTO memberDTO) {
         return modelMapper.map(memberDTO, MemberResponse.class);
+    }
+
+    private MemberDTO mapToMemberDTO(MemberRequest memberRequest) {
+        return modelMapper.map(memberRequest, MemberDTO.class);
     }
 }

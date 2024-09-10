@@ -9,16 +9,17 @@ import java.sql.Timestamp;
 
 @Entity
 @Table(name = "tbl_members")
-@Data
+@Getter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 public class MemberEntity {
 
-    @Id @GeneratedValue
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "member_id")
     private Long id;
 
+    @Column(unique = true)
     private String email;
 
     private String password;

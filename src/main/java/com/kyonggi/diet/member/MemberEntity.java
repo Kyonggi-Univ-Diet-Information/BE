@@ -15,10 +15,14 @@ import java.sql.Timestamp;
 @Builder
 public class MemberEntity {
 
-    @Id @GeneratedValue
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "member_id")
     private Long id;
 
+    @Column(unique = true)
+    private String profileId;
+
+    @Column(unique = true)
     private String email;
 
     private String password;

@@ -11,6 +11,12 @@ import java.util.List;
 public interface MemberService {
 
     /**
+     * 데이터베이스에 멤버 정보를 저장합니다
+     * @param memberDTO (member dto)
+     * @return memberDTO
+     */
+    MemberDTO createMember(MemberDTO memberDTO);
+    /**
      * 데이터베이스로 부터 멤버 데이터를 모두 가져옵니다
      * @return list of memberDTO
      */

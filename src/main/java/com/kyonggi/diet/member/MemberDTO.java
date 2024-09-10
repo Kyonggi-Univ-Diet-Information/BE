@@ -10,6 +10,8 @@ import java.sql.Timestamp;
 @Builder
 public class MemberDTO {
 
+    private String profileId;
+
     private String email;
 
     private String password;

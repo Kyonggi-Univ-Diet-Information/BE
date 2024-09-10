@@ -35,7 +35,7 @@ public class MemberServiceImpl implements MemberService {
         //TODO: 중복된 계정 예외처리 추가
         //TODO: 비밀번호 인코드 과정 추가
         MemberEntity memberEntity = mapToMemberEntity(memberDTO);
-        memberEntity.setProfileId(UUID.randomUUID().toString());
+        memberEntity.setMemberId(UUID.randomUUID().toString());
         memberEntity = memberRepository.save(memberEntity);
         log.info("멤버 정보를 생성하였습니다 {}", memberEntity);
         return mapToMemberDTO(memberEntity);

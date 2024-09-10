@@ -20,7 +20,7 @@ public class MemberEntity {
     private Long id;
 
     @Column(unique = true)
-    private String profileId;
+    private String memberId;
 
     @Column(unique = true)
     private String email;

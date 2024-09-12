@@ -1,6 +1,6 @@
 package com.kyonggi.diet.restaurant;
 
-import com.kyonggi.diet.review.Review;
+import com.kyonggi.diet.review.domain.RestaurantReview;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -17,9 +17,13 @@ public class Restaurant {
     @Column(name = "restaurant_id")
     private Long id;
     private String name;
+    private String description; //소개
+    private String time; //운영시간
+
+    //private String menu;
 
     @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Review> reviews;
+    private List<RestaurantReview> restaurantReviews;
 
     @Enumerated(value = EnumType.STRING)
     @Column(unique = true)

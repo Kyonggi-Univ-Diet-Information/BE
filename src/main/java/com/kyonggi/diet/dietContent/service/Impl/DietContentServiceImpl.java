@@ -8,6 +8,7 @@ import com.kyonggi.diet.dietContent.service.DietContentService;
 import com.kyonggi.diet.diet.Diet;
 import com.kyonggi.diet.diet.DietDTO;
 import com.kyonggi.diet.dietFood.DietFood;
+import com.kyonggi.diet.dietFood.DietFoodDTO;
 import com.kyonggi.diet.dietFood.service.DietFoodService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
@@ -33,19 +35,19 @@ public class DietContentServiceImpl implements DietContentService {
     private final ModelMapper modelMapper;
 
     /**
-     * Diet 엔티티 조회
+     * DietContent 엔티티 조회
      * @param id (Long)
-     * @return diet (Diet)
+     * @return dietContent (DietContent)
      */
     @Override
     public DietContent findOne(Long id) {
         return dietContentRepository.findById(id)
-                .orElseThrow(()-> new NoSuchElementException("Diet not found with id: " + id));
+                .orElseThrow(()-> new NoSuchElementException("DietContent not found with id: " + id));
     }
 
     /**
      * 저장 메서드
-     * @param dietContentDTO (DietDTO)
+     * @param dietContentDTO (DietContentDTO)
      */
     @Transactional
     @Override
@@ -62,44 +64,78 @@ public class DietContentServiceImpl implements DietContentService {
         dietRepository.saveAll(findContents);
     }
 
+    /**
+     * DietDto ->  Diet Entity
+     * @param dto (DietDTO)
+     * @param dietContent (DietContent)
+     * @return Diet
+     */
     private Diet convertToEntity(DietDTO dto, DietContent dietContent){
         DietFood dietFood = dietFoodService.convertToEntity(dto.getDietFoodDTO());
         return Diet.builder()
-                            .dietContent(dietContent)
-                            .dietFood(dietFood)
-                            .build();
+                .dietContent(dietContent)
+                .dietFood(dietFood)
+                .build();
     }
 
 
     /**
-     * Diet DTO 조회
+     * DietContent DTO 조회
      * @param id (Long)
-     * @return DietDTO
+     * @return DietContentDTO
      */
     @Override
-    public DietContentDTO findDiet(Long id) {
+    public DietContentDTO findDietContent(Long id) {
         DietContent dietContent = findOne(id);
-        return mapToDietDTO(dietContent);
+
+        List<DietDTO> dietDTOS = dietContent.getContents().stream().map(diet -> {
+            DietFoodDTO dietFoodDTO = DietFoodDTO.builder()
+                    .id(diet.getDietFood().getId())
+                    .name(diet.getDietFood().getName())
+                    .type(diet.getDietFood().getDietFoodType())
+                    .dietFoodReviews(diet.getDietFood().getDietFoodReviews()).build();
+
+            return DietDTO.builder()
+                    .id(diet.getId())
+                    .dietFoodDTO(dietFoodDTO).build();
+        }).toList();
+
+        DietContentDTO dietContentDTO = mapToDietContentDTO(dietContent);
+        dietContentDTO.setContents(dietDTOS);
+
+        return dietContentDTO;
     }
 
     /**
-     * Diet DTO 리스트 조회
-     * @return List<DietDTO>
+     * DietContent DTO 리스트 조회
+     * @return List<DietContentDTO>
      */
     @Override
     public List<DietContentDTO> findAll() {
         List<DietContent> dietContents = dietContentRepository.findAll();
         if (dietContents.isEmpty()) {
-            throw new EntityNotFoundException("Diets not found");
+            throw new EntityNotFoundException("DietContents not found");
         }
-        return dietContents.stream()
-                .map(this::mapToDietDTO)
-                .collect(Collectors.toList());
+        return dietContents.stream().map(dietContent -> {
+            List<DietDTO> dietDTOs = dietContent.getContents().stream().map(diet -> {
+                DietFoodDTO dietFoodDTO = DietFoodDTO.builder()
+                        .id(diet.getDietFood().getId())
+                        .name(diet.getDietFood().getName())
+                        .type(diet.getDietFood().getDietFoodType())
+                        .dietFoodReviews(diet.getDietFood().getDietFoodReviews()).build();
+                return DietDTO.builder()
+                        .id(diet.getId())
+                        .dietFoodDTO(dietFoodDTO).build();
+            }).collect(Collectors.toList());
+            DietContentDTO dietContentDTO = mapToDietContentDTO(dietContent);
+            dietContentDTO.setContents(dietDTOs);
+            return dietContentDTO;
+        }).collect(Collectors.toList());
     }
 
     /**
-     * Diet 삭제 메서드
-     * @param dietContent (Diet)
+     * DietContent 삭제 메서드
+     * @param dietContent (DietContent)
      */
     @Transactional
     @Override
@@ -111,25 +147,41 @@ public class DietContentServiceImpl implements DietContentService {
      * 이번 주의 Diet 조회
      * @param startOfWeek (LocalDate)
      * @param endOfWeek (LocalDate)
-     * @return List<Diet>
+     * @return List<DietContentDTO>
      */
     @Override
-    public List<DietContentDTO> findDietsBetweenDates(LocalDate startOfWeek, LocalDate endOfWeek) {
+    public List<DietContentDTO> findDietContentsBetweenDates(LocalDate startOfWeek, LocalDate endOfWeek) {
         List<DietContent> dietContents = dietContentRepository.findDietsBetweenDates(startOfWeek.toString(), endOfWeek.toString());
         if (dietContents.isEmpty()) {
-            throw new EntityNotFoundException("Can't find diets between start of week and end of week");
+            throw new EntityNotFoundException("Can't find dietContents between start of week and end of week");
         }
-        return dietContents.stream()
-                .map(this::mapToDietDTO)
-                .collect(Collectors.toList());
+
+        return dietContents.stream().map(dietContent -> {
+            List<DietDTO> dietDTOs = dietContent.getContents().stream().map(diet -> {
+                DietFoodDTO dietFoodDTO = DietFoodDTO.builder()
+                        .id(diet.getDietFood().getId())
+                        .name(diet.getDietFood().getName())
+                        .type(diet.getDietFood().getDietFoodType())
+                        .dietFoodReviews(diet.getDietFood().getDietFoodReviews()).build();
+
+                return DietDTO.builder()
+                        .id(diet.getId())
+                        .dietFoodDTO(dietFoodDTO).build();
+            }).collect(Collectors.toList());
+
+            DietContentDTO dietContentDTO = mapToDietContentDTO(dietContent);
+            dietContentDTO.setContents(dietDTOs);
+
+            return dietContentDTO;
+        }).collect(Collectors.toList());
     }
 
     /**
-     * Diet -> DietDTO
-     * @param dietContent (Diet)
-     * @return DietDTO (DietDTO)
+     * DietContent -> DietContentDTO
+     * @param dietContent (DietContent)
+     * @return DietContentDTO (DietContentDTO)
      */
-    private DietContentDTO mapToDietDTO(DietContent dietContent) {
+    private DietContentDTO mapToDietContentDTO(DietContent dietContent) {
         return modelMapper.map(dietContent, DietContentDTO.class);
     }
 }

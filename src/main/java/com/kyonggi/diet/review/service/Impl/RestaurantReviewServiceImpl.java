@@ -1,17 +1,16 @@
 package com.kyonggi.diet.review.service.Impl;
 
-import com.kyonggi.diet.dietFood.DietFood;
 import com.kyonggi.diet.dietFood.service.DietFoodService;
 import com.kyonggi.diet.member.MemberEntity;
 import com.kyonggi.diet.member.MemberRepository;
-import com.kyonggi.diet.member.service.MemberService;
 import com.kyonggi.diet.restaurant.Restaurant;
+import com.kyonggi.diet.restaurant.RestaurantRepository;
 import com.kyonggi.diet.restaurant.RestaurantType;
 import com.kyonggi.diet.restaurant.service.RestaurantService;
-import com.kyonggi.diet.review.Review;
+import com.kyonggi.diet.review.domain.RestaurantReview;
 import com.kyonggi.diet.review.DTO.ReviewDTO;
-import com.kyonggi.diet.review.ReviewRepository;
-import com.kyonggi.diet.review.service.ReviewService;
+import com.kyonggi.diet.review.repository.RestaurantReviewRepository;
+import com.kyonggi.diet.review.service.RestaurantReviewService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,34 +24,33 @@ import java.util.stream.Collectors;
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
-public class ReviewServiceImpl implements ReviewService {
+public class RestaurantReviewServiceImpl implements RestaurantReviewService {
 
-    private final ReviewRepository reviewRepository;
+    private final RestaurantReviewRepository restaurantReviewRepository;
     private final MemberRepository memberRepository;
     private final RestaurantService restaurantService;
-    private final DietFoodService dietFoodService;
     private final ModelMapper modelMapper;
 
     /**
-     * Review 엔티티 조회
+     * 식당 Review 엔티티 조회
      * @param id (Long)
      * @return Review
      */
     @Override
-    public Review findOne(Long id) {
-        return reviewRepository.findById(id)
+    public RestaurantReview findOne(Long id) {
+        return restaurantReviewRepository.findById(id)
                 .orElseThrow(()->new NoSuchElementException("Review not found with id: " + id));
     }
 
     /**
-     * 저장 메서드
-     * @param review (Review)
+     * 식당 리뷰 저장 메서드
+     * @param restaurantReview (Review)
      */
     @Override
     @Transactional
-    public Long saveReview(Review review) {
-        reviewRepository.save(review);
-        return review.getId();
+    public Long saveReview(RestaurantReview restaurantReview) {
+        restaurantReviewRepository.save(restaurantReview);
+        return restaurantReview.getId();
     }
 
     /**
@@ -67,108 +65,92 @@ public class ReviewServiceImpl implements ReviewService {
         MemberEntity member = memberRepository.findById(memberId)
                 .orElseThrow(()-> new NoSuchElementException("No found Member"));
 
-        Review review = Review.builder()
+        RestaurantReview restaurantReview = RestaurantReview.builder()
                 .title(reviewDTO.getTitle())
                 .content(reviewDTO.getContent())
                 .rating(reviewDTO.getRating())
                 .restaurant(restaurant)
                 .member(member)
                 .build();
-        saveReview(review);
+        saveReview(restaurantReview);
 
-        restaurant.getReviews().add(review);
+        restaurant.getRestaurantReviews().add(restaurantReview);
         restaurantService.save(restaurant);
     }
 
-    @Override
-    @Transactional
-    public void createDietFoodReview(ReviewDTO reviewDTO, Long dietFoodId, Long memberId) {
-        DietFood dietFood = dietFoodService.findOne(dietFoodId);
-        MemberEntity member = memberRepository.findById(memberId)
-                .orElseThrow(()-> new NoSuchElementException("No member found"));
 
-        Review review = Review.builder()
-                .title(reviewDTO.getTitle())
-                .content(reviewDTO.getContent())
-                .rating(reviewDTO.getRating())
-                .dietFood(dietFood)
-                .member(member)
-                .build();
-        saveReview(review);
-
-        dietFood.getReviews().add(review);
-        dietFoodService.save(dietFood);
-    }
 
     /**
-     * Review DTO 조회
+     * 식당 Review DTO 조회
      * @param id (Long)
      * @return ReviewDTO
      */
     @Override
     public ReviewDTO findReview(Long id) {
-        return mapToReviewDTO(findOne(id));
+        RestaurantReview review = findOne(id);
+        ReviewDTO dto = mapToReviewDTO(review);
+        dto.setMemberName(review.getMember().getName());
+        return dto;
     }
 
     /**
-     * Review DTO 리스트 조회
+     * 식당 Review DTO 리스트 조회
      * @return List<ReviewDTO>
      */
     @Override
     public List<ReviewDTO> findAllReview() {
-        List<Review> reviews = reviewRepository.findAll();
-        if (reviews.isEmpty()) {
+        List<RestaurantReview> restaurantReviews = restaurantReviewRepository.findAll();
+        if (restaurantReviews.isEmpty()) {
                     throw new EntityNotFoundException("Can't find reviews");
         }
-        return  reviews.stream()
-                .map(this::mapToReviewDTO)
-                .toList();
+        return restaurantReviews.stream().map(review -> {
+            ReviewDTO reviewDTO = mapToReviewDTO(review);
+            reviewDTO.setMemberName(review.getMember().getName());
+            return reviewDTO;
+        }).collect(Collectors.toList());
     }
 
     /**
-     * 리뷰 수정 메서드
+     * 식당 리뷰 수정 메서드
      * @param reviewId (Long)
      * @param reviewDTO (ReviewDTO)
      */
     @Override
     @Transactional
     public void modifyReview(Long reviewId, ReviewDTO reviewDTO) {
-        Review review = findOne(reviewId);
-        review.updateReview(reviewDTO.getRating(), reviewDTO.getTitle(), reviewDTO.getContent());
-        saveReview(review);
+        RestaurantReview restaurantReview = findOne(reviewId);
+        restaurantReview.updateReview(reviewDTO.getRating(), reviewDTO.getTitle(), reviewDTO.getContent());
+        saveReview(restaurantReview);
     }
 
     /**
-     * 리뷰 삭제 메서드
+     * 식당 리뷰 삭제 메서드
      * @param id (Long)
      */
     @Transactional
     @Override
     public void deleteReview(Long id) {
-        reviewRepository.delete(findOne(id));
+        restaurantReviewRepository.delete(findOne(id));
     }
 
-    /**
-     * 기숙사 식당 리뷰 DTO 조회
-     * @return List<ReviewDTO>
-     */
     @Override
-    public List<ReviewDTO> findAllDormitoryReviews() {
-        List<Review> dormitoryReviews = restaurantService.findDormitory().getReviews();
-        if (dormitoryReviews.isEmpty()) {
-            throw new EntityNotFoundException("Can't find Dormitory reviews");
-        }
-        return dormitoryReviews.stream()
-                .map(this::mapToReviewDTO)
+    public List<ReviewDTO> findReviewsByType(RestaurantType type) {
+        Restaurant restaurant = restaurantService.findRestaurantByType(type);
+        List<RestaurantReview> restaurantReviews = restaurantReviewRepository.findReviewsByRestaurant(restaurant);
+        return restaurantReviews.stream().map(review -> ReviewDTO.builder()
+                .title(review.getTitle())
+                .content(review.getContent())
+                .rating(review.getRating())
+                .memberName(review.getMember().getName()).build())
                 .collect(Collectors.toList());
     }
 
     /**
      * Review -> ReviewDTO
-     * @param review (review)
+     * @param restaurantReview (review)
      * @return ReviewDTO (ReviewDTO)
      */
-    private ReviewDTO mapToReviewDTO(Review review) {
-            return modelMapper.map(review, ReviewDTO.class);
+    private ReviewDTO mapToReviewDTO(RestaurantReview restaurantReview) {
+            return modelMapper.map(restaurantReview, ReviewDTO.class);
         }
 }

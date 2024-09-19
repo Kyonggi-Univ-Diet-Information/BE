@@ -21,7 +21,7 @@ import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/restaurant/dormitory/diet")
+@RequestMapping("/api/diet-content")
 @Slf4j
 @CrossOrigin("*")
 public class DietContentController {
@@ -29,13 +29,13 @@ public class DietContentController {
     private final DietContentService dietContentService;
     private final DietFoodService dietFoodService;
 
-    @GetMapping("")
+    @GetMapping("/dormitory")
     public Map<String, DietContentDTO> dormitoryHome() {
             LocalDate today = LocalDate.now();
             LocalDate startOfWeek = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
             LocalDate endOfWeek = today.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
 
-            List<DietContentDTO> diets = dietContentService.findDietsBetweenDates(startOfWeek, endOfWeek);
+            List<DietContentDTO> diets = dietContentService.findDietContentsBetweenDates(startOfWeek, endOfWeek);
 
             Map<String, DietContentDTO> dietMap = new HashMap<>();
             for (DietContentDTO diet : diets) {

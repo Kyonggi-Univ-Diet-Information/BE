@@ -108,7 +108,6 @@ public class DietFoodServiceImpl implements DietFoodService {
      */
     @Override
     public DietFood convertToEntity(DietFoodDTO DTO) {
-        log.info("아이디: {}",DTO.getId());
         DietFood dietFood = findOne(DTO.getId());
         if (dietFood == null) {
             throw new RuntimeException("DietFood not found with id: " + DTO.getId());

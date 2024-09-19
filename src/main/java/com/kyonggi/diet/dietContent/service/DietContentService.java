@@ -9,38 +9,38 @@ import java.util.List;
 public interface DietContentService {
 
     /**
-     * Diet 엔티티 조회
+     * DietContent 엔티티 조회
      * @param id (Long)
-     * @return diet (Diet)
+     * @return dietContent (DietContent)
      */
     public DietContent findOne(Long id);
 
 
     /**
      * 저장 메서드
-     * @param dietContentDTO (DietDTO)
+     * @param dietContentDTO (DietContentDTO)
      */
     public void save(DietContentDTO dietContentDTO);
 
 
     /**
-     * Diet DTO 조회
+     * DietContent DTO 조회
      * @param id (Long)
-     * @return DietDTO
+     * @return DietContentDTO
      */
-    public DietContentDTO findDiet(Long id);
+    public DietContentDTO findDietContent(Long id);
 
 
     /**
-     * Diet DTO 리스트 조회
-     * @return List<DietDTO>
+     * DietContent DTO 리스트 조회
+     * @return List<DietContentDTO>
      */
     public List<DietContentDTO> findAll();
 
 
     /**
-     * Diet 삭제 메서드
-     * @param dietContent (Diet)
+     * DietContent 삭제 메서드
+     * @param dietContent (DietContent)
      */
     public void delete(DietContent dietContent);
 
@@ -49,7 +49,7 @@ public interface DietContentService {
      * 이번 주의 Diet 조회
      * @param startOfWeek (LocalDate)
      * @param endOfWeek   (LocalDate)
-     * @return List<Diet>
+     * @return List<DietContentDTO>
      */
-    public List<DietContentDTO> findDietsBetweenDates(LocalDate startOfWeek, LocalDate endOfWeek);
+    public List<DietContentDTO> findDietContentsBetweenDates(LocalDate startOfWeek, LocalDate endOfWeek);
 }

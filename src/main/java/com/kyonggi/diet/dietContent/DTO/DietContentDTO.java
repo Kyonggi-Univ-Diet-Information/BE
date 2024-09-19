@@ -1,5 +1,6 @@
 package com.kyonggi.diet.dietContent.DTO;
 
+import com.kyonggi.diet.diet.DietDTO;
 import com.kyonggi.diet.dietContent.DietTime;
 import lombok.*;
 
@@ -13,7 +14,7 @@ public class DietContentDTO {
 
     private Long id;
     private String date;
-    private DietTime time;
-    private List<com.kyonggi.diet.diet.DietDTO> contents;
+    private DietTime time; // [BREAKFAST, LUNCH, DINNER]
+    private List<DietDTO> contents;
 
 }

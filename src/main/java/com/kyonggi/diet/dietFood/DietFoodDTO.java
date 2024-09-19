@@ -1,6 +1,7 @@
 package com.kyonggi.diet.dietFood;
 
-import com.kyonggi.diet.review.Review;
+import com.kyonggi.diet.review.domain.DietFoodReview;
+import com.kyonggi.diet.review.domain.RestaurantReview;
 import lombok.*;
 
 import java.util.List;
@@ -14,5 +15,5 @@ public class DietFoodDTO {
     private Long id;
     private String name;
     private DietFoodType type;
-    private List<Review> reviews;
+    private List<DietFoodReview> dietFoodReviews;
 }

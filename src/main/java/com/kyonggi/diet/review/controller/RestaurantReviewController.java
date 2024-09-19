@@ -33,7 +33,7 @@ public class RestaurantReviewController {
      * 식당 리뷰 모두 조회
      * @return List<ReviewDTO>
      */
-    @GetMapping("/allReview")
+    @GetMapping("/all")
     @ResponseBody
     public List<ReviewDTO> allReview() {
         return restaurantReviewService.findAllReview();

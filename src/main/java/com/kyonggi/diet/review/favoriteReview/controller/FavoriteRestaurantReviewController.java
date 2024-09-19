@@ -56,7 +56,7 @@ public class FavoriteRestaurantReviewController {
      * @param reviewId (Long)
      * @return ResponseEntity
      */
-    @PostMapping("/{memberId}/{reviewId}/createFavorite")
+    @PostMapping("/{memberId}/{reviewId}/create-favorite")
     public ResponseEntity<String> createFavoriteRestaurantReview(@PathVariable("memberId") Long memberId,
                                                                  @PathVariable("reviewId") Long reviewId) {
         favoriteRestaurantReviewService.createFavoriteRestaurantReview(reviewId, memberId);

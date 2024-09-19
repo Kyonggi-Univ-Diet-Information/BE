@@ -15,7 +15,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @CrossOrigin("*")
-@RequestMapping("/api/review/favorite/dietFood")
+@RequestMapping("/api/review/favorite/diet-food")
 @Slf4j
 public class FavoriteDietFoodReviewController {
 
@@ -56,7 +56,7 @@ public class FavoriteDietFoodReviewController {
      * @param reviewId (Long)
      * @return ResponseEntity
      */
-    @PostMapping("/{memberId}/{reviewId}/createFavorite")
+    @PostMapping("/{memberId}/{reviewId}/create-favorite")
     public ResponseEntity<String> createFavoriteDietFoodReview(@PathVariable("memberId") Long memberId,
                                                                  @PathVariable("reviewId") Long reviewId) {
         favoriteDietFoodReviewService.createFavoriteDietFoodReview(reviewId, memberId);

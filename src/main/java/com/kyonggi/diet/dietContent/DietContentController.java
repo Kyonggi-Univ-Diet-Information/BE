@@ -21,7 +21,7 @@ import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/dietContent")
+@RequestMapping("/api/diet-content")
 @Slf4j
 @CrossOrigin("*")
 public class DietContentController {

@@ -15,7 +15,7 @@ import java.util.List;
 @RestController
 @CrossOrigin("*")
 @RequiredArgsConstructor
-@RequestMapping("/api/review/dietFood")
+@RequestMapping("/api/review/diet-food")
 @Slf4j
 public class DietFoodReviewController {
 
@@ -36,7 +36,7 @@ public class DietFoodReviewController {
      * 모든 음식 리뷰 조회
      * @return List<ReviewDTO>
      */
-    @GetMapping("/allReview")
+    @GetMapping("/all")
     @ResponseBody
     public List<ReviewDTO> allReview() {
         return dietFoodReviewService.findAllReview();

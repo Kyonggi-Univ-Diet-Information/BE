@@ -24,7 +24,7 @@ public class WebSecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity.csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(auth -> auth.requestMatchers("api/login", "api/member/register", "api/diet-content/dormitory").permitAll().anyRequest().authenticated())
+                .authorizeHttpRequests(auth -> auth.requestMatchers("api/login", "api/register", "api/diet-content/dormitory").permitAll().anyRequest().authenticated())
                 .httpBasic(Customizer.withDefaults())
                 .build();
     }

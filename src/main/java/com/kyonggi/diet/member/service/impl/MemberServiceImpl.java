@@ -8,6 +8,7 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -28,14 +29,14 @@ public class MemberServiceImpl implements MemberService {
 
     private final MemberRepository memberRepository;
     private final ModelMapper modelMapper;
+    private final PasswordEncoder encoder;
 
     @Override
     public MemberDTO createMember(MemberDTO memberDTO) {
         log.info("멤버 정보 Member DTO {}", memberDTO);
         //TODO: 중복된 계정 예외처리 추가
         //TODO: 비밀번호 인코드 과정 추가
-//        MemberEntity memberEntity = mapToMemberEntity(memberDTO);
-//        memberEntity.setMemberId(UUID.randomUUID().toString());
+        memberDTO.setPassword(encoder.encode(memberDTO.getPassword()));
         MemberEntity memberEntity = MemberEntity.builder()
                 .email(memberDTO.getEmail())
                 .password(memberDTO.getPassword())

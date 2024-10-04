@@ -20,21 +20,10 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @RequestMapping("/api/member")
 @Slf4j
-@CrossOrigin("*")
 public class MemberController {
 
     private final MemberService memberService;
     private final ModelMapper modelMapper;
-
-    @ResponseStatus(HttpStatus.CREATED)
-    @PostMapping("/register")
-    public MemberResponse register(@RequestBody MemberRequest memberRequest) {
-        log.info("API GET /register called");
-        MemberDTO memberDTO = mapToMemberDTO(memberRequest);
-        memberDTO = memberService.createMember(memberDTO);
-        log.info("Member DTO details {}", memberDTO);
-        return mapToMemberReponse(memberDTO);
-    }
 
     /**
      * 모든 멤버 정보를 반환합니다.

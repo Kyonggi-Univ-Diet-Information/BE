@@ -39,11 +39,15 @@ public class DietFoodServiceImpl implements DietFoodService {
 
     /**
      * 저장 메서드
-     * @param dietFood (DietFood)
+     * @param dietFoodDTO (DietFoodDTO)
      */
     @Transactional
     @Override
-    public void save(DietFood dietFood) {
+    public void save(DietFoodDTO dietFoodDTO) {
+        DietFood dietFood = DietFood.builder()
+                .name(dietFoodDTO.getName())
+                .dietFoodType(dietFoodDTO.getType())
+                .build();
         dietFoodRepository.save(dietFood);
     }
 
@@ -113,6 +117,16 @@ public class DietFoodServiceImpl implements DietFoodService {
             throw new RuntimeException("DietFood not found with id: " + DTO.getId());
         }
         return dietFood;
+    }
+
+    /**
+     * 음식 이름으로 DB에 존재 여부
+     * @param name (String)
+     * @return Boolean
+     */
+    @Override
+    public boolean checkExistByName(String name) {
+        return dietFoodRepository.findDietFoodByName(name) != null;
     }
 
     /**

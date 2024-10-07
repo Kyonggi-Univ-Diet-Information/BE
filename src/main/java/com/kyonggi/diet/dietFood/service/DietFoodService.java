@@ -18,9 +18,9 @@ public interface DietFoodService {
 
     /**
      * 저장 메서드
-     * @param dietFood (DietFood)
+     * @param dietFoodDTO (DietFoodDTO)
      */
-    public void save(DietFood dietFood);
+    public void save(DietFoodDTO dietFoodDTO);
 
 
     /**
@@ -59,4 +59,11 @@ public interface DietFoodService {
      * @return DietFood
      */
     public DietFood convertToEntity(DietFoodDTO DTO);
+
+    /**
+     * 음식 이름으로 DB에 존재 여부
+     * @param name (String)
+     * @return Boolean
+     */
+    boolean checkExistByName(String name);
 }

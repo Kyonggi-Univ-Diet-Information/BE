@@ -48,7 +48,7 @@ pipeline {
         stage('Deploy to AWS') {
     agent {
         docker {
-            image 'my-aws-cli'  // AWS CLI가 포함된 Docker 이미지
+            image 'my-aws-cli'
             reuseNode true
             args "--entrypoint=''"
         }

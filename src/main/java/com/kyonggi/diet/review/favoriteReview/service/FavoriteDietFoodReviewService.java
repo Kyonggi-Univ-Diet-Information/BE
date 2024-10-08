@@ -17,9 +17,9 @@ public interface FavoriteDietFoodReviewService {
     /**
      * 관심 음식 리뷰 생성 메서드
      * @param reviewId (Long)
-     * @param memberId (Long)
+     * @param email (String)
      */
-    void createFavoriteDietFoodReview(Long reviewId, Long memberId);
+    void createFavoriteDietFoodReview(Long reviewId, String email);
 
     /**
      * 관심 음식 리뷰 엔티티 조회 메서드
@@ -43,8 +43,8 @@ public interface FavoriteDietFoodReviewService {
 
     /**
      * 멤버별 관슴 음식 리뷰 DTO 조회 메서드
-     * @param memberId (Long)
+     * @param email (String)
      * @return List<FavoriteDietFoodReviewDTO>
      */
-    List<FavoriteDietFoodReviewDTO> findFavoriteDietFoodReviewListByMember(Long memberId);
+    List<FavoriteDietFoodReviewDTO> findFavoriteDietFoodReviewListByMember(String email);
 }

@@ -26,9 +26,9 @@ public interface RestaurantReviewService {
      * 식당 리뷰 생성 메서드
      * @param reviewDTO (ReviewDTO)
      * @param type (RestaurantType_
-     * @param memberId (Long)
+     * @param email (String)
      */
-    void createRestaurantReview(ReviewDTO reviewDTO, RestaurantType type, Long memberId);
+    void createRestaurantReview(ReviewDTO reviewDTO, RestaurantType type, String email);
 
      /**
       * 식당 Review DTO 조회

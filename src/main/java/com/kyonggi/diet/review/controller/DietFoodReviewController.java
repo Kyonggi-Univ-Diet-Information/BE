@@ -45,13 +45,13 @@ public class DietFoodReviewController {
     /**
      * 음식 리뷰 생성
      * @param dietFoodId (Long)
-     * @param memberId (Long)
+     * @param email (String)
      * @param createReviewDTO (CreateReviewDTO)
      * @return ResponseEntity
      */
-    @PostMapping("/new/{dietFoodId}/{memberId}")
+    @PostMapping("/new/{dietFoodId}/{email}")
     public ResponseEntity<String> createDietFoodReview(@PathVariable("dietFoodId") Long dietFoodId,
-                                                       @PathVariable("memberId") Long memberId,
+                                                       @PathVariable("email") String email,
                                                        @RequestBody CreateReviewDTO createReviewDTO) {
 
         ReviewDTO reviewDTO = ReviewDTO.builder()
@@ -59,7 +59,7 @@ public class DietFoodReviewController {
                 .title(createReviewDTO.getTitle())
                 .content(createReviewDTO.getContent())
                 .build();
-        dietFoodReviewService.createDietFoodReview(reviewDTO, dietFoodId, memberId);
+        dietFoodReviewService.createDietFoodReview(reviewDTO, dietFoodId, email);
 
         return ResponseEntity.ok("Review Created");
     }

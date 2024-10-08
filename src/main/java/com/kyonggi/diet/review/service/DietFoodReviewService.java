@@ -12,7 +12,13 @@ import java.util.NoSuchElementException;
 
 public interface DietFoodReviewService {
 
-    public void createDietFoodReview(ReviewDTO reviewDTO, Long dietFoodId, Long memberId);
+    /**
+     * 음식 리뷰 생성 메서드
+     * @param reviewDTO  (ReviewDTO)
+     * @param dietFoodId (Long)
+     * @param email      (String)
+     */
+    public void createDietFoodReview(ReviewDTO reviewDTO, Long dietFoodId, String email);
 
     /**
      * 음식 Review 엔티티 조회

@@ -2,7 +2,6 @@ package com.kyonggi.diet.review.favoriteReview.service.impl;
 
 import com.kyonggi.diet.member.MemberDTO;
 import com.kyonggi.diet.member.MemberEntity;
-import com.kyonggi.diet.member.MemberRepository;
 import com.kyonggi.diet.member.service.MemberService;
 import com.kyonggi.diet.review.favoriteReview.DTO.FavoriteDietFoodReviewDTO;
 import com.kyonggi.diet.review.favoriteReview.DTO.FavoriteRestaurantReviewDTO;
@@ -13,14 +12,10 @@ import com.kyonggi.diet.review.favoriteReview.service.FavoriteRestaurantReviewSe
 import com.kyonggi.diet.review.service.RestaurantReviewService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.annotations.CurrentTimestamp;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
@@ -33,7 +28,7 @@ public class FavoriteRestaurantReviewServiceImpl implements FavoriteRestaurantRe
 
     private final FavoriteRestaurantReviewRepository favoriteRestaurantReviewRepository;
     private final RestaurantReviewService restaurantReviewService;
-    private final MemberRepository memberRepository;
+    private final MemberService memberService;
     private final ModelMapper modelMapper;
 
     /**
@@ -49,13 +44,12 @@ public class FavoriteRestaurantReviewServiceImpl implements FavoriteRestaurantRe
     /**
      * 관심 식당 리뷰 생성 메서드
      * @param reviewId (Long)
-     * @param memberId (Long)
+     * @param email (String)
      */
     @Override
     @Transactional
-    public void createFavoriteRestaurantReview(Long reviewId, Long memberId) {
-        MemberEntity member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new NoSuchElementException("No found Member"));
+    public void createFavoriteRestaurantReview(Long reviewId, String email) {
+        MemberEntity member = memberService.getMemberByEmail(email);
         FavoriteRestaurantReview review = FavoriteRestaurantReview.builder()
                 .RestaurantReview(restaurantReviewService.findOne(reviewId))
                 .member(member)
@@ -124,13 +118,12 @@ public class FavoriteRestaurantReviewServiceImpl implements FavoriteRestaurantRe
 
     /**
      * 멤버별 관심 식당 리뷰 DTO 전체 조회
-     * @param memberId (Long)
+     * @param email (String)
      * @return List<FavoriteRestaurantReviewDTO>
      */
     @Override
-    public List<FavoriteRestaurantReviewDTO> findFavoriteRestaurantReviewListByMember(Long memberId) {
-        MemberEntity member = memberRepository.findById(memberId)
-                        .orElseThrow(() -> new NoSuchElementException("No member found"));
+    public List<FavoriteRestaurantReviewDTO> findFavoriteRestaurantReviewListByMember(String email) {
+        MemberEntity member = memberService.getMemberByEmail(email);
         List<FavoriteRestaurantReview> reviews =
                 favoriteRestaurantReviewRepository.findFavoriteRestaurantReviewListByMember(member);
         if (reviews.isEmpty()) {

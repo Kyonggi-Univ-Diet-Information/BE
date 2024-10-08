@@ -41,13 +41,13 @@ public class RestaurantReviewController {
 
     /**
      * 식당 리뷰 생성
-     * @param memberId (Long)
+     * @param email (String)
      * @param type (RestaurantType)
      * @param createReviewDTO (CreateReviewDTO)
      * @return ResponseEntity
      */
-    @PostMapping("/new/{restaurant}/{id}")
-    public ResponseEntity<String> createRestaurantReview(@PathVariable("id") Long memberId
+    @PostMapping("/new/{restaurant}/{email}")
+    public ResponseEntity<String> createRestaurantReview(@PathVariable("id") String email
                                                , @PathVariable("restaurant") RestaurantType type
                                                , @RequestBody CreateReviewDTO createReviewDTO) {
 
@@ -56,7 +56,7 @@ public class RestaurantReviewController {
                 .title(createReviewDTO.getTitle())
                 .content(createReviewDTO.getContent())
                 .build();
-        restaurantReviewService.createRestaurantReview(reviewDTO, type, memberId);
+        restaurantReviewService.createRestaurantReview(reviewDTO, type, email);
 
         return ResponseEntity.ok("Review Created");
     }

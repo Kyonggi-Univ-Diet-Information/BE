@@ -4,6 +4,7 @@ import com.kyonggi.diet.dietFood.service.DietFoodService;
 import com.kyonggi.diet.member.MemberDTO;
 import com.kyonggi.diet.member.MemberEntity;
 import com.kyonggi.diet.member.MemberRepository;
+import com.kyonggi.diet.member.service.MemberService;
 import com.kyonggi.diet.review.favoriteReview.DTO.FavoriteDietFoodReviewDTO;
 import com.kyonggi.diet.review.favoriteReview.domain.FavoriteDietFoodReview;
 import com.kyonggi.diet.review.favoriteReview.domain.FavoriteRestaurantReview;
@@ -28,6 +29,7 @@ public class FavoriteDietFoodReviewServiceImpl implements FavoriteDietFoodReview
 
     private final FavoriteDietFoodReviewRepository favoriteDietFoodReviewRepository;
     private final MemberRepository memberRepository;
+    private final MemberService memberService;
     private final DietFoodReviewService dietFoodReviewService;
     private final ModelMapper modelMapper;
 
@@ -44,13 +46,12 @@ public class FavoriteDietFoodReviewServiceImpl implements FavoriteDietFoodReview
     /**
      * 관심 음식 리뷰 생성 메서드
      * @param reviewId (Long)
-     * @param memberId (Long)
+     * @param email (String)
      */
     @Override
     @Transactional
-    public void createFavoriteDietFoodReview(Long reviewId, Long memberId) {
-        MemberEntity member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new NoSuchElementException("No found Member"));
+    public void createFavoriteDietFoodReview(Long reviewId, String email) {
+        MemberEntity member = memberService.getMemberByEmail(email);
         FavoriteDietFoodReview review = FavoriteDietFoodReview.builder()
                 .dietFoodReview(dietFoodReviewService.findOne(reviewId))
                 .member(member)
@@ -116,13 +117,12 @@ public class FavoriteDietFoodReviewServiceImpl implements FavoriteDietFoodReview
 
     /**
      * 몀버별 관심 음식 리뷰 DTO 조회 메서드
-     * @param memberId (Long)
+     * @param email (String)
      * @return List<FavoriteDietFoodReviewDTO>
      */
     @Override
-    public List<FavoriteDietFoodReviewDTO> findFavoriteDietFoodReviewListByMember(Long memberId) {
-        MemberEntity member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new NoSuchElementException("No member found"));
+    public List<FavoriteDietFoodReviewDTO> findFavoriteDietFoodReviewListByMember(String email) {
+        MemberEntity member = memberService.getMemberByEmail(email);
         List<FavoriteDietFoodReview> reviews =
                 favoriteDietFoodReviewRepository.findFavoriteDietFoodReviewListByMember(member);
         if (reviews.isEmpty()) {

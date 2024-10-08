@@ -12,6 +12,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -77,6 +78,12 @@ public class MemberServiceImpl implements MemberService {
         }
         log.warn("멤버 정보를 찾을 수 없습니다. = {} ", id);
         throw new EntityNotFoundException("ID에 해당하는 멤버 정보를 찾을 수 없습니다.");
+    }
+
+    @Override
+    public MemberEntity getMemberByEmail(String email) {
+        return memberRepository.findByEmail(email)
+                .orElseThrow(()-> new NoSuchElementException("EMAIL 에 해당하는 멤버를 찾을 수 없습니다."));
     }
 
     /**

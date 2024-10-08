@@ -1,6 +1,7 @@
 package com.kyonggi.diet.member.service;
 
 import com.kyonggi.diet.member.MemberDTO;
+import com.kyonggi.diet.member.MemberEntity;
 
 import java.util.List;
 
@@ -27,4 +28,11 @@ public interface MemberService {
      * @return MemberDTO
      */
     MemberDTO getMemberById(Long id);
+
+    /**
+     * 데이터베이스로 부터 해당하는 email의 멤버 엔티티를 가져옵니다.
+     * @param email (String)
+     * @return MemberEntity
+     */
+    MemberEntity getMemberByEmail(String email);
 }

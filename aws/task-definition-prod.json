@@ -14,7 +14,13 @@
           "appProtocol": "http"
         }
       ],
-      "essential": true
+      "essential": true,
+      "secrets": [
+        {
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:920373025050:secret:kiryong-secret-077V4f",
+          "name": "SECRET_ENV"
+        }
+      ]
     }
   ],
   "volumes": [],

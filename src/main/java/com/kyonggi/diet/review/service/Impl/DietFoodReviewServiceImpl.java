@@ -5,6 +5,7 @@ import com.kyonggi.diet.dietFood.DietFoodRepository;
 import com.kyonggi.diet.dietFood.service.DietFoodService;
 import com.kyonggi.diet.member.MemberEntity;
 import com.kyonggi.diet.member.MemberRepository;
+import com.kyonggi.diet.member.service.MemberService;
 import com.kyonggi.diet.restaurant.Restaurant;
 import com.kyonggi.diet.restaurant.RestaurantType;
 import com.kyonggi.diet.review.DTO.ReviewDTO;
@@ -29,6 +30,7 @@ public class DietFoodReviewServiceImpl implements DietFoodReviewService {
 
     private final DietFoodReviewRepository dietFoodReviewRepository;
     private final MemberRepository memberRepository;
+    private final MemberService memberService;
     private final DietFoodRepository dietFoodRepository;
     private final ModelMapper modelMapper;
 
@@ -36,15 +38,14 @@ public class DietFoodReviewServiceImpl implements DietFoodReviewService {
      * 음식 리뷰 생성 메서드
      * @param reviewDTO (ReviewDTO)
      * @param dietFoodId (Long)
-     * @param memberId (Long)
+     * @param email (String)
      */
     @Override
     @Transactional
-    public void createDietFoodReview(ReviewDTO reviewDTO, Long dietFoodId, Long memberId) {
+    public void createDietFoodReview(ReviewDTO reviewDTO, Long dietFoodId, String email) {
         DietFood dietFood = dietFoodRepository.findById(dietFoodId)
                 .orElseThrow(() -> new NoSuchElementException("No found Diet food"));
-        MemberEntity member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new NoSuchElementException("No member found"));
+        MemberEntity member = memberService.getMemberByEmail(email);
 
         DietFoodReview dietFoodReview = DietFoodReview.builder()
                 .title(reviewDTO.getTitle())
@@ -133,6 +134,19 @@ public class DietFoodReviewServiceImpl implements DietFoodReviewService {
     @Override
     public void deleteReview(Long id) {
         dietFoodReviewRepository.delete(findOne(id));
+    }
+
+    /**
+     * 리뷰 작성자가 멤버가 맞는 지 확인
+     * @param reviewId (Long)
+     * @param email    (String)
+     * @return boolean
+     */
+    @Override
+    public boolean verifyMember(Long reviewId, String email) {
+        MemberEntity member = memberService.getMemberByEmail(email);
+        DietFoodReview review = findOne(reviewId);
+        return member.getId().equals(review.getMember().getId());
     }
 
 

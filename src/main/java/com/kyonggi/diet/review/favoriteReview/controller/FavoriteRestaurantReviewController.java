@@ -42,24 +42,24 @@ public class FavoriteRestaurantReviewController {
 
     /**
      * 멤버별 관심 식당 리뷰 전체 조회
-     * @param memberId (Long)
+     * @param email (String)
      * @return List<FavoriteRestaurantReviewDTO>
      */
-    @GetMapping("/{id}/all")
-    public List<FavoriteRestaurantReviewDTO> findAllByMemberId(@PathVariable("id") Long memberId) {
-        return favoriteRestaurantReviewService.findFavoriteRestaurantReviewListByMember(memberId);
+    @GetMapping("/{email}/all")
+    public List<FavoriteRestaurantReviewDTO> findAllByMemberId(@PathVariable("email") String email) {
+        return favoriteRestaurantReviewService.findFavoriteRestaurantReviewListByMember(email);
     }
 
     /**
      * 멤버별 관심 식당 리뷰 생성
-     * @param memberId (Long)
+     * @param email (String)
      * @param reviewId (Long)
      * @return ResponseEntity
      */
-    @PostMapping("/{memberId}/{reviewId}/create-favorite")
-    public ResponseEntity<String> createFavoriteRestaurantReview(@PathVariable("memberId") Long memberId,
+    @PostMapping("/{email}/{reviewId}/create-favorite")
+    public ResponseEntity<String> createFavoriteRestaurantReview(@PathVariable("email") String email,
                                                                  @PathVariable("reviewId") Long reviewId) {
-        favoriteRestaurantReviewService.createFavoriteRestaurantReview(reviewId, memberId);
+        favoriteRestaurantReviewService.createFavoriteRestaurantReview(reviewId, email);
         return ResponseEntity.ok("Successfully favorite");
     }
 }

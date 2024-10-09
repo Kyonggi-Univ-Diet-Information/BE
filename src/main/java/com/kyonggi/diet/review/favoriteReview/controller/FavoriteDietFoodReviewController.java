@@ -42,24 +42,24 @@ public class FavoriteDietFoodReviewController {
 
     /**
      * 멤버별 관심 음식 리뷰 전체 조회
-     * @param memberId (Long)
+     * @param email (String)
      * @return List<FavoriteDietFoodReviewDTO>
      */
-    @GetMapping("/{id}/all")
-    public List<FavoriteDietFoodReviewDTO> findAllByMemberId(@PathVariable("id") Long memberId) {
-        return favoriteDietFoodReviewService.findFavoriteDietFoodReviewListByMember(memberId);
+    @GetMapping("/{email}/all")
+    public List<FavoriteDietFoodReviewDTO> findAllByMemberId(@PathVariable("email") String email) {
+        return favoriteDietFoodReviewService.findFavoriteDietFoodReviewListByMember(email);
     }
 
     /**
      * 멤버별 관심 음식 리뷰 생성
-     * @param memberId (Long)
+     * @param email (String)
      * @param reviewId (Long)
      * @return ResponseEntity
      */
-    @PostMapping("/{memberId}/{reviewId}/create-favorite")
-    public ResponseEntity<String> createFavoriteDietFoodReview(@PathVariable("memberId") Long memberId,
+    @PostMapping("/{email}/{reviewId}/create-favorite")
+    public ResponseEntity<String> createFavoriteDietFoodReview(@PathVariable("email") String email,
                                                                  @PathVariable("reviewId") Long reviewId) {
-        favoriteDietFoodReviewService.createFavoriteDietFoodReview(reviewId, memberId);
+        favoriteDietFoodReviewService.createFavoriteDietFoodReview(reviewId, email);
         return ResponseEntity.ok("Successfully favorite");
     }
 }

@@ -1,6 +1,8 @@
 package com.kyonggi.diet.review.service;
 
+import com.kyonggi.diet.member.MemberEntity;
 import com.kyonggi.diet.restaurant.RestaurantType;
+import com.kyonggi.diet.review.domain.DietFoodReview;
 import com.kyonggi.diet.review.domain.RestaurantReview;
 import com.kyonggi.diet.review.DTO.ReviewDTO;
 
@@ -26,9 +28,9 @@ public interface RestaurantReviewService {
      * 식당 리뷰 생성 메서드
      * @param reviewDTO (ReviewDTO)
      * @param type (RestaurantType_
-     * @param memberId (Long)
+     * @param email (String)
      */
-    void createRestaurantReview(ReviewDTO reviewDTO, RestaurantType type, Long memberId);
+    void createRestaurantReview(ReviewDTO reviewDTO, RestaurantType type, String email);
 
      /**
       * 식당 Review DTO 조회
@@ -55,6 +57,14 @@ public interface RestaurantReviewService {
        * @param id (Long)
        */
       void deleteReview(Long id);
+
+      /**
+       * 리뷰 작성자가 멤버가 맞는 지 확인
+       * @param reviewId (Long)
+       * @param email    (String)
+       * @return boolean
+       */
+      boolean verifyMember(Long reviewId, String email);
 
       /**
        * 타입별 식당 리뷰 조회

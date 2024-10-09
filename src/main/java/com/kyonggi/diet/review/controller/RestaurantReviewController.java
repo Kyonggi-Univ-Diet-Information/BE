@@ -41,13 +41,13 @@ public class RestaurantReviewController {
 
     /**
      * 식당 리뷰 생성
-     * @param memberId (Long)
+     * @param email (String)
      * @param type (RestaurantType)
      * @param createReviewDTO (CreateReviewDTO)
      * @return ResponseEntity
      */
-    @PostMapping("/new/{restaurant}/{id}")
-    public ResponseEntity<String> createRestaurantReview(@PathVariable("id") Long memberId
+    @PostMapping("/new/{restaurant}/{email}")
+    public ResponseEntity<String> createRestaurantReview(@PathVariable("email") String email
                                                , @PathVariable("restaurant") RestaurantType type
                                                , @RequestBody CreateReviewDTO createReviewDTO) {
 
@@ -56,7 +56,7 @@ public class RestaurantReviewController {
                 .title(createReviewDTO.getTitle())
                 .content(createReviewDTO.getContent())
                 .build();
-        restaurantReviewService.createRestaurantReview(reviewDTO, type, memberId);
+        restaurantReviewService.createRestaurantReview(reviewDTO, type, email);
 
         return ResponseEntity.ok("Review Created");
     }
@@ -64,11 +64,19 @@ public class RestaurantReviewController {
     /**
      * 식당 리뷰 수정
      * @param reviewId (Long)
+     * @param email (String)
      * @param reviewDTO (ReviewDTO)
      * @return ResponseEntity
      */
-    @PutMapping("/modify/{id}")
-    public ResponseEntity<String> modifyReview(@PathVariable("id") Long reviewId, @RequestBody ReviewDTO reviewDTO) {
+    @PutMapping("/modify/{id}/{email}")
+    public ResponseEntity<String> modifyReview(@PathVariable("id") Long reviewId,
+                                               @PathVariable("email") String email,
+                                               @RequestBody ReviewDTO reviewDTO) {
+
+        if (!restaurantReviewService.verifyMember(reviewId, email)) {
+            return ResponseEntity.ok("작성자가 아닙니다.");
+        }
+
         restaurantReviewService.modifyReview(reviewId, reviewDTO);
         return ResponseEntity.ok("Review Updated");
     }
@@ -76,10 +84,16 @@ public class RestaurantReviewController {
     /**
      * 식당 리뷰 삭제
      * @param reviewId (Long)
+     * @param email (String)
      * @return ResponseEntity
      */
-    @DeleteMapping("/delete/{id}")
-    public ResponseEntity<String> deleteReview(@PathVariable("id") Long reviewId) {
+    @DeleteMapping("/delete/{id}/{email}")
+    public ResponseEntity<String> deleteReview(@PathVariable("id") Long reviewId,
+                                               @PathVariable("email") String email) {
+        if (!restaurantReviewService.verifyMember(reviewId, email)) {
+            return ResponseEntity.ok("작성자가 아닙니다.");
+        }
+
         restaurantReviewService.deleteReview(reviewId);
         log.info("삭제된 id : " + reviewId);
         return ResponseEntity.ok("Review Deleted");

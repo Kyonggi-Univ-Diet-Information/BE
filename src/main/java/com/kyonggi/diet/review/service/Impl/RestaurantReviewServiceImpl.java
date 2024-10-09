@@ -3,10 +3,12 @@ package com.kyonggi.diet.review.service.Impl;
 import com.kyonggi.diet.dietFood.service.DietFoodService;
 import com.kyonggi.diet.member.MemberEntity;
 import com.kyonggi.diet.member.MemberRepository;
+import com.kyonggi.diet.member.service.MemberService;
 import com.kyonggi.diet.restaurant.Restaurant;
 import com.kyonggi.diet.restaurant.RestaurantRepository;
 import com.kyonggi.diet.restaurant.RestaurantType;
 import com.kyonggi.diet.restaurant.service.RestaurantService;
+import com.kyonggi.diet.review.domain.DietFoodReview;
 import com.kyonggi.diet.review.domain.RestaurantReview;
 import com.kyonggi.diet.review.DTO.ReviewDTO;
 import com.kyonggi.diet.review.repository.RestaurantReviewRepository;
@@ -29,6 +31,7 @@ public class RestaurantReviewServiceImpl implements RestaurantReviewService {
     private final RestaurantReviewRepository restaurantReviewRepository;
     private final MemberRepository memberRepository;
     private final RestaurantService restaurantService;
+    private final MemberService memberService;
     private final ModelMapper modelMapper;
 
     /**
@@ -56,14 +59,13 @@ public class RestaurantReviewServiceImpl implements RestaurantReviewService {
     /**
      * 멤버별 Restaurant 리뷰 저장
      * @param reviewDTO (ReviewDTO)
-     * @param memberId (Long)
+     * @param email (String)
      */
     @Override
     @Transactional
-    public void createRestaurantReview(ReviewDTO reviewDTO, RestaurantType type, Long memberId) {
+    public void createRestaurantReview(ReviewDTO reviewDTO, RestaurantType type, String email) {
         Restaurant restaurant = restaurantService.findRestaurantByType(type);
-        MemberEntity member = memberRepository.findById(memberId)
-                .orElseThrow(()-> new NoSuchElementException("No found Member"));
+        MemberEntity member = memberService.getMemberByEmail(email);
 
         RestaurantReview restaurantReview = RestaurantReview.builder()
                 .title(reviewDTO.getTitle())
@@ -143,6 +145,19 @@ public class RestaurantReviewServiceImpl implements RestaurantReviewService {
                 .rating(review.getRating())
                 .memberName(review.getMember().getName()).build())
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * 리뷰 작성자가 멤버가 맞는 지 확인
+     * @param reviewId (Long)
+     * @param email    (String)
+     * @return boolean
+     */
+    @Override
+    public boolean verifyMember(Long reviewId, String email) {
+        MemberEntity member = memberService.getMemberByEmail(email);
+        RestaurantReview review = findOne(reviewId);
+        return member.getId().equals(review.getMember().getId());
     }
 
     /**

@@ -16,9 +16,9 @@ public interface FavoriteRestaurantReviewService {
     /**
      * 관심 식당 리뷰 생성 메서드
      * @param reviewId (Long)
-     * @param memberId (Long)
+     * @param email (String)
      */
-    void createFavoriteRestaurantReview(Long reviewId, Long memberId);
+    void createFavoriteRestaurantReview(Long reviewId, String email);
 
     /**
      * 관심 식당 리뷰 엔티티 조회 메서드
@@ -42,8 +42,8 @@ public interface FavoriteRestaurantReviewService {
 
     /**
      * 멤버별 관심 식당 리뷰 DTO 조회 메서드
-     * @param memberId (Long)
+     * @param email (String)
      * @return List<FavoriteRestaurantReviewDTO>
      */
-    List<FavoriteRestaurantReviewDTO> findFavoriteRestaurantReviewListByMember(Long memberId);
+    List<FavoriteRestaurantReviewDTO> findFavoriteRestaurantReviewListByMember(String email);
 }

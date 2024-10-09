@@ -8,6 +8,7 @@ import com.kyonggi.diet.restaurant.Restaurant;
 import com.kyonggi.diet.restaurant.RestaurantRepository;
 import com.kyonggi.diet.restaurant.RestaurantType;
 import com.kyonggi.diet.restaurant.service.RestaurantService;
+import com.kyonggi.diet.review.domain.DietFoodReview;
 import com.kyonggi.diet.review.domain.RestaurantReview;
 import com.kyonggi.diet.review.DTO.ReviewDTO;
 import com.kyonggi.diet.review.repository.RestaurantReviewRepository;
@@ -144,6 +145,19 @@ public class RestaurantReviewServiceImpl implements RestaurantReviewService {
                 .rating(review.getRating())
                 .memberName(review.getMember().getName()).build())
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * 리뷰 작성자가 멤버가 맞는 지 확인
+     * @param reviewId (Long)
+     * @param email    (String)
+     * @return boolean
+     */
+    @Override
+    public boolean verifyMember(Long reviewId, String email) {
+        MemberEntity member = memberService.getMemberByEmail(email);
+        RestaurantReview review = findOne(reviewId);
+        return member.getId().equals(review.getMember().getId());
     }
 
     /**

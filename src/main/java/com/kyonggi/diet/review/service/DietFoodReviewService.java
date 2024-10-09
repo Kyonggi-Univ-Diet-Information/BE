@@ -65,4 +65,12 @@ public interface DietFoodReviewService {
      * @param id (Long)
      */
     public void deleteReview(Long id);
+
+    /**
+     * 리뷰 작성자가 멤버가 맞는 지 확인
+     * @param reviewId (Long)
+     * @param email (String)
+     * @return boolean
+     */
+    boolean verifyMember(Long reviewId, String email);
 }

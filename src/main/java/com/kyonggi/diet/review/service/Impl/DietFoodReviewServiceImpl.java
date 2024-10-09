@@ -136,6 +136,19 @@ public class DietFoodReviewServiceImpl implements DietFoodReviewService {
         dietFoodReviewRepository.delete(findOne(id));
     }
 
+    /**
+     * 리뷰 작성자가 멤버가 맞는 지 확인
+     * @param reviewId (Long)
+     * @param email    (String)
+     * @return boolean
+     */
+    @Override
+    public boolean verifyMember(Long reviewId, String email) {
+        MemberEntity member = memberService.getMemberByEmail(email);
+        DietFoodReview review = findOne(reviewId);
+        return member.getId().equals(review.getMember().getId());
+    }
+
 
     /**
      * Review -> ReviewDTO

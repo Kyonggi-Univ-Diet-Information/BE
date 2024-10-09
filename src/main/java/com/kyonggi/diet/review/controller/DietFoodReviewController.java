@@ -68,11 +68,18 @@ public class DietFoodReviewController {
     /**
      * 음식 리뷰 수정
      * @param reviewId (Long)
+     * @param email (String)
      * @param reviewDTO (ReviewDTO)
      * @return ResponseEntity
      */
-    @PutMapping("/modify/{id}")
-    public ResponseEntity<String> modifyReview(@PathVariable("id") Long reviewId, @RequestBody ReviewDTO reviewDTO) {
+    @PutMapping("/modify/{id}/{email}")
+    public ResponseEntity<String> modifyReview(@PathVariable("id") Long reviewId,
+                                               @PathVariable("email") String email,
+                                               @RequestBody ReviewDTO reviewDTO) {
+        if(!dietFoodReviewService.verifyMember(reviewId, email)) {
+            return ResponseEntity.ok("작성자가 아닙니다.");
+        }
+
         dietFoodReviewService.modifyReview(reviewId, reviewDTO);
         return ResponseEntity.ok("Review Updated");
     }
@@ -81,10 +88,16 @@ public class DietFoodReviewController {
     /**
      * 음식 리뷰 삭제
      * @param reviewId (Long)
+     * @param email (String)
      * @return ResponseEntity
      */
-    @DeleteMapping("/delete/{id}")
-    public ResponseEntity<String> deleteReview(@PathVariable("id") Long reviewId) {
+    @DeleteMapping("/delete/{id}/{email}")
+    public ResponseEntity<String> deleteReview(@PathVariable("id") Long reviewId,
+                                               @PathVariable("email") String email) {
+        if (!dietFoodReviewService.verifyMember(reviewId, email)) {
+            return ResponseEntity.ok("작성자가 아닙니다.");
+        }
+
         dietFoodReviewService.deleteReview(reviewId);
         log.info("삭제된 id : " + reviewId);
         return ResponseEntity.ok("Review Deleted");

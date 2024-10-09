@@ -15,14 +15,6 @@
         }
       ],
       "essential": true,
-      "logConfiguration": {
-        "logDriver": "awslogs",
-        "options": {
-          "awslogs-group": "ecs/kiryong-diet-logs",
-          "awslogs-region": "us-east-1",
-          "awslogs-stream-prefix": "ecs"
-        }
-      },
       "secrets": [
         {
           "name": "DB_URL_KIRYONG",

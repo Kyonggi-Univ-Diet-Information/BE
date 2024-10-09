@@ -4,8 +4,8 @@ spring:
 
   datasource:
     url: jdbc:mysql://kiryong-database.c7iwog84a8ue.us-east-1.rds.amazonaws.com:3306/kguDiet
-    username: ${DB_USERNAME_KIRYONG}
-    password: ${DB_PASSWORD_KIRYONG}
+    username: admin
+    password: rlfyd1112
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:

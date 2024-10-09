@@ -3,7 +3,7 @@ spring:
     name: diet
 
   datasource:
-    url: ${DB_URL_KIRYONG}
+    url: jdbc:mysql://kiryong-database.c7iwog84a8ue.us-east-1.rds.amazonaws.com:3306/kguDiet
     username: ${DB_USERNAME_KIRYONG}
     password: ${DB_PASSWORD_KIRYONG}
     driver-class-name: com.mysql.cj.jdbc.Driver

@@ -20,7 +20,7 @@ pipeline {
                 }
             }
             steps {
-                '''
+                sh '''
                 ls -la
                 mvn clean install
                 ls -la

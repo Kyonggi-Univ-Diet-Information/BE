@@ -3,9 +3,9 @@ spring:
     name: diet
 
   datasource:
-    url: jdbc:mysql://kiryong-database.c7iwog84a8ue.us-east-1.rds.amazonaws.com:3306/kguDiet
-    username: admin
-    password: rlfyd1112
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:

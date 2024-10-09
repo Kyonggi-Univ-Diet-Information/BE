@@ -3,9 +3,9 @@ spring:
     name: diet
 
   datasource:
-    url: jdbc:mysql://localhost:3306/kguDiet
-    username: root
-    password: 12
+    url: jdbc:mysql://kiryong-database.c7iwog84a8ue.us-east-1.rds.amazonaws.com:3306/kguDiet
+    username: admin
+    password: rlfyd1112
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
@@ -22,6 +22,9 @@ spring:
     init:
       mode: always
       encoding: UTF-8
+
+server:
+  port: 8081
 
 logging:
   level:

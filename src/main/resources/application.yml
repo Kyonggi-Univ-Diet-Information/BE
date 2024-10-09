@@ -3,9 +3,9 @@ spring:
     name: diet
 
   datasource:
-    url: ${DB_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    url: ${DB_URL_KIRYONG}
+    username: ${DB_USERNAME_KIRYONG}
+    password: ${DB_PASSWORD_KIRYONG}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:

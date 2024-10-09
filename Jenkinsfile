@@ -12,6 +12,13 @@ pipeline {
     }
 
     stages {
+        stage('Add Env') {
+            steps {
+                withCredentials([file(credentialsId: 'application', variable: 'application')]) {
+                    sh 'cp ${application}  src/main/resources/application.yml'
+                }
+            }
+        }
         stage('Build') {
             agent {
                 docker {

@@ -20,7 +20,15 @@
           "valueFrom": "arn:aws:secretsmanager:us-east-1:920373025050:secret:kiryong-secret-077V4f",
           "name": "SECRET_ENV"
         }
-      ]
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/kiryong-diet-logs",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "ecs"
+        }
+      }
     }
   ],
   "volumes": [],

@@ -15,14 +15,14 @@ pipeline {
         stage('Build') {
             agent {
                 docker {
-                    image 'maven:3.9.9-amazoncorretto-17'
+                    image 'gradle:8.10-jdk17-focal'
                     reuseNode true
                 }
             }
             steps {
                 sh '''
                 ls -la
-                mvn clean install
+                ./gradlew clean build
                 ls -la
                 '''
             }

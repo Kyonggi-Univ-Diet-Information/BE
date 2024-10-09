@@ -15,20 +15,14 @@
         }
       ],
       "essential": true,
-      "secrets": [
-        {
-          "name": "DB_URL_KIRYONG",
-          "valueFrom": "arn:aws:secretsmanager:us-east-1:920373025050:secret:DB_URL_KIRYONG-dSpNuP"
-        },
-        {
-          "name": "DB_USERNAME_KIRYONG",
-          "valueFrom": "arn:aws:secretsmanager:us-east-1:920373025050:secret:DB_USERNAME_KIRYONG-0L2KJX"
-        },
-        {
-          "name": "DB_PASSWORD_KIRYONG",
-          "valueFrom": "arn:aws:secretsmanager:us-east-1:920373025050:secret:DB_PASSWORD_KIRYONG-hryKYM"
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "ecs/kiryong-diet-logs",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "ecs"
         }
-      ]
+      }
     }
   ],
   "volumes": [],

@@ -47,7 +47,7 @@ public class RestaurantReviewController {
      * @return ResponseEntity
      */
     @PostMapping("/new/{restaurant}/{email}")
-    public ResponseEntity<String> createRestaurantReview(@PathVariable("id") String email
+    public ResponseEntity<String> createRestaurantReview(@PathVariable("email") String email
                                                , @PathVariable("restaurant") RestaurantType type
                                                , @RequestBody CreateReviewDTO createReviewDTO) {
 

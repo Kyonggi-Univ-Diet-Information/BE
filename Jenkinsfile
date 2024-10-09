@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        REACT_APP_VERSION = "1.0.$BUILD_ID"
+        APP_VERSION = "1.0.$BUILD_ID"
         APP_NAME = 'kiryong-diet'
         AWS_DEFAULT_REGION = 'us-east-1'
         AWS_DOCKER_REGISTRY = '920373025050.dkr.ecr.us-east-1.amazonaws.com/kiryong-diet'

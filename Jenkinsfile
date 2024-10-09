@@ -15,7 +15,7 @@ pipeline {
         stage('Build') {
             agent {
                 docker {
-                    image 'maven:3.8-jdk-17-slim'
+                    image 'maven:3.9.9-amazoncorretto-17'
                     reuseNode true
                 }
             }

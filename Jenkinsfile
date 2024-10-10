@@ -6,9 +6,9 @@ pipeline {
         APP_NAME = 'kiryong-diet'
         AWS_DEFAULT_REGION = 'us-east-1'
         AWS_DOCKER_REGISTRY = '920373025050.dkr.ecr.us-east-1.amazonaws.com'
-        AWS_ECS_CLUSTER = 'Kiryong-cluster'
-        AWS_ECS_SERVICE_PROD ='kiryong-service-c'
-        AWS_ECS_TD_PROD = 'Kiryong-task'
+        AWS_ECS_CLUSTER = 'kiryong-cluster-main'
+        AWS_ECS_SERVICE_PROD ='kiryong-service-main'
+        AWS_ECS_TD_PROD = 'kiryong-task-new'
     }
 
     stages {

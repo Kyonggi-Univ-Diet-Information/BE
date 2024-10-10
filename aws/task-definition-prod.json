@@ -3,7 +3,7 @@
   "family": "Kiryong-task",
   "containerDefinitions": [
     {
-      "name": "kiryong-diet",
+      "name": "kiryong-task",
       "image": "920373025050.dkr.ecr.us-east-1.amazonaws.com/kiryong-diet:#APP_VERSION#",
       "portMappings": [
         {

@@ -1,15 +1,15 @@
 {
   "requiresCompatibilities": ["FARGATE"],
-  "family": "Kiryong-diet-TaskDefinition-Prod",
+  "family": "kiryong-task-new",
   "containerDefinitions": [
     {
-      "name": "kiryong-diet",
+      "name": "kiryong-container",
       "image": "920373025050.dkr.ecr.us-east-1.amazonaws.com/kiryong-diet:#APP_VERSION#",
       "portMappings": [
         {
-          "name": "kiryong-port",
-          "containerPort": 80,
-          "hostPort": 80,
+          "name": "kiryong-task-port",
+          "containerPort": 8081,
+          "hostPort": 8081,
           "protocol": "tcp",
           "appProtocol": "http"
         }
@@ -29,5 +29,5 @@
   "networkMode": "awsvpc",
   "memory": "512",
   "cpu": "256",
-  "executionRoleArn": "arn:aws:iam::920373025050:role/ecsTaskExecutionRole"
+  "executionRoleArn": "arn:aws:iam::920373025050:role/kiryong-task-excution"
 }

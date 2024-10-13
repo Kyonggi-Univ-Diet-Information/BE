@@ -44,11 +44,13 @@ public class DietFoodServiceImpl implements DietFoodService {
     @Transactional
     @Override
     public void save(DietFoodDTO dietFoodDTO) {
-        DietFood dietFood = DietFood.builder()
-                .name(dietFoodDTO.getName())
-                .dietFoodType(dietFoodDTO.getType())
-                .build();
-        dietFoodRepository.save(dietFood);
+        if(dietFoodRepository.findDietFoodByName(dietFoodDTO.getName()) == null) {
+            DietFood dietFood = DietFood.builder()
+                    .name(dietFoodDTO.getName())
+                    .dietFoodType(dietFoodDTO.getType())
+                    .build();
+            dietFoodRepository.save(dietFood);
+        }
     }
 
     /**
@@ -117,6 +119,16 @@ public class DietFoodServiceImpl implements DietFoodService {
             throw new RuntimeException("DietFood not found with id: " + DTO.getId());
         }
         return dietFood;
+    }
+
+    /**
+     * 이름으로 음식 찾기
+     * @param name (String0
+     * @return DietFood
+     */
+    @Override
+    public DietFood findDietFoodByName(String name) {
+        return dietFoodRepository.findDietFoodByName(name);
     }
 
     /**

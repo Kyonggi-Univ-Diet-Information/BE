@@ -65,7 +65,7 @@ public class DietContentController {
             return dietMap;
     }
 
-    @GetMapping("/new")
+    /*@GetMapping("/new")
     public Map<String, List<DietFoodDTO>> newDiet() {
         Map<String, List<DietFoodDTO>> Diets = new HashMap<>();
         Diets.put("rices", dietFoodService.findDietFoodByType(DietFoodType.RICE));
@@ -73,7 +73,7 @@ public class DietContentController {
         Diets.put("soups", dietFoodService.findDietFoodByType(DietFoodType.SOUP));
         Diets.put("deserts", dietFoodService.findDietFoodByType(DietFoodType.DESERT));
         return Diets;
-    }
+    }*/
 
     @PostMapping("/new")
     public ResponseEntity<String> createDiet(@RequestBody CreateNewDietForm form) {

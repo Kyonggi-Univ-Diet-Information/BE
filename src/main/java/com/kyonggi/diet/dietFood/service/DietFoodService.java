@@ -61,6 +61,13 @@ public interface DietFoodService {
     public DietFood convertToEntity(DietFoodDTO DTO);
 
     /**
+     * 이름으로 음식 찾기
+     * @param name (String0
+     * @return DietFood
+     */
+    public DietFood findDietFoodByName(String name);
+
+    /**
      * 음식 이름으로 DB에 존재 여부
      * @param name (String)
      * @return Boolean

@@ -27,84 +27,27 @@ import java.util.Map;
 public class DietContentController {
 
     private final DietContentService dietContentService;
-    private final DietFoodService dietFoodService;
 
     @GetMapping("/dormitory")
-    public Map<String, DietContentDTO> dormitoryHome() {
-            LocalDate today = LocalDate.now();
-            LocalDate startOfWeek = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-            LocalDate endOfWeek = today.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
+    public Map<DayOfWeek, Map<DietTime, DietContentDTO>> dormitoryHome() {
+        LocalDate today = LocalDate.now();
+        LocalDate startOfWeek = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        LocalDate endOfWeek = today.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
 
-            List<DietContentDTO> diets = dietContentService.findDietContentsBetweenDates(startOfWeek, endOfWeek);
+        //이번주 식단 가져오기
+        List<DietContentDTO> diets = dietContentService.findDietContentsBetweenDates(startOfWeek, endOfWeek);
 
-            Map<String, DietContentDTO> dietMap = new HashMap<>();
-            for (DietContentDTO diet : diets) {
-                LocalDate localDate = LocalDate.parse(diet.getDate());
-                DayOfWeek dayOfWeek = localDate.getDayOfWeek();
+        //이번주 식단 반환
+        Map<DayOfWeek, Map<DietTime, DietContentDTO>> dietMap = new HashMap<>();
+        for (DietContentDTO diet : diets) {
+            LocalDate localDate = LocalDate.parse(diet.getDate());
+            DayOfWeek dayOfWeek = localDate.getDayOfWeek();
 
-                switch (dayOfWeek) {
-                    case MONDAY:
-                        dietMap.put("monday", diet);
-                        break;
-                    case TUESDAY:
-                        dietMap.put("tuesday", diet);
-                        break;
-                    case WEDNESDAY:
-                        dietMap.put("wednesday", diet);
-                        break;
-                    case THURSDAY:
-                        dietMap.put("thursday", diet);
-                        break;
-                    case FRIDAY:
-                        dietMap.put("friday", diet);
-                        break;
-                    default:
-                        break;
-                }
-            }
-            return dietMap;
-    }
+            //해당 요일에 map 없으면 생성
+            dietMap.putIfAbsent(dayOfWeek, new HashMap<>());
 
-    /*@GetMapping("/new")
-    public Map<String, List<DietFoodDTO>> newDiet() {
-        Map<String, List<DietFoodDTO>> Diets = new HashMap<>();
-        Diets.put("rices", dietFoodService.findDietFoodByType(DietFoodType.RICE));
-        Diets.put("sides", dietFoodService.findDietFoodByType(DietFoodType.SIDE));
-        Diets.put("soups", dietFoodService.findDietFoodByType(DietFoodType.SOUP));
-        Diets.put("deserts", dietFoodService.findDietFoodByType(DietFoodType.DESERT));
-        return Diets;
-    }*/
-
-    @PostMapping("/new")
-    public ResponseEntity<String> createDiet(@RequestBody CreateNewDietForm form) {
-        List<DietFoodDTO> dietFoods = new ArrayList<>();
-        List<DietDTO> dietDTOS = new ArrayList<>();
-        if(dietFoodService.findDietFood(form.getRice()) != null) {
-            dietDTOS.add(DietDTO.builder()
-                    .dietFoodDTO(dietFoodService.findDietFood(form.getRice())).build());
+            dietMap.get(dayOfWeek).put(diet.getTime(), diet);
         }
-        for (DietFoodDTO side : dietFoodService.findDietFoodsByIdList(form.getSide())) {
-            dietDTOS.add(DietDTO.builder()
-                    .dietFoodDTO(side).build());
-        }
-        if(dietFoodService.findDietFood(form.getSoup()) != null) {
-            dietDTOS.add(DietDTO.builder()
-                    .dietFoodDTO(dietFoodService.findDietFood(form.getSoup())).build());
-        }
-        for (DietFoodDTO desert : dietFoodService.findDietFoodsByIdList(form.getDesert())) {
-            dietDTOS.add(DietDTO.builder()
-                    .dietFoodDTO(desert).build());
-        }
-        DietContentDTO dietContentDTO = DietContentDTO.builder()
-                                .date(form.getDate())
-                                        .time(DietTime.LUNCH)
-                                                .contents(dietDTOS)
-                                                        .build();
-        for (DietFoodDTO dietFood : dietFoodService.findDietFoodsByIdList(form.getSide())) {
-            log.info("하잉: {}",dietFood.getName());
-        }
-        dietContentService.save(dietContentDTO);
-
-        return ResponseEntity.ok("Created Diet!");
+        return dietMap;
     }
 }

@@ -55,14 +55,6 @@ public class CSVService {
                 }
 
                 for (String food : foods) { //식단의 각 음식에 대해서 db에 저장 (음식이 저장되어 있어야, 식단 설정 가능)
-                    /*if (dietFoodService.checkExistByName(food)) {
-                        DietFoodDTO dietFoodDTO = DietFoodDTO.builder()
-                                .id(dietFoodService.findDietFoodByName(food).getId())
-                                .name(food).build();
-                        dietDTOS.add(DietDTO.builder()
-                                .dietFoodDTO(dietFoodDTO).build());
-                        continue;
-                    }*/
                     DietFoodDTO dietFoodDTO = DietFoodDTO.builder()
                             .name(food).build();
                     dietFoodService.save(dietFoodDTO);

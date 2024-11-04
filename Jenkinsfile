@@ -12,12 +12,6 @@ pipeline {
     }
 
     stages {
-        stage('Checkout') {
-            steps {
-                    git branch: 'main', credentialsId: 'kiryong-https', url: 'https://github.com/boroboro01/learn-jenkins-app.git'
-            }
-        }
-
         stage('Add Env') {
             steps {
                 withCredentials([file(credentialsId: 'application', variable: 'application')]) {

@@ -12,6 +12,13 @@ pipeline {
     }
 
     stages {
+        stage('Checkout') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'kiryong-https', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
+                    sh 'git clone https://$GIT_USERNAME:$GIT_PASSWORD@github.com/boroboro01/learn-jenkins-app.git'
+                }
+            }
+        }
         stage('Add Env') {
             steps {
                 withCredentials([file(credentialsId: 'application', variable: 'application')]) {

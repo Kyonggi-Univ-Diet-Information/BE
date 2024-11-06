@@ -1,8 +1,10 @@
 package com.kyonggi.diet.review.controller;
+import com.kyonggi.diet.controllerDocs.RestaurantReviewControllerDocs;
 import com.kyonggi.diet.restaurant.RestaurantType;
 import com.kyonggi.diet.review.DTO.CreateReviewDTO;
 import com.kyonggi.diet.review.DTO.ReviewDTO;
 import com.kyonggi.diet.review.service.RestaurantReviewService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -14,7 +16,8 @@ import java.util.List;
 @RequestMapping("/api/review/restaurant")
 @Slf4j
 @CrossOrigin("*")
-public class RestaurantReviewController {
+@Tag(name = "식당 리뷰 API", description = "식당에 대한 리뷰 API 입니다. (조회, 생성, 삭제, 수정)")
+public class RestaurantReviewController implements RestaurantReviewControllerDocs {
 
     private final RestaurantReviewService restaurantReviewService;
 
@@ -104,7 +107,7 @@ public class RestaurantReviewController {
      * @return List<ReviewDTO>
      */
     @GetMapping("/type/{type}")
-        public List<ReviewDTO> findReviewsByType(@PathVariable("type") RestaurantType type) {
+    public List<ReviewDTO> findReviewsByType(@PathVariable("type") RestaurantType type) {
             return restaurantReviewService.findReviewsByType(type);
     }
 

@@ -1,5 +1,6 @@
 package com.kyonggi.diet.dietContent;
 
+import com.kyonggi.diet.controllerDocs.DietContentControllerDocs;
 import com.kyonggi.diet.dietContent.DTO.CreateNewDietForm;
 import com.kyonggi.diet.dietContent.DTO.DietContentDTO;
 import com.kyonggi.diet.dietContent.service.DietContentService;
@@ -7,6 +8,7 @@ import com.kyonggi.diet.diet.DietDTO;
 import com.kyonggi.diet.dietFood.DietFoodDTO;
 import com.kyonggi.diet.dietFood.service.DietFoodService;
 import com.kyonggi.diet.dietFood.DietFoodType;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +26,8 @@ import java.util.Map;
 @RequestMapping("/api/diet-content")
 @Slf4j
 @CrossOrigin("*")
-public class DietContentController {
+@Tag(name = "식단 내용 API", description = "식단 내용에 대한 API 입니다.")
+public class DietContentController implements DietContentControllerDocs {
 
     private final DietContentService dietContentService;
 

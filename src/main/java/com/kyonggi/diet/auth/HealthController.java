@@ -8,6 +8,7 @@ import com.kyonggi.diet.member.io.MemberRequest;
 import com.kyonggi.diet.member.io.MemberResponse;
 import com.kyonggi.diet.member.service.CustomMembersDetailService;
 import com.kyonggi.diet.member.service.MemberService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -19,6 +20,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@Tag(name = "상태 API", description = "상태 확인하는 API 입니다.")
 public class HealthController {
 
     @GetMapping("/health")

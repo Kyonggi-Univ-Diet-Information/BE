@@ -1,6 +1,5 @@
 Insert into restaurant (restaurant_id, description, name, time, restaurant_type) values (1, '긱식임' ,'기숙사', '0800~1900', 'DORMITORY');
 
-
 --insert into diet_food values (1, '쌀밥', 'RICE');
 --insert into diet_food values (2, '북어해장국', 'SOUP');
 --insert into diet_food values (3, '돈사태김치찜', 'SIDE');
@@ -20,7 +19,6 @@ Insert into restaurant (restaurant_id, description, name, time, restaurant_type)
 --insert into diet_food values (15, '파채간장불고기', 'SIDE');
 --insert into diet_food values (16, '칠리탕수육강정', 'SIDE');
 --insert into diet_food values (17, '만두강정', 'SIDE');
---insert into diet_food values (18, '무생채', 'SIDE');
 --insert into diet_food values (19, '배추김치', 'SIDE');
 
 --insert into diet_food values (20, '육개장', 'SOUP');

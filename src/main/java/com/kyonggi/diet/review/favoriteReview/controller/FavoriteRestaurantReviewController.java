@@ -1,5 +1,6 @@
 package com.kyonggi.diet.review.favoriteReview.controller;
 
+import com.kyonggi.diet.controllerDocs.FavoriteRestaurantReviewControllerDocs;
 import com.kyonggi.diet.review.favoriteReview.DTO.FavoriteRestaurantReviewDTO;
 import com.kyonggi.diet.review.favoriteReview.domain.FavoriteDietFoodReview;
 import com.kyonggi.diet.review.favoriteReview.domain.FavoriteRestaurantReview;
@@ -18,8 +19,8 @@ import java.util.List;
 @CrossOrigin("*")
 @RequestMapping("/api/review/favorite/restaurant")
 @Slf4j
-@Tag(name = "식당 리뷰 추천 API", description = "식당에 대한 리뷰 추천 API 입니다. (조회, 생성")
-public class FavoriteRestaurantReviewController {
+@Tag(name = "식당 리뷰 추천 API", description = "식당에 대한 리뷰 추천 API 입니다. (조회, 생성)")
+public class FavoriteRestaurantReviewController implements FavoriteRestaurantReviewControllerDocs {
 
     private final FavoriteRestaurantReviewService favoriteRestaurantReviewService;
 

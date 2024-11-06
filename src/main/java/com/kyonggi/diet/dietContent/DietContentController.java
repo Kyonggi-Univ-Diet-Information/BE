@@ -1,5 +1,6 @@
 package com.kyonggi.diet.dietContent;
 
+import com.kyonggi.diet.controllerDocs.DietContentControllerDocs;
 import com.kyonggi.diet.dietContent.DTO.CreateNewDietForm;
 import com.kyonggi.diet.dietContent.DTO.DietContentDTO;
 import com.kyonggi.diet.dietContent.service.DietContentService;
@@ -26,7 +27,7 @@ import java.util.Map;
 @Slf4j
 @CrossOrigin("*")
 @Tag(name = "식단 내용 API", description = "식단 내용에 대한 API 입니다.")
-public class DietContentController {
+public class DietContentController implements DietContentControllerDocs {
 
     private final DietContentService dietContentService;
 

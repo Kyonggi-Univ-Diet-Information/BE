@@ -1,5 +1,6 @@
 package com.kyonggi.diet.review.controller;
 
+import com.kyonggi.diet.controllerDocs.DietFoodReviewControllerDocs;
 import com.kyonggi.diet.dietFood.service.DietFoodService;
 import com.kyonggi.diet.restaurant.RestaurantType;
 import com.kyonggi.diet.review.DTO.CreateReviewDTO;
@@ -18,8 +19,8 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/api/review/diet-food")
 @Slf4j
-@Tag(name = "음식 리뷰 API", description = "음식에 대한 리뷰 API 입니다. (조회, 생성, 삭제, 수정")
-public class DietFoodReviewController {
+@Tag(name = "음식 리뷰 API", description = "음식에 대한 리뷰 API 입니다. (조회, 생성, 삭제, 수정)")
+public class DietFoodReviewController implements DietFoodReviewControllerDocs {
 
     private final DietFoodReviewService dietFoodReviewService;
 

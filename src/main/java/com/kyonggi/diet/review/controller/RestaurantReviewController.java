@@ -3,6 +3,7 @@ import com.kyonggi.diet.restaurant.RestaurantType;
 import com.kyonggi.diet.review.DTO.CreateReviewDTO;
 import com.kyonggi.diet.review.DTO.ReviewDTO;
 import com.kyonggi.diet.review.service.RestaurantReviewService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +15,7 @@ import java.util.List;
 @RequestMapping("/api/review/restaurant")
 @Slf4j
 @CrossOrigin("*")
+@Tag(name = "식당 리뷰 API", description = "식당에 대한 리뷰 API 입니다. (조회, 생성, 삭제, 수정")
 public class RestaurantReviewController {
 
     private final RestaurantReviewService restaurantReviewService;

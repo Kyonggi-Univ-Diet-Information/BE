@@ -1,4 +1,4 @@
-Insert into restaurant (restaurant_id, description, name, time, restaurant_type) values (1, '긱식임' ,'기숙사', '0800~1900', 'DORMITORY');
+-- Insert into restaurant (restaurant_id, description, name, time, restaurant_type) values (1, '긱식임' ,'기숙사', '0800~1900', 'DORMITORY');
 
 --insert into diet_food values (1, '쌀밥', 'RICE');
 --insert into diet_food values (2, '북어해장국', 'SOUP');

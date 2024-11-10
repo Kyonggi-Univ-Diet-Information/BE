@@ -14,20 +14,8 @@ pipeline {
     stages {
         stage('Add Env') {
             steps {
-                withCredentials([
-                    string(credentialsId: 'DB_URL_KIRYONG', variable: 'DB_URL_KIRYONG'),
-                    string(credentialsId: 'DB_USERNAME_KIRYONG', variable: 'DB_USERNAME_KIRYONG'),
-                    string(credentialsId: 'DB_PASSWORD_KIRYONG', variable: 'DB_PASSWORD_KIRYONG'),
-                    string(credentialsId: 'ACCESS_KEY', variable: 'ACCESS_KEY'),
-                    string(credentialsId: 'SECRET_KEY', variable: 'SECRET_KEY'),
-                    string(credentialsId: 'BUCKET_NAME', variable: 'BUCKET_NAME'),
-                    string(credentialsId: 'REGION', variable: 'REGION')
-                ]) {
-                    sh '''
-                    echo "DB URL: ${DB_URL_KIRYONG}"
-                    echo "DB Username: ${DB_USERNAME_KIRYONG}"
-                    echo "Bucket Name: ${BUCKET_NAME}"
-                    '''
+                withCredentials([file(credentialsId: 'application', variable: 'application')]) {
+                    sh 'cp ${application}  src/main/resources/application.yml'
                 }
             }
         }

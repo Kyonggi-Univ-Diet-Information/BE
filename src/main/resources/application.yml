@@ -10,7 +10,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: create #update
+      ddl-auto: update #create
     properties:
       hibernate:
         show_sql: true
@@ -20,7 +20,7 @@ spring:
 
   sql:
     init:
-      mode: always
+      mode: never
       encoding: UTF-8
 
 server:
@@ -32,7 +32,7 @@ logging:
     org.hibernate.orm.jdbc.bind: trace
 
 jwt:
-  secret: ${SECRET_KEY}
+  secret: ${JWT_KEY}
 
 cloud:
   aws:
@@ -43,3 +43,7 @@ cloud:
       secretKey: ${SECRET_KEY}
     region.static: ${REGION}
     stack.auto: false
+
+kakao:
+  client_id: ${REST_API_KEY}
+  redirect_uri: https://kiryong.site

@@ -43,3 +43,7 @@ cloud:
       secretKey: ${SECRET_KEY}
     region.static: ${REGION}
     stack.auto: false
+
+kakao:
+  client_id: {REST_API_KEY}
+  redirect_uri: https://kiryong.site

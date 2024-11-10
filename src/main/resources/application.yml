@@ -3,9 +3,9 @@ spring:
     name: diet
 
   datasource:
-    url: jdbc:mysql://kiryong-database.c7iwog84a8ue.us-east-1.rds.amazonaws.com:3306/kguDiet
-    username: admin
-    password: rlfyd1112
+    url: ${DB_URL_KIRYONG}
+    username: ${DB_USERNAME_KIRYONG}
+    password: ${DB_PASSWORD_KIRYONG}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
@@ -32,4 +32,14 @@ logging:
     org.hibernate.orm.jdbc.bind: trace
 
 jwt:
-  secret: expensemanagersecretkeyexpensemanagersecretkey
+  secret: ${SECRET_KEY}
+
+cloud:
+  aws:
+    s3:
+      bucketName: ${BUCKET_NAME}
+    credentials:
+      accessKey: ${ACCESS_KEY}
+      secretKey: ${SECRET_KEY}
+    region.static: ${REGION}
+    stack.auto: false

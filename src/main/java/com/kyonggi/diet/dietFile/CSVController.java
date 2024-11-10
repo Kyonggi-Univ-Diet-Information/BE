@@ -1,5 +1,6 @@
 package com.kyonggi.diet.dietFile;
 
+import com.kyonggi.diet.aws.S3FileRequest;
 import com.kyonggi.diet.controllerDocs.CSVControllerDocs;
 import com.opencsv.exceptions.CsvValidationException;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -16,11 +17,20 @@ public class CSVController implements CSVControllerDocs {
 
     private final CSVService csvService;
 
+    private final com.kyonggi.diet.aws.CSVServices csvReader;
+
     @PostMapping("/diet")
     public void readDiet(@RequestBody String path) throws CsvValidationException, IOException {
         if(path == null)
             return;
         csvService.readAndSave(path);
+    }
+
+    @PostMapping("/diet2")
+    public void readDiet2(@RequestBody S3FileRequest s3FileRequest) throws CsvValidationException, IOException {
+        if(s3FileRequest.getKey() == null)
+            return;
+        csvReader.readAndSave(s3FileRequest.getKey());
     }
 
 }

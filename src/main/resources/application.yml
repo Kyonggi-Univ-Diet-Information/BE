@@ -10,7 +10,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: create #update
+      ddl-auto: update #create
     properties:
       hibernate:
         show_sql: true
@@ -20,7 +20,7 @@ spring:
 
   sql:
     init:
-      mode: always
+      mode: never
       encoding: UTF-8
 
 server:
@@ -45,5 +45,5 @@ cloud:
     stack.auto: false
 
 kakao:
-  client_id: {REST_API_KEY}
+  client_id: ${REST_API_KEY}
   redirect_uri: https://kiryong.site

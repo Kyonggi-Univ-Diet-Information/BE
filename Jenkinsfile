@@ -27,7 +27,6 @@ pipeline {
                     echo "DB URL: ${DB_URL_KIRYONG}"
                     echo "DB Username: ${DB_USERNAME_KIRYONG}"
                     echo "Bucket Name: ${BUCKET_NAME}"
-                    cp ${application} src/main/resources/application.yml
                     '''
                 }
             }

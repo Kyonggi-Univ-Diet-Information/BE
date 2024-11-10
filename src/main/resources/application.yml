@@ -32,7 +32,7 @@ logging:
     org.hibernate.orm.jdbc.bind: trace
 
 jwt:
-  secret: ${SECRET_KEY}
+  secret: ${JWT_KEY}
 
 cloud:
   aws:

@@ -17,10 +17,10 @@ public class CSVController implements CSVControllerDocs {
     private final CSVService csvReader;
 
     @PostMapping("/diet")
-    public void readDiet(@RequestBody String key) throws CsvValidationException, IOException {
-        if(key == null)
+    public void readDiet(@RequestBody KeyDTO keyDTO) throws CsvValidationException, IOException {
+        if(keyDTO.getKey() == null)
             return;
-        csvReader.readAndSave(key);
+        csvReader.readAndSave(keyDTO.getKey());
     }
 
 }

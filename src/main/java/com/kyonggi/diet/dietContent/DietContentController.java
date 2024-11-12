@@ -55,7 +55,7 @@ public class DietContentController implements DietContentControllerDocs {
 
         // 최상단에 'documents' 키 추가
         Map<String, Map<DayOfWeek, Map<DietTime, DietContentDTO>>> result = new HashMap<>();
-        result.put("documents", dietMap);
+        result.put("result", dietMap);
 
         return result;
     }

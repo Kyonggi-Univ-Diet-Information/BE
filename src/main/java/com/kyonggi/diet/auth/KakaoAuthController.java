@@ -16,6 +16,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @Tag(name = "카카오 인증 API", description = "카카오 소셜 회원 인증(회원가입, 로그인 등)에 대한 API 입니다.")
 public class KakaoAuthController {
 
+    private KakaoAuthService kakaoAuthService;
+
     @Value("${kakao.client_id}")
     private String clientId;
 

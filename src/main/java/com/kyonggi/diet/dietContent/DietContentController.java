@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.temporal.TemporalAdjusters;
@@ -32,25 +33,30 @@ public class DietContentController implements DietContentControllerDocs {
     private final DietContentService dietContentService;
 
     @GetMapping("/dormitory")
-    public Map<DayOfWeek, Map<DietTime, DietContentDTO>> dormitoryHome() {
+    public Map<String, Map<DayOfWeek, Map<DietTime, DietContentDTO>>> dormitoryHome() {
         LocalDate today = LocalDate.now();
         LocalDate startOfWeek = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
         LocalDate endOfWeek = today.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
 
-        //이번주 식단 가져오기
+        // 이번주 식단 가져오기
         List<DietContentDTO> diets = dietContentService.findDietContentsBetweenDates(startOfWeek, endOfWeek);
 
-        //이번주 식단 반환
+        // 이번주 식단 반환
         Map<DayOfWeek, Map<DietTime, DietContentDTO>> dietMap = new HashMap<>();
         for (DietContentDTO diet : diets) {
             LocalDate localDate = LocalDate.parse(diet.getDate());
             DayOfWeek dayOfWeek = localDate.getDayOfWeek();
 
-            //해당 요일에 map 없으면 생성
+            // 해당 요일에 map 없으면 생성
             dietMap.putIfAbsent(dayOfWeek, new HashMap<>());
 
             dietMap.get(dayOfWeek).put(diet.getTime(), diet);
         }
-        return dietMap;
+
+        // 최상단에 'documents' 키 추가
+        Map<String, Map<DayOfWeek, Map<DietTime, DietContentDTO>>> result = new HashMap<>();
+        result.put("result", dietMap);
+
+        return result;
     }
 }

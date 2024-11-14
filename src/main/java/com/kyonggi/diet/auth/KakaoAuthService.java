@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -27,6 +28,13 @@ public class KakaoAuthService {
 
     private final MemberRepository memberRepository;
 
+    @Value("${kakao.client_id}")
+    private String clientId;
+
+    @Value("${kakao.redirect_uri}")
+    private String redirectUri;
+
+
     public String getAccessToken(String authorizeCode) {
         String accessToken = "";
         String refreshToken = "";
@@ -43,8 +51,8 @@ public class KakaoAuthService {
             BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(conn.getOutputStream()));
             StringBuilder sb = new StringBuilder();
             sb.append("grant_type=authorization_code");
-            sb.append("&client_id=");  //발급받은 key
-            sb.append("&redirect_uri=");     // 본인이 설정해 놓은 redirect_uri 주소
+            sb.append("&client_id=").append(clientId);  //발급받은 key
+            sb.append("&redirect_uri=").append(redirectUri);     // 본인이 설정해 놓은 redirect_uri 주소
             sb.append("&code=").append(authorizeCode);
             bw.write(sb.toString());
             bw.flush();

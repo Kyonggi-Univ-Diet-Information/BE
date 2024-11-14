@@ -46,4 +46,4 @@ cloud:
 
 kakao:
   client_id: ${REST_API_KEY}
-  redirect_uri: https://kiryong.site
+  redirect_uri: https://kiryong.site/api/kakao-login

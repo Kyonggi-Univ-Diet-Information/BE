@@ -1,5 +1,6 @@
 package com.kyonggi.diet.auth;
 
+import com.kyonggi.diet.auth.io.AuthResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -31,9 +32,11 @@ public class KakaoAuthController {
     }
 
     @GetMapping("/kakao-login")
-    public String kakaoLogin(@RequestParam(value="code", required = false) String code, HttpSession session, RedirectAttributes rttr) throws Exception {
+    public AuthResponse kakaoLogin(@RequestParam(value="code", required = false) String code, HttpSession session, RedirectAttributes rttr) throws Exception {
         log.info("#######{}", code);
         String accessToken = kakaoAuthService.getAccessToken(code);
-        return kakaoAuthService.getUserInfo(accessToken, session, rttr);
+        AuthResponse response = kakaoAuthService.getUserInfo(accessToken, session, rttr);
+        log.info("AuthResponse: {}", response); // AuthResponse 객체 확인
+        return response;
     }
 }

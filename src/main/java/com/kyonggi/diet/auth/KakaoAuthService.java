@@ -3,15 +3,21 @@ package com.kyonggi.diet.auth;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.kyonggi.diet.auth.io.AuthResponse;
+import com.kyonggi.diet.auth.util.JwtTokenUtil;
 import com.kyonggi.diet.member.MemberDTO;
 import com.kyonggi.diet.member.MemberEntity;
 import com.kyonggi.diet.member.MemberRepository;
+import com.kyonggi.diet.member.service.CustomMembersDetailService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.parameters.P;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -27,6 +33,9 @@ import java.util.Optional;
 public class KakaoAuthService {
 
     private final MemberRepository memberRepository;
+    private final AuthenticationManager authenticationManager;
+    private final JwtTokenUtil jwtTokenUtil;
+    private final CustomMembersDetailService membersDetailService;
 
     @Value("${kakao.client_id}")
     private String clientId;
@@ -86,7 +95,7 @@ public class KakaoAuthService {
         return accessToken;
     }
 
-    public String getUserInfo(String accessToken, HttpSession session, RedirectAttributes rttr) {
+    public AuthResponse getUserInfo(String accessToken, HttpSession session, RedirectAttributes rttr) {
         HashMap<String, Object> userInfo = new HashMap<>();
         log.info("Called getUserInfo()");
 
@@ -142,16 +151,17 @@ public class KakaoAuthService {
                     .build();
             memberRepository.save(member);
             session.setAttribute("member", member);
-            view = "redirect:/";
             msg = "회원가입 성공 및 로그인 완료";
         } else {
             // 기존 회원이라면 바로 로그인 처리
             member = memberOpt.get();
             session.setAttribute("member", member);
-            view = "redirect:/";
             msg = "로그인 성공";
         }
         rttr.addFlashAttribute("msg", msg);
-        return view;
+        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(member.getEmail(), member.getPassword()));
+        final UserDetails user = membersDetailService.loadUserByUsername(member.getEmail());
+        final String token = jwtTokenUtil.generateToken(user);
+        return new AuthResponse(token, member.getEmail());
     }
 }

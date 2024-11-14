@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.servlet.view.RedirectView;
 
 @RestController
 @Slf4j
@@ -26,10 +27,13 @@ public class KakaoAuthController {
     @Value("${kakao.redirect_uri}")
     private String redirectUri;
 
-    @RequestMapping("/kakao-form")
-    public @ResponseBody String kakaoForm() {
-        return "https://kauth.kakao.com/oauth/authorize?response_type=code&client_id="+clientId+"&redirect_uri="+redirectUri;
+    @GetMapping("/kakao-form")
+    public RedirectView kakaoForm() {
+        log.info("call kakao-form api");
+        String redirectUrl = "https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=" + clientId + "&redirect_uri=" + redirectUri;
+        return new RedirectView(redirectUrl);
     }
+
 
     @GetMapping("/kakao-login")
     public AuthResponse kakaoLogin(@RequestParam(value="code", required = false) String code, HttpSession session, RedirectAttributes rttr) throws Exception {

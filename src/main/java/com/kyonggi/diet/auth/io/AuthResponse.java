@@ -14,4 +14,13 @@ public class AuthResponse {
 
     @Schema(description = "이메일")
     private String email;
+
+    @Override
+    public String toString() {
+        return "AuthResponse{" +
+                "token='" + token + '\'' +
+                ", email='" + email + '\'' +
+                '}';
+    }
+
 }

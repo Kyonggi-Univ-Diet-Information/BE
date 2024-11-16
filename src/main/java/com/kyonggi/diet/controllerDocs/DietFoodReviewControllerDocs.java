@@ -20,28 +20,25 @@ public interface DietFoodReviewControllerDocs {
 
     @Operation(summary = "특정 음식에 리뷰 남기기", description = "사용자로부터 요청 값을 받아, 특정 음식에 리뷰를 남기는 API")
     @Parameter(name = "dietFoodId", description = "음식 ID")
-    @Parameter(name = "email", description = "사용자 이메일")
     @Parameter(name = "rating", description = "리뷰 별점")
     @Parameter(name = "title", description = "리뷰 제목")
     @Parameter(name = "content", description = "리뷰 내용")
     public ResponseEntity<String> createDietFoodReview(@PathVariable("dietFoodId") Long dietFoodId,
-                                                       @PathVariable("email") String email,
+                                                       @RequestHeader("Authorization") String token,
                                                        @RequestBody CreateReviewDTO createReviewDTO);
 
     @Operation(summary = "특정 음식 리뷰 수정", description = "사용자보루터 요청 값을 받아, 특정 음식 리뷰를 수정하는 API")
     @Parameter(name = "id", description = "리뷰 ID")
-    @Parameter(name = "email", description = "사용자 이메일")
     @Parameter(name = "rating", description = "별점")
     @Parameter(name = "title", description = "리뷰 제목")
     @Parameter(name = "content", description = "리뷰 내용")
     @Parameter(name = "memberName", description = "사용X")
     public ResponseEntity<String> modifyReview(@PathVariable("id") Long reviewId,
-                                               @PathVariable("email") String email,
-                                               @RequestBody ReviewDTO reviewDTO);
+                                               @RequestBody ReviewDTO reviewDTO,
+                                               @RequestHeader("Authorization") String token);
 
     @Operation(summary = "특정 음식 리뷰 삭제", description = "사용자로부터 요청받아, 특정 음식 리뷰를 삭제하는 API")
     @Parameter(name = "id", description = "리뷰 ID")
-    @Parameter(name = "email", description = "사용자 이메일")
     public ResponseEntity<String> deleteReview(@PathVariable("id") Long reviewId,
-                                               @PathVariable("email") String email);
+                                               @RequestHeader("Authorization") String token);
 }

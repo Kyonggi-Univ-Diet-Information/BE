@@ -1,8 +1,7 @@
 package com.kyonggi.diet.review.controller;
 
+import com.kyonggi.diet.auth.util.JwtTokenUtil;
 import com.kyonggi.diet.controllerDocs.DietFoodReviewControllerDocs;
-import com.kyonggi.diet.dietFood.service.DietFoodService;
-import com.kyonggi.diet.restaurant.RestaurantType;
 import com.kyonggi.diet.review.DTO.CreateReviewDTO;
 import com.kyonggi.diet.review.DTO.ReviewDTO;
 import com.kyonggi.diet.review.service.DietFoodReviewService;
@@ -23,6 +22,7 @@ import java.util.List;
 public class DietFoodReviewController implements DietFoodReviewControllerDocs {
 
     private final DietFoodReviewService dietFoodReviewService;
+    private final JwtTokenUtil jwtTokenUtil;
 
     /**
      * 음식 리뷰 1개 조회
@@ -48,14 +48,15 @@ public class DietFoodReviewController implements DietFoodReviewControllerDocs {
     /**
      * 음식 리뷰 생성
      * @param dietFoodId (Long)
-     * @param email (String)
+     * @param token (String)
      * @param createReviewDTO (CreateReviewDTO)
      * @return ResponseEntity
      */
-    @PostMapping("/new/{dietFoodId}/{email}")
+    @PostMapping("/new/{dietFoodId}")
     public ResponseEntity<String> createDietFoodReview(@PathVariable("dietFoodId") Long dietFoodId,
-                                                       @PathVariable("email") String email,
+                                                       @RequestHeader("Authorization") String token,
                                                        @RequestBody CreateReviewDTO createReviewDTO) {
+        String email = jwtTokenUtil.getUsernameFromToken(token.substring(7));
 
         ReviewDTO reviewDTO = ReviewDTO.builder()
                 .rating(createReviewDTO.getRating())
@@ -71,14 +72,16 @@ public class DietFoodReviewController implements DietFoodReviewControllerDocs {
     /**
      * 음식 리뷰 수정
      * @param reviewId (Long)
-     * @param email (String)
+     * @param token (String)
      * @param reviewDTO (ReviewDTO)
      * @return ResponseEntity
      */
-    @PutMapping("/modify/{id}/{email}")
+    @PutMapping("/modify/{id}")
     public ResponseEntity<String> modifyReview(@PathVariable("id") Long reviewId,
-                                               @PathVariable("email") String email,
-                                               @RequestBody ReviewDTO reviewDTO) {
+                                               @RequestBody ReviewDTO reviewDTO,
+                                               @RequestHeader("Authorization") String token) {
+        String email = jwtTokenUtil.getUsernameFromToken(token.substring(7));
+
         if(!dietFoodReviewService.verifyMember(reviewId, email)) {
             return ResponseEntity.ok("작성자가 아닙니다.");
         }
@@ -91,12 +94,14 @@ public class DietFoodReviewController implements DietFoodReviewControllerDocs {
     /**
      * 음식 리뷰 삭제
      * @param reviewId (Long)
-     * @param email (String)
+     * @param token (String)
      * @return ResponseEntity
      */
-    @DeleteMapping("/delete/{id}/{email}")
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> deleteReview(@PathVariable("id") Long reviewId,
-                                               @PathVariable("email") String email) {
+                                               @RequestHeader("Authorization") String token) {
+        String email = jwtTokenUtil.getUsernameFromToken(token.substring(7));
+
         if (!dietFoodReviewService.verifyMember(reviewId, email)) {
             return ResponseEntity.ok("작성자가 아닙니다.");
         }

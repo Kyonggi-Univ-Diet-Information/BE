@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 import java.util.List;
 
@@ -19,12 +20,10 @@ public interface FavoriteRestaurantReviewControllerDocs {
     public List<FavoriteRestaurantReviewDTO> findAll();
 
     @Operation(summary = "특정 회원이 추천한 식당 리뷰 모두 조회", description = "특정 회원이 추천한 식당 리뷰 모두 조회")
-    @Parameter(name = "email", description = "사용자 이메일")
-    public List<FavoriteRestaurantReviewDTO> findAllByMemberId(@PathVariable("email") String email);
+    public List<FavoriteRestaurantReviewDTO> findAllByMember(@RequestHeader("Authorization") String token);
 
     @Operation(summary = "특정 식당 리뷰 추천하기", description = "사용자가 특정 식당 리뷰에 좋아요 표시하는 API")
-    @Parameter(name = "email", description = "사용자 이메일")
     @Parameter(name = "reviewId", description = "리뷰 ID")
-    public ResponseEntity<String> createFavoriteRestaurantReview(@PathVariable("email") String email,
+    public ResponseEntity<String> createFavoriteRestaurantReview(@RequestHeader("Authorization") String token,
                                                                @PathVariable("reviewId") Long reviewId);
 }

@@ -1,5 +1,6 @@
 package com.kyonggi.diet.review.favoriteReview.controller;
 
+import com.kyonggi.diet.auth.util.JwtTokenUtil;
 import com.kyonggi.diet.controllerDocs.FavoriteDietFoodReviewControllerDocs;
 import com.kyonggi.diet.member.service.MemberService;
 import com.kyonggi.diet.review.favoriteReview.DTO.FavoriteDietFoodReviewDTO;
@@ -23,6 +24,7 @@ import java.util.List;
 public class FavoriteDietFoodReviewController implements FavoriteDietFoodReviewControllerDocs {
 
     private final FavoriteDietFoodReviewService favoriteDietFoodReviewService;
+    private final JwtTokenUtil jwtTokenUtil;
 
     /**
      * 관심 음식 리뷰 1개 조회
@@ -45,24 +47,28 @@ public class FavoriteDietFoodReviewController implements FavoriteDietFoodReviewC
 
     /**
      * 멤버별 관심 음식 리뷰 전체 조회
-     * @param email (String)
+     * @param token (String)
      * @return List<FavoriteDietFoodReviewDTO>
      */
-    @GetMapping("/{email}/all")
-    public List<FavoriteDietFoodReviewDTO> findAllByMemberId(@PathVariable("email") String email) {
+    @GetMapping("/each-member/all")
+    public List<FavoriteDietFoodReviewDTO> findAllByMember(@RequestHeader("Authorization") String token) {
+        String email = jwtTokenUtil.getUsernameFromToken(token.substring(7));
+
         return favoriteDietFoodReviewService.findFavoriteDietFoodReviewListByMember(email);
     }
 
     /**
      * 멤버별 관심 음식 리뷰 생성
-     * @param email (String)
+     * @param token (String)
      * @param reviewId (Long)
      * @return ResponseEntity
      */
-    @PostMapping("/{email}/{reviewId}/create-favorite")
-    public ResponseEntity<String> createFavoriteDietFoodReview(@PathVariable("email") String email,
+    @PostMapping("/{reviewId}/create-favorite")
+    public ResponseEntity<String> createFavoriteDietFoodReview(@RequestHeader("Authorization") String token,
                                                                  @PathVariable("reviewId") Long reviewId) {
+        String email = jwtTokenUtil.getUsernameFromToken(token.substring(7));
         favoriteDietFoodReviewService.createFavoriteDietFoodReview(reviewId, email);
+
         return ResponseEntity.ok("Successfully favorite");
     }
 }

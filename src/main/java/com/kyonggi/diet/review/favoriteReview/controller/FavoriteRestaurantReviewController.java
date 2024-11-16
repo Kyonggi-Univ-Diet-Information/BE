@@ -1,5 +1,6 @@
 package com.kyonggi.diet.review.favoriteReview.controller;
 
+import com.kyonggi.diet.auth.util.JwtTokenUtil;
 import com.kyonggi.diet.controllerDocs.FavoriteRestaurantReviewControllerDocs;
 import com.kyonggi.diet.review.favoriteReview.DTO.FavoriteRestaurantReviewDTO;
 import com.kyonggi.diet.review.favoriteReview.domain.FavoriteDietFoodReview;
@@ -23,6 +24,7 @@ import java.util.List;
 public class FavoriteRestaurantReviewController implements FavoriteRestaurantReviewControllerDocs {
 
     private final FavoriteRestaurantReviewService favoriteRestaurantReviewService;
+    private final JwtTokenUtil jwtTokenUtil;
 
     /**
      * 관심 식당 리뷰 1개 조회
@@ -45,24 +47,28 @@ public class FavoriteRestaurantReviewController implements FavoriteRestaurantRev
 
     /**
      * 멤버별 관심 식당 리뷰 전체 조회
-     * @param email (String)
+     * @param token (String)
      * @return List<FavoriteRestaurantReviewDTO>
      */
-    @GetMapping("/{email}/all")
-    public List<FavoriteRestaurantReviewDTO> findAllByMemberId(@PathVariable("email") String email) {
+    @GetMapping("/each-member/all")
+    public List<FavoriteRestaurantReviewDTO> findAllByMember(@RequestHeader("Authorization") String token) {
+        String email = jwtTokenUtil.getUsernameFromToken(token.substring(7));
+
         return favoriteRestaurantReviewService.findFavoriteRestaurantReviewListByMember(email);
     }
 
     /**
      * 멤버별 관심 식당 리뷰 생성
-     * @param email (String)
+     * @param token (String)
      * @param reviewId (Long)
      * @return ResponseEntity
      */
-    @PostMapping("/{email}/{reviewId}/create-favorite")
-    public ResponseEntity<String> createFavoriteRestaurantReview(@PathVariable("email") String email,
+    @PostMapping("/{reviewId}/create-favorite")
+    public ResponseEntity<String> createFavoriteRestaurantReview(@RequestHeader("Authorization") String token,
                                                                  @PathVariable("reviewId") Long reviewId) {
+        String email = jwtTokenUtil.getUsernameFromToken(token.substring(7));
         favoriteRestaurantReviewService.createFavoriteRestaurantReview(reviewId, email);
+
         return ResponseEntity.ok("Successfully favorite");
     }
 }

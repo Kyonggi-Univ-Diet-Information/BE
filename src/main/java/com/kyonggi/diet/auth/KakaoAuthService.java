@@ -53,21 +53,24 @@ public class KakaoAuthService {
             URL url = new URL(requestUrl);
 
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-
             conn.setRequestMethod("POST");
             conn.setDoOutput(true);
 
             BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(conn.getOutputStream()));
             StringBuilder sb = new StringBuilder();
             sb.append("grant_type=authorization_code");
-            sb.append("&client_id=").append(clientId);  //발급받은 key
-            sb.append("&redirect_uri=").append(redirectUri);     // 본인이 설정해 놓은 redirect_uri 주소
+            sb.append("&client_id=").append(clientId);  // 발급받은 key
+            sb.append("&redirect_uri=").append(redirectUri); // 설정된 redirect_uri
             sb.append("&code=").append(authorizeCode);
+
+            // 로그 추가: 요청 바디 확인
+            log.info("Request Body: {}", sb.toString());
+
             bw.write(sb.toString());
             bw.flush();
 
             int responseCode = conn.getResponseCode();
-            System.out.println("responseCode : " + responseCode + "확인");
+            log.info("Response Code from Kakao: {}", responseCode);
 
             BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
             String line = "";
@@ -76,32 +79,32 @@ public class KakaoAuthService {
             while ((line = br.readLine()) != null) {
                 result += line;
             }
-            System.out.println("response body : " + result + "결과");
 
-            JsonParser parser = new com.google.gson.JsonParser();
+            // 로그 추가: 응답 본문 확인
+            log.info("Response Body from Kakao: {}", result);
+
+            JsonParser parser = new JsonParser();
             JsonElement element = parser.parse(result);
 
             accessToken = element.getAsJsonObject().get("access_token").getAsString();
             refreshToken = element.getAsJsonObject().get("refresh_token").getAsString();
 
-            System.out.println("access_token : " + accessToken);
-            System.out.println("refresh_token : " + refreshToken);
+            log.info("Access Token: {}", accessToken);
+            log.info("Refresh Token: {}", refreshToken);
 
             br.close();
             bw.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("Error while getting access token", e);
         }
         return accessToken;
     }
 
     public AuthResponse getUserInfo(String accessToken, HttpSession session, RedirectAttributes rttr) {
         HashMap<String, Object> userInfo = new HashMap<>();
-        log.info("Called getUserInfo()");
+        log.info("Called getUserInfo() with accessToken: {}", accessToken);
 
         String requestURL = "https://kapi.kakao.com/v2/user/me";
-        String view = null;
-        String msg = null;
 
         try {
             URL url = new URL(requestURL);
@@ -109,40 +112,43 @@ public class KakaoAuthService {
             conn.setRequestMethod("GET");
             conn.setRequestProperty("Authorization", "Bearer " + accessToken);
 
-            int responseCode = conn.getResponseCode(); //서버에서 보낸 http 상태코드 반환
-            System.out.println("responseCode :" + responseCode + "여긴가");
+            int responseCode = conn.getResponseCode(); // HTTP 상태코드
+            log.info("Response Code from Kakao User Info: {}", responseCode);
+
             BufferedReader buffer = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-            // 버퍼를 사용하여 읽은 것
             String line = "";
             String result = "";
+
             while ((line = buffer.readLine()) != null) {
                 result += line;
             }
 
-            System.out.println("response body :" + result);
+            // 로그 추가: 응답 본문 확인
+            log.info("Response Body from Kakao User Info: {}", result);
 
-            // 읽었으니깐 데이터꺼내오기
             JsonParser parser = new JsonParser();
-            JsonElement element = parser.parse(result); //Json element 문자열변경
+            JsonElement element = parser.parse(result);
             JsonObject properties = element.getAsJsonObject().get("properties").getAsJsonObject();
             JsonObject kakao_account = element.getAsJsonObject().get("kakao_account").getAsJsonObject();
 
-            String nickname = properties.getAsJsonObject().get("nickname").getAsString();
-            String email = kakao_account.getAsJsonObject().get("email").getAsString();
+            String nickname = properties.get("nickname").getAsString();
+            String email = kakao_account.get("email").getAsString();
 
-            //userInfo에 사용자 정보 저장
+            log.info("Parsed User Info - Email: {}, Nickname: {}", email, nickname);
+
+            // 사용자 정보 저장
             userInfo.put("email", email);
             userInfo.put("nickname", nickname);
-
-            log.info(String.valueOf(userInfo));
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Error while fetching user info", e);
         }
 
         // 이메일로 회원을 조회합니다.
         Optional<MemberEntity> memberOpt = memberRepository.findByEmail((String) userInfo.get("email"));
 
         MemberEntity member;
+        String msg;
+
         if (memberOpt.isEmpty()) {
             // 회원이 없다면 새로 저장
             member = MemberEntity.builder()
@@ -152,16 +158,27 @@ public class KakaoAuthService {
             memberRepository.save(member);
             session.setAttribute("member", member);
             msg = "회원가입 성공 및 로그인 완료";
+            log.info("New Member Registered: {}", member);
         } else {
             // 기존 회원이라면 바로 로그인 처리
             member = memberOpt.get();
             session.setAttribute("member", member);
             msg = "로그인 성공";
+            log.info("Existing Member Logged In: {}", member);
         }
         rttr.addFlashAttribute("msg", msg);
-        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(member.getEmail(), member.getPassword()));
-        final UserDetails user = membersDetailService.loadUserByUsername(member.getEmail());
-        final String token = jwtTokenUtil.generateToken(user);
-        return new AuthResponse(token, member.getEmail());
+
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(member.getEmail(), member.getPassword()));
+            UserDetails user = membersDetailService.loadUserByUsername(member.getEmail());
+            String token = jwtTokenUtil.generateToken(user);
+            log.info("JWT Token Generated: {}", token);
+            return new AuthResponse(token, member.getEmail());
+        } catch (Exception e) {
+            log.error("Authentication failed for user: {}", member.getEmail(), e);
+            throw e;
+        }
     }
+
 }

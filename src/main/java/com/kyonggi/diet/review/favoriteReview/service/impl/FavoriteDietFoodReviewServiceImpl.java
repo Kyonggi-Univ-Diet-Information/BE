@@ -28,7 +28,6 @@ import java.util.stream.Collectors;
 public class FavoriteDietFoodReviewServiceImpl implements FavoriteDietFoodReviewService {
 
     private final FavoriteDietFoodReviewRepository favoriteDietFoodReviewRepository;
-    private final MemberRepository memberRepository;
     private final MemberService memberService;
     private final DietFoodReviewService dietFoodReviewService;
     private final ModelMapper modelMapper;
@@ -52,11 +51,17 @@ public class FavoriteDietFoodReviewServiceImpl implements FavoriteDietFoodReview
     @Transactional
     public void createFavoriteDietFoodReview(Long reviewId, String email) {
         MemberEntity member = memberService.getMemberByEmail(email);
-        FavoriteDietFoodReview review = FavoriteDietFoodReview.builder()
-                .dietFoodReview(dietFoodReviewService.findOne(reviewId))
-                .member(member)
-                .build();
-        save(review);
+
+        if (validateThisIsMine(member, reviewId) == null) {
+            FavoriteDietFoodReview review = FavoriteDietFoodReview.builder()
+                    .dietFoodReview(dietFoodReviewService.findOne(reviewId))
+                    .member(member)
+                    .build();
+            save(review);
+            return;
+        }
+
+        throw new IllegalStateException("이미 좋아요를 한 상태입니다");
     }
 
     /**
@@ -144,6 +149,32 @@ public class FavoriteDietFoodReviewServiceImpl implements FavoriteDietFoodReview
 
     private FavoriteDietFoodReviewDTO mapToFavoriteDietFoodReviewDTO(FavoriteDietFoodReview favoriteDietFoodReview) {
         return modelMapper.map(favoriteDietFoodReview, FavoriteDietFoodReviewDTO.class);
+    }
 
+    /**
+     * 멤버별 관심 음식 리뷰 삭제
+     * @param email (String)
+     * @param reviewId (Long)
+     */
+    @Transactional
+    public void deleteFavoriteReview(String email, Long reviewId) {
+        MemberEntity member = memberService.getMemberByEmail(email);
+        Long favoriteReviewId  = validateThisIsMine(member, reviewId);
+
+        if (favoriteReviewId == null) {
+            throw new NoSuchElementException("좋아요한 리뷰가 없습니다");
+        }
+
+        favoriteDietFoodReviewRepository.delete(findOne(favoriteReviewId));
+    }
+
+    /**
+     * 멤버가 해당 리뷰에 이미 좋아요 눌렀는지 확인
+     * @param member (MemberEntity)
+     * @param reviewId (Long)
+     * @return Long
+     */
+    private Long validateThisIsMine(MemberEntity member, Long reviewId) {
+        return favoriteDietFoodReviewRepository.validateThisIsMine(member, reviewId);
     }
 }

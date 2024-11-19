@@ -19,12 +19,10 @@ import java.sql.Timestamp;
 @AllArgsConstructor
 public class FavoriteDietFoodReview {
 
-    @Id
-    @Column(name = "diet_food_review_id")
+    @Id @GeneratedValue
     private Long id;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @MapsId
+    @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnore
     @JoinColumn(name = "diet_food_review_id")
     private DietFoodReview dietFoodReview;

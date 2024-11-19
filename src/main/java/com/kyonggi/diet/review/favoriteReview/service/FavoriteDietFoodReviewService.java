@@ -42,9 +42,16 @@ public interface FavoriteDietFoodReviewService {
     List<FavoriteDietFoodReviewDTO> findAll();
 
     /**
-     * 멤버별 관슴 음식 리뷰 DTO 조회 메서드
+     * 멤버별 관심 음식 리뷰 DTO 조회 메서드
      * @param email (String)
      * @return List<FavoriteDietFoodReviewDTO>
      */
     List<FavoriteDietFoodReviewDTO> findFavoriteDietFoodReviewListByMember(String email);
+
+    /**
+     * 멤버별 관심 음식 리뷰 삭제 메서드
+     * @param email (String)
+     * @param reviewId (Long)
+     */
+    void deleteFavoriteReview(String email, Long reviewId);
 }

@@ -71,4 +71,19 @@ public class FavoriteRestaurantReviewController implements FavoriteRestaurantRev
 
         return ResponseEntity.ok("Successfully favorite");
     }
+
+    /**
+     * 관심 식당 리뷰 삭제
+     * @param reviewId (Long)
+     * @param token (String)
+     * @return ResponseEntity
+     */
+    @DeleteMapping("/delete/{reviewId}")
+    public ResponseEntity<String> deleteReview(@PathVariable("reviewId") Long reviewId,
+                                               @RequestHeader("Authorization") String token) {
+        String email = jwtTokenUtil.getUsernameFromToken(token.substring(7));
+
+        favoriteRestaurantReviewService.deleteFavoriteReview(email, reviewId);
+        return ResponseEntity.ok("Review Deleted");
+    }
 }

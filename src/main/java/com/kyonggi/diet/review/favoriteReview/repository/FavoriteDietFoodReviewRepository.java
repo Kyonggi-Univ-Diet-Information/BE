@@ -12,4 +12,8 @@ public interface FavoriteDietFoodReviewRepository extends JpaRepository<Favorite
 
     @Query("select f from FavoriteDietFoodReview f where f.member = :member")
     public List<FavoriteDietFoodReview> findFavoriteDietFoodReviewListByMember(@Param("member") MemberEntity member);
+
+    @Query("select f.id from FavoriteDietFoodReview f where f.member = :member and f.dietFoodReview.id = :reviewId")
+    public Long validateThisIsMine(@Param("member") MemberEntity member,
+                                   @Param("reviewId") Long reviewId);
 }

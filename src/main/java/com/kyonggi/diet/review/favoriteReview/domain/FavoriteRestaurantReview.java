@@ -19,15 +19,13 @@ import java.sql.Timestamp;
 @NoArgsConstructor
 public class FavoriteRestaurantReview {
 
-    @Id
-    @Column(name = "restaurant_review_id")
+    @Id @GeneratedValue
     private Long id;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @MapsId
+    @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnore
     @JoinColumn(name = "restaurant_review_id")
-    private RestaurantReview RestaurantReview;
+    private RestaurantReview restaurantReview;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnore

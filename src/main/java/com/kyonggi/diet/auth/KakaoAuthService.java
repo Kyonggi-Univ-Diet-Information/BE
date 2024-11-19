@@ -168,17 +168,10 @@ public class KakaoAuthService {
         }
         rttr.addFlashAttribute("msg", msg);
 
-        try {
-            authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(member.getEmail(), member.getPassword()));
-            UserDetails user = membersDetailService.loadUserByUsername(member.getEmail());
-            String token = jwtTokenUtil.generateToken(user);
-            log.info("JWT Token Generated: {}", token);
-            return new AuthResponse(token, member.getEmail());
-        } catch (Exception e) {
-            log.error("Authentication failed for user: {}", member.getEmail(), e);
-            throw e;
-        }
+        String jwtToken = jwtTokenUtil.generateToken(membersDetailService.loadUserByUsername(member.getEmail()));
+
+        return new AuthResponse(jwtToken, member.getEmail());
+
     }
 
 }

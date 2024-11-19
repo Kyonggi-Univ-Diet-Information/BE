@@ -46,4 +46,11 @@ public interface FavoriteRestaurantReviewService {
      * @return List<FavoriteRestaurantReviewDTO>
      */
     List<FavoriteRestaurantReviewDTO> findFavoriteRestaurantReviewListByMember(String email);
+
+    /**
+     * 멤버별 관심 식당 리뷰 삭제 메서드
+     * @param email    (String)
+     * @param reviewId (Long)
+     */
+    void deleteFavoriteReview(String email, Long reviewId);
 }

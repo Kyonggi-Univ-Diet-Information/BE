@@ -50,11 +50,17 @@ public class FavoriteRestaurantReviewServiceImpl implements FavoriteRestaurantRe
     @Transactional
     public void createFavoriteRestaurantReview(Long reviewId, String email) {
         MemberEntity member = memberService.getMemberByEmail(email);
-        FavoriteRestaurantReview review = FavoriteRestaurantReview.builder()
-                .RestaurantReview(restaurantReviewService.findOne(reviewId))
-                .member(member)
-                .build();
-        save(review);
+
+        if (validateThisIsMine(member, reviewId) == null) {
+            FavoriteRestaurantReview review = FavoriteRestaurantReview.builder()
+                    .restaurantReview(restaurantReviewService.findOne(reviewId))
+                    .member(member)
+                    .build();
+            save(review);
+            return;
+        }
+
+        throw new IllegalStateException("이미 좋아요를 한 상태입니다");
     }
 
     /**
@@ -145,5 +151,32 @@ public class FavoriteRestaurantReviewServiceImpl implements FavoriteRestaurantRe
 
     private FavoriteRestaurantReviewDTO mapToFavoriteRestaurantReviewDTO(FavoriteRestaurantReview favoriteRestaurantReview) {
         return modelMapper.map(favoriteRestaurantReview, FavoriteRestaurantReviewDTO.class);
+    }
+
+    /**
+     * 멤버별 관심 식당 리뷰 삭제
+     * @param email    (String)
+     * @param reviewId (Long)
+     */
+    @Transactional
+    public void deleteFavoriteReview(String email, Long reviewId) {
+        MemberEntity member = memberService.getMemberByEmail(email);
+        Long favoriteReviewId  = validateThisIsMine(member, reviewId);
+
+        if (favoriteReviewId == null) {
+            throw new NoSuchElementException("좋아요한 리뷰가 없습니다");
+        }
+
+        favoriteRestaurantReviewRepository.delete(findOne(favoriteReviewId));
+    }
+
+    /**
+     * 멤버가 해당 리뷰에 이미 좋아요 눌렀는지 확인
+     * @param member   (MemberEntity)
+     * @param reviewId (Long)
+     * @return Long
+     */
+    private Long validateThisIsMine(MemberEntity member, Long reviewId) {
+        return favoriteRestaurantReviewRepository.validateThisIsMine(member, reviewId);
     }
 }

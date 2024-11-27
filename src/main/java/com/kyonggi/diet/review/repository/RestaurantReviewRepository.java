@@ -12,4 +12,7 @@ import java.util.List;
 public interface RestaurantReviewRepository extends JpaRepository<RestaurantReview, Long> {
     @Query("select r from RestaurantReview r where r.restaurant = :restaurant")
     List<RestaurantReview> findReviewsByRestaurant(@Param("restaurant") Restaurant restaurant);
+
+    @Query("select avg(r.rating) from RestaurantReview r where r.restaurant = :restaurant")
+    Double findAverageRatingByRestaurant(@Param("restaurant") Restaurant restaurant);
 }

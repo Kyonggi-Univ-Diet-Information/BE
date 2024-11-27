@@ -116,4 +116,14 @@ public class DietFoodReviewController implements DietFoodReviewControllerDocs {
         log.info("삭제된 id : " + reviewId);
         return ResponseEntity.ok("Review Deleted");
     }
+
+    /**
+     * 음식 리뷰 평점 구하기
+     * @param dietFoodId (Long)
+     * @return Double
+     */
+    @GetMapping("/average/{dietFoodId}")
+    public Double getAverageRating(@PathVariable("dietFoodId") Long dietFoodId) {
+        return dietFoodReviewService.findAverageRatingByDietFoodId(dietFoodId);
+    }
 }

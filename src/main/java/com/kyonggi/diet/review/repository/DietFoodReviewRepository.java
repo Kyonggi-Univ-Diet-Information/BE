@@ -12,4 +12,7 @@ import java.util.List;
 public interface DietFoodReviewRepository extends JpaRepository<DietFoodReview, Long> {
     @Query("select r from DietFoodReview r where r.dietFood.id = :id")
     List<DietFoodReview> findListById(@Param("id") Long dietFoodId);
+
+    @Query("select avg(r.rating) from DietFoodReview r where r.dietFood.id = :id")
+    Double findAverageRatingByDietFoodId(@Param("id") Long id);
 }

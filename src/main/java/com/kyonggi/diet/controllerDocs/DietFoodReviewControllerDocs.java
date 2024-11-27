@@ -45,4 +45,8 @@ public interface DietFoodReviewControllerDocs {
     @Operation(summary = "특정 음식 아이디로 리뷰 리스트 구하기", description = "사용자로부터, 음식 ID를 요청받아 특정 음식 리뷰 리스트를 구하는 API")
     @Parameter(name = "dietFoodId", description = "음식 ID")
     public List<ReviewDTO> allReviewsById(@PathVariable("dietFoodId") Long dietFoodId);
+
+    @Operation(summary = "특정 음식 리뷰 평점 구하기", description = "사용자로부터 음식 리뷰 id를 입력받아, 특정 음식의 리뷰 평점을 반환하는 API")
+    @Parameter(name = "dietFoodId", description = "음식 ID")
+    public Double getAverageRating(@PathVariable("dietFoodId") Long dietFoodId);
 }

@@ -15,6 +15,7 @@ import com.kyonggi.diet.review.repository.DietFoodReviewRepository;
 import com.kyonggi.diet.review.service.DietFoodReviewService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +27,7 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class DietFoodReviewServiceImpl implements DietFoodReviewService {
 
     private final DietFoodReviewRepository dietFoodReviewRepository;
@@ -113,6 +115,12 @@ public class DietFoodReviewServiceImpl implements DietFoodReviewService {
         }).collect(Collectors.toList());
     }
 
+    /**
+     * 음식 id를 통해 리뷰 리스트 구하기
+     * @param dietFoodId (Long)
+     * @return List<ReviewDTO>
+     */
+    @Override
     public List<ReviewDTO> findListById(Long dietFoodId) {
         List<DietFoodReview> dietFoodReviews = dietFoodReviewRepository.findListById(dietFoodId);
         if (dietFoodReviews.isEmpty()) {
@@ -161,6 +169,20 @@ public class DietFoodReviewServiceImpl implements DietFoodReviewService {
         return member.getId().equals(review.getMember().getId());
     }
 
+    /**
+     * 해당 음식 리뷰에 대한 평점 구하기
+     * @param dietFoodId (Long)
+     * @return Double
+     */
+    @Override
+    public Double findAverageRatingByDietFoodId(Long dietFoodId) {
+        try {
+            return dietFoodReviewRepository.findAverageRatingByDietFoodId(dietFoodId);
+        } catch (NullPointerException e) {
+            return 0.0;
+        }
+
+    }
 
     /**
      * Review -> ReviewDTO

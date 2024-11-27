@@ -13,6 +13,9 @@ import lombok.NoArgsConstructor;
 @Schema(description = "리뷰 DTO")
 public class ReviewDTO {
 
+    @Schema(description = "리뷰 아이디")
+    private Long id;
+
     @Schema(description = "리뷰 별점")
     private double rating;
 

@@ -73,4 +73,6 @@ public interface DietFoodReviewService {
      * @return boolean
      */
     boolean verifyMember(Long reviewId, String email);
+
+    public List<ReviewDTO> findListById(Long dietFoodId);
 }

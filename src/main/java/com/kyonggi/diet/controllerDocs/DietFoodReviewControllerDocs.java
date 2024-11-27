@@ -41,4 +41,8 @@ public interface DietFoodReviewControllerDocs {
     @Parameter(name = "id", description = "리뷰 ID")
     public ResponseEntity<String> deleteReview(@PathVariable("id") Long reviewId,
                                                @RequestHeader("Authorization") String token);
+
+    @Operation(summary = "특정 음식 아이디로 리뷰 리스트 구하기", description = "사용자로부터, 음식 ID를 요청받아 특정 음식 리뷰 리스트를 구하는 API")
+    @Parameter(name = "dietFoodId", description = "음식 ID")
+    public List<ReviewDTO> allReviewsById(@PathVariable("dietFoodId") Long dietFoodId);
 }

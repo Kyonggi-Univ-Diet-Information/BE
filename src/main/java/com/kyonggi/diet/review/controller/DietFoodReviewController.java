@@ -45,6 +45,12 @@ public class DietFoodReviewController implements DietFoodReviewControllerDocs {
         return dietFoodReviewService.findAllReview();
     }
 
+    @GetMapping("/all/{dietFoodId}")
+    @ResponseBody
+    public List<ReviewDTO> allReviewsById(@PathVariable("dietFoodId") Long dietFoodId) {
+        return dietFoodReviewService.findListById(dietFoodId);
+    }
+
     /**
      * 음식 리뷰 생성
      * @param dietFoodId (Long)

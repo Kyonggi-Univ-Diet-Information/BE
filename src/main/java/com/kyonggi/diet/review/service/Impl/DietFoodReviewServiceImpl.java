@@ -113,6 +113,18 @@ public class DietFoodReviewServiceImpl implements DietFoodReviewService {
         }).collect(Collectors.toList());
     }
 
+    public List<ReviewDTO> findListById(Long dietFoodId) {
+        List<DietFoodReview> dietFoodReviews = dietFoodReviewRepository.findListById(dietFoodId);
+        if (dietFoodReviews.isEmpty()) {
+            throw new EntityNotFoundException("Can't find reviews");
+        }
+        return dietFoodReviews.stream().map(review -> {
+            ReviewDTO reviewDTO = mapToReviewDTO(review);
+            reviewDTO.setMemberName(review.getMember().getName());
+            return reviewDTO;
+        }).collect(Collectors.toList());
+    }
+
     /**
      * 음식 리뷰 수정 메서드
      * @param reviewId  (Long)

@@ -124,14 +124,11 @@ public class DietFoodReviewServiceImpl implements DietFoodReviewService {
     public List<ReviewDTO> findListById(Long dietFoodId) {
         List<DietFoodReview> dietFoodReviews = dietFoodReviewRepository.findListById(dietFoodId);
         if (dietFoodReviews.isEmpty()) {
-            throw new EntityNotFoundException("Can't find reviews");
+            throw new EntityNotFoundException("No reviews found for the given diet food ID.");
         }
-        return dietFoodReviews.stream().map(review -> {
-            ReviewDTO reviewDTO = mapToReviewDTO(review);
-            reviewDTO.setMemberName(review.getMember().getName());
-            return reviewDTO;
-        }).collect(Collectors.toList());
+        return dietFoodReviews.stream().map(this::mapToReviewDTO).collect(Collectors.toList());
     }
+
 
     /**
      * 음식 리뷰 수정 메서드
@@ -179,7 +176,7 @@ public class DietFoodReviewServiceImpl implements DietFoodReviewService {
         try {
             return dietFoodReviewRepository.findAverageRatingByDietFoodId(dietFoodId);
         } catch (NullPointerException e) {
-            return 0.0;
+            return null;
         }
 
     }

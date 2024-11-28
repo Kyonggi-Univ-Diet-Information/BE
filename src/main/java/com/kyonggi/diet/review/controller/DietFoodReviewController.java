@@ -6,12 +6,15 @@ import com.kyonggi.diet.review.DTO.CreateReviewDTO;
 import com.kyonggi.diet.review.DTO.ReviewDTO;
 import com.kyonggi.diet.review.service.DietFoodReviewService;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @RestController
 @CrossOrigin("*")
@@ -30,9 +33,14 @@ public class DietFoodReviewController implements DietFoodReviewControllerDocs {
      * @return ReviewDTO
      */
     @GetMapping("/{id}")
-    @ResponseBody
-    public ReviewDTO oneReview(@PathVariable("id") Long reviewId) {
-        return dietFoodReviewService.findReview(reviewId);
+    public ResponseEntity<?> oneReview(@PathVariable("id") Long reviewId) {
+        try {
+            ReviewDTO reviewDTO = dietFoodReviewService.findReview(reviewId);
+            return ResponseEntity.ok(reviewDTO);
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                                 .body("Review not found with id: " + reviewId);
+        }
     }
 
     /**
@@ -40,15 +48,24 @@ public class DietFoodReviewController implements DietFoodReviewControllerDocs {
      * @return List<ReviewDTO>
      */
     @GetMapping("/all")
-    @ResponseBody
-    public List<ReviewDTO> allReview() {
-        return dietFoodReviewService.findAllReview();
+    public ResponseEntity<?> allReview() {
+        try {
+            List<ReviewDTO> reviews = dietFoodReviewService.findAllReview();
+            return ResponseEntity.ok(reviews);
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("Can't found reviews.");
+        }
     }
 
     @GetMapping("/all/{dietFoodId}")
-    @ResponseBody
-    public List<ReviewDTO> allReviewsById(@PathVariable("dietFoodId") Long dietFoodId) {
-        return dietFoodReviewService.findListById(dietFoodId);
+    public ResponseEntity<?> allReviewsById(@PathVariable("dietFoodId") Long dietFoodId) {
+        try {
+            List<ReviewDTO> reviews = dietFoodReviewService.findListById(dietFoodId);
+            return ResponseEntity.ok(reviews);
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
     }
 
     /**
@@ -88,8 +105,9 @@ public class DietFoodReviewController implements DietFoodReviewControllerDocs {
                                                @RequestHeader("Authorization") String token) {
         String email = jwtTokenUtil.getUsernameFromToken(token.substring(7));
 
-        if(!dietFoodReviewService.verifyMember(reviewId, email)) {
-            return ResponseEntity.ok("작성자가 아닙니다.");
+        if (!dietFoodReviewService.verifyMember(reviewId, email)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                                 .body("You are not the author of this review.");
         }
 
         dietFoodReviewService.modifyReview(reviewId, reviewDTO);
@@ -109,7 +127,8 @@ public class DietFoodReviewController implements DietFoodReviewControllerDocs {
         String email = jwtTokenUtil.getUsernameFromToken(token.substring(7));
 
         if (!dietFoodReviewService.verifyMember(reviewId, email)) {
-            return ResponseEntity.ok("작성자가 아닙니다.");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                                 .body("You are not the author of this review.");
         }
 
         dietFoodReviewService.deleteReview(reviewId);
@@ -123,7 +142,12 @@ public class DietFoodReviewController implements DietFoodReviewControllerDocs {
      * @return Double
      */
     @GetMapping("/average/{dietFoodId}")
-    public Double getAverageRating(@PathVariable("dietFoodId") Long dietFoodId) {
-        return dietFoodReviewService.findAverageRatingByDietFoodId(dietFoodId);
+    public ResponseEntity<?> getAverageRating(@PathVariable("dietFoodId") Long dietFoodId) {
+        Double averageRating = dietFoodReviewService.findAverageRatingByDietFoodId(dietFoodId);
+        if (averageRating == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                                 .body("No ratings available for the given diet food ID.");
+        }
+        return ResponseEntity.ok(averageRating);
     }
 }

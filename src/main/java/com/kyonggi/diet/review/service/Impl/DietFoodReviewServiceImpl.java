@@ -20,6 +20,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
@@ -187,6 +188,16 @@ public class DietFoodReviewServiceImpl implements DietFoodReviewService {
      * @return ReviewDTO (ReviewDTO)
      */
     private ReviewDTO mapToReviewDTO(DietFoodReview dietFoodReview) {
-        return modelMapper.map(dietFoodReview, ReviewDTO.class);
+        ReviewDTO dto = modelMapper.map(dietFoodReview, ReviewDTO.class);
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        if (dietFoodReview.getCreatedAt() != null) {
+            dto.setCreatedAt(dietFoodReview.getCreatedAt().toLocalDateTime().format(formatter));
+        }
+        if (dietFoodReview.getUpdatedAt() != null) {
+            dto.setUpdatedAt(dietFoodReview.getUpdatedAt().toLocalDateTime().format(formatter));
+        }
+
+        return dto;
     }
 }

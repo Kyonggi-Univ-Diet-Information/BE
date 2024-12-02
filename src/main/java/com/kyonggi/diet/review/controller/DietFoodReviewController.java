@@ -2,6 +2,8 @@ package com.kyonggi.diet.review.controller;
 
 import com.kyonggi.diet.auth.util.JwtTokenUtil;
 import com.kyonggi.diet.controllerDocs.DietFoodReviewControllerDocs;
+import com.kyonggi.diet.member.service.CustomMembersDetailService;
+import com.kyonggi.diet.member.service.MemberService;
 import com.kyonggi.diet.review.DTO.CreateReviewDTO;
 import com.kyonggi.diet.review.DTO.ReviewDTO;
 import com.kyonggi.diet.review.service.DietFoodReviewService;
@@ -11,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,6 +29,7 @@ public class DietFoodReviewController implements DietFoodReviewControllerDocs {
 
     private final DietFoodReviewService dietFoodReviewService;
     private final JwtTokenUtil jwtTokenUtil;
+    private final CustomMembersDetailService cd;
 
     /**
      * 음식 리뷰 1개 조회
@@ -79,27 +83,38 @@ public class DietFoodReviewController implements DietFoodReviewControllerDocs {
     public ResponseEntity<String> createDietFoodReview(@PathVariable("dietFoodId") Long dietFoodId,
                                                        @RequestHeader("Authorization") String token,
                                                        @RequestBody CreateReviewDTO createReviewDTO) {
-        String email = null;
         try {
-            email = jwtTokenUtil.getUsernameFromToken(token.substring(7));
+            if (token == null || !token.startsWith("Bearer ")) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authorization header is missing or malformed");
+            }
+
+            String email = jwtTokenUtil.getUsernameFromToken(token.substring(7));
 
             ReviewDTO reviewDTO = ReviewDTO.builder()
                     .rating(createReviewDTO.getRating())
                     .title(createReviewDTO.getTitle())
                     .content(createReviewDTO.getContent())
                     .build();
-            try {
-                dietFoodReviewService.createDietFoodReview(reviewDTO, dietFoodId, email);
-            } catch (NoSuchElementException e) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-            }
 
+            dietFoodReviewService.createDietFoodReview(reviewDTO, dietFoodId, email);
             return ResponseEntity.ok("Review Created");
+        } catch (io.jsonwebtoken.ExpiredJwtException e) {
+            log.error("JWT expired: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token has expired");
+        } catch (io.jsonwebtoken.MalformedJwtException e) {
+            log.error("Invalid JWT token: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+        } catch (io.jsonwebtoken.SignatureException e) {
+            log.error("Invalid JWT signature: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token signature");
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (Exception e) {
-            log.error("JWT Parsing Error: " + e);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("email: " + email);
+            log.error("Unhandled error: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred");
         }
     }
+
 
 
     /**

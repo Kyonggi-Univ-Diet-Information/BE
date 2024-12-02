@@ -79,16 +79,26 @@ public class DietFoodReviewController implements DietFoodReviewControllerDocs {
     public ResponseEntity<String> createDietFoodReview(@PathVariable("dietFoodId") Long dietFoodId,
                                                        @RequestHeader("Authorization") String token,
                                                        @RequestBody CreateReviewDTO createReviewDTO) {
-        String email = jwtTokenUtil.getUsernameFromToken(token.substring(7));
+        String email = null;
+        try {
+            email = jwtTokenUtil.getUsernameFromToken(token.substring(7));
 
-        ReviewDTO reviewDTO = ReviewDTO.builder()
-                .rating(createReviewDTO.getRating())
-                .title(createReviewDTO.getTitle())
-                .content(createReviewDTO.getContent())
-                .build();
-        dietFoodReviewService.createDietFoodReview(reviewDTO, dietFoodId, email);
+            ReviewDTO reviewDTO = ReviewDTO.builder()
+                    .rating(createReviewDTO.getRating())
+                    .title(createReviewDTO.getTitle())
+                    .content(createReviewDTO.getContent())
+                    .build();
+            try {
+                dietFoodReviewService.createDietFoodReview(reviewDTO, dietFoodId, email);
+            } catch (NoSuchElementException e) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            }
 
-        return ResponseEntity.ok("Review Created");
+            return ResponseEntity.ok("Review Created");
+        } catch (Exception e) {
+            log.error("JWT Parsing Error: " + e);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("email: " + email);
+        }
     }
 
 

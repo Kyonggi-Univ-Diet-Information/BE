@@ -11,7 +11,6 @@ import com.kyonggi.diet.dietFood.service.DietFoodService;
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvValidationException;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,7 +25,6 @@ import java.util.StringTokenizer;
 @Service
 @Transactional
 @RequiredArgsConstructor
-@Slf4j
 public class CSVService {
 
     @Value("${cloud.aws.s3.bucketName}")
@@ -41,7 +39,6 @@ public class CSVService {
         InputStream inputStream = s3Object.getObjectContent();
 
         try (CSVReader reader = new CSVReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
-
             String[] nextLine;
 
             reader.readNext(); //csv 파일의 첫 줄 건넘 띔 (헤더 제거 목적)

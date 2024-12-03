@@ -190,7 +190,7 @@ public class DietFoodReviewServiceImpl implements DietFoodReviewService {
     private ReviewDTO mapToReviewDTO(DietFoodReview dietFoodReview) {
         ReviewDTO dto = modelMapper.map(dietFoodReview, ReviewDTO.class);
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm");
         if (dietFoodReview.getCreatedAt() != null) {
             dto.setCreatedAt(dietFoodReview.getCreatedAt().toLocalDateTime().format(formatter));
         }

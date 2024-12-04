@@ -110,7 +110,7 @@ public class FavoriteDietFoodReviewController implements FavoriteDietFoodReviewC
         } catch (NoSuchElementException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error deleting review: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error deleting review now: " + e.getMessage());
         }
     }
 
@@ -130,7 +130,7 @@ public class FavoriteDietFoodReviewController implements FavoriteDietFoodReviewC
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("An unexpected error occurred: " + e.getMessage());
+                    .body("An unexpected error occurred now: " + e.getMessage());
         }
     }
 }

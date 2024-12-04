@@ -54,4 +54,11 @@ public interface FavoriteDietFoodReviewService {
      * @param reviewId (Long)
      */
     void deleteFavoriteReview(String email, Long reviewId);
+
+    /**
+     * 해당 리뷰에 대한 좋아요 수 카운트 추출
+     * @param reviewId (Long)
+     * @return Long
+     */
+    public Long getFavoriteReviewCountByReviewId(Long reviewId);
 }

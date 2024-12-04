@@ -16,4 +16,7 @@ public interface FavoriteDietFoodReviewRepository extends JpaRepository<Favorite
     @Query("select f.id from FavoriteDietFoodReview f where f.member = :member and f.dietFoodReview.id = :reviewId")
     public Long validateThisIsMine(@Param("member") MemberEntity member,
                                    @Param("reviewId") Long reviewId);
+
+    @Query("SELECT COUNT(f) FROM FavoriteDietFoodReview f WHERE f.dietFoodReview.id = :reviewId")
+    Long getCountOfFavorite(@Param("reviewId") Long reviewId);
 }

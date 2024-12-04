@@ -10,10 +10,12 @@ import com.kyonggi.diet.review.favoriteReview.service.FavoriteDietFoodReviewServ
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @RestController
 @RequiredArgsConstructor
@@ -32,8 +34,14 @@ public class FavoriteDietFoodReviewController implements FavoriteDietFoodReviewC
      * @return FavoriteDietFoodReviewDTO
      */
     @GetMapping("/{id}")
-    public FavoriteDietFoodReviewDTO findOne(@PathVariable("id") Long id) {
-        return favoriteDietFoodReviewService.findById(id);
+    public ResponseEntity<?> findOne(@PathVariable("id") Long id) {
+        try {
+            return ResponseEntity.ok(favoriteDietFoodReviewService.findById(id));
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error fetching review: " + e.getMessage());
+        }
     }
 
     /**
@@ -41,8 +49,14 @@ public class FavoriteDietFoodReviewController implements FavoriteDietFoodReviewC
      * @return List<FavoriteDietFoodReviewDTO>
      */
     @GetMapping("/all")
-    public List<FavoriteDietFoodReviewDTO> findAll() {
-        return favoriteDietFoodReviewService.findAll();
+    public ResponseEntity<?> findAll() {
+        try {
+            return ResponseEntity.ok(favoriteDietFoodReviewService.findAll());
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error fetching reviews: " + e.getMessage());
+        }
     }
 
     /**
@@ -51,10 +65,13 @@ public class FavoriteDietFoodReviewController implements FavoriteDietFoodReviewC
      * @return List<FavoriteDietFoodReviewDTO>
      */
     @GetMapping("/each-member/all")
-    public List<FavoriteDietFoodReviewDTO> findAllByMember(@RequestHeader("Authorization") String token) {
-        String email = jwtTokenUtil.getUsernameFromToken(token.substring(7));
-
-        return favoriteDietFoodReviewService.findFavoriteDietFoodReviewListByMember(email);
+    public ResponseEntity<?> findAllByMember(@RequestHeader("Authorization") String token) {
+        try {
+            String email = jwtTokenUtil.getUsernameFromToken(token.substring(7));
+            return ResponseEntity.ok(favoriteDietFoodReviewService.findFavoriteDietFoodReviewListByMember(email));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error fetching member reviews: " + e.getMessage());
+        }
     }
 
     /**
@@ -64,12 +81,17 @@ public class FavoriteDietFoodReviewController implements FavoriteDietFoodReviewC
      * @return ResponseEntity
      */
     @PostMapping("/{reviewId}/create-favorite")
-    public ResponseEntity<String> createFavoriteDietFoodReview(@RequestHeader("Authorization") String token,
+    public ResponseEntity<?> createFavoriteDietFoodReview(@RequestHeader("Authorization") String token,
                                                                  @PathVariable("reviewId") Long reviewId) {
-        String email = jwtTokenUtil.getUsernameFromToken(token.substring(7));
-        favoriteDietFoodReviewService.createFavoriteDietFoodReview(reviewId, email);
-
-        return ResponseEntity.ok("Successfully favorite");
+        try {
+            String email = jwtTokenUtil.getUsernameFromToken(token.substring(7));
+            favoriteDietFoodReviewService.createFavoriteDietFoodReview(reviewId, email);
+            return ResponseEntity.ok("Successfully added to favorites");
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error creating favorite: " + e.getMessage());
+        }
     }
 
     /**
@@ -79,11 +101,36 @@ public class FavoriteDietFoodReviewController implements FavoriteDietFoodReviewC
      * @return ResponseEntity
      */
     @DeleteMapping("/delete/{reviewId}")
-    public ResponseEntity<String> deleteReview(@PathVariable("reviewId") Long reviewId,
+    public ResponseEntity<?> deleteReview(@PathVariable("reviewId") Long reviewId,
                                                @RequestHeader("Authorization") String token) {
-        String email = jwtTokenUtil.getUsernameFromToken(token.substring(7));
+        try {
+            String email = jwtTokenUtil.getUsernameFromToken(token.substring(7));
+            favoriteDietFoodReviewService.deleteFavoriteReview(email, reviewId);
+            return ResponseEntity.ok("Review deleted successfully");
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error deleting review: " + e.getMessage());
+        }
+    }
 
-        favoriteDietFoodReviewService.deleteFavoriteReview(email, reviewId);
-        return ResponseEntity.ok("Review Deleted");
+    /**
+     * 해당 리뷰의 좋아요 수 조회
+     * @param reviewId (Long)
+     * @return ResponseEntity<Long>
+     */
+    @PostMapping("/count/{reviewId}")
+    public ResponseEntity<?> getFavoriteCount(@PathVariable("reviewId") Long reviewId) {
+        try {
+            Long count = favoriteDietFoodReviewService.getFavoriteReviewCountByReviewId(reviewId);
+            return ResponseEntity.ok(count);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("An unexpected error occurred: " + e.getMessage());
+        }
     }
 }

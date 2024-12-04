@@ -39,7 +39,11 @@ public class FavoriteDietFoodReviewServiceImpl implements FavoriteDietFoodReview
     @Override
     @Transactional
     public void save(FavoriteDietFoodReview favoriteDietFoodReview) {
-        favoriteDietFoodReviewRepository.save(favoriteDietFoodReview);
+        try {
+            favoriteDietFoodReviewRepository.save(favoriteDietFoodReview);
+        } catch (Exception e) {
+            throw new RuntimeException("관심 음식 리뷰 저장 실패", e);
+        }
     }
 
     /**
@@ -53,15 +57,18 @@ public class FavoriteDietFoodReviewServiceImpl implements FavoriteDietFoodReview
         MemberEntity member = memberService.getMemberByEmail(email);
 
         if (validateThisIsMine(member, reviewId) == null) {
-            FavoriteDietFoodReview review = FavoriteDietFoodReview.builder()
-                    .dietFoodReview(dietFoodReviewService.findOne(reviewId))
-                    .member(member)
-                    .build();
-            save(review);
-            return;
+            try {
+                FavoriteDietFoodReview review = FavoriteDietFoodReview.builder()
+                        .dietFoodReview(dietFoodReviewService.findOne(reviewId))
+                        .member(member)
+                        .build();
+                save(review);
+            } catch (Exception e) {
+                throw new RuntimeException("관심 음식 리뷰 생성 실패", e);
+            }
+        } else {
+            throw new IllegalStateException("이미 좋아요를 한 상태입니다");
         }
-
-        throw new IllegalStateException("이미 좋아요를 한 상태입니다");
     }
 
     /**
@@ -72,7 +79,7 @@ public class FavoriteDietFoodReviewServiceImpl implements FavoriteDietFoodReview
     @Override
     public FavoriteDietFoodReview findOne(Long id) {
         return favoriteDietFoodReviewRepository.findById(id)
-                        .orElseThrow(() -> new NoSuchElementException("No found Favorite DietFood Review"));
+                        .orElseThrow(() -> new NoSuchElementException("No found Favorite DietFood Review : " + id));
     }
 
     /**
@@ -82,30 +89,8 @@ public class FavoriteDietFoodReviewServiceImpl implements FavoriteDietFoodReview
      */
     @Override
     public FavoriteDietFoodReviewDTO findById(Long id) {
-        FavoriteDietFoodReview review = findOne(id);
-        MemberEntity member = review.getMember();
-        MemberDTO memberDTO = MemberDTO.builder()
-                .name(member.getName())
-                .email(member.getEmail())
-                .createdAt(member.getCreatedAt())
-                .password(member.getPassword())
-                .profileUrl(member.getProfileUrl())
-                .build();
-        FavoriteDietFoodReviewDTO dto = mapToFavoriteDietFoodReviewDTO(review);
-        dto.setMemberDTO(memberDTO);
-        return dto;
-    }
-
-    /**
-     * 관심 음식 리뷰 DTO 전체 조회 메서드
-     * @return List<FavoriteDietReviewDTO>
-     */
-    @Override
-    public List<FavoriteDietFoodReviewDTO> findAll() {
-        List<FavoriteDietFoodReview> reviews = favoriteDietFoodReviewRepository.findAll();
-        if (reviews.isEmpty())
-            throw new NoSuchElementException("No found Favorite DietFood Review List");
-        return reviews.stream().map(review -> {
+        try {
+            FavoriteDietFoodReview review = findOne(id);
             MemberEntity member = review.getMember();
             MemberDTO memberDTO = MemberDTO.builder()
                     .name(member.getName())
@@ -117,7 +102,38 @@ public class FavoriteDietFoodReviewServiceImpl implements FavoriteDietFoodReview
             FavoriteDietFoodReviewDTO dto = mapToFavoriteDietFoodReviewDTO(review);
             dto.setMemberDTO(memberDTO);
             return dto;
-        }).collect(Collectors.toList());
+        } catch (Exception e) {
+            throw new RuntimeException("관심 음식 리뷰 dto 찾기 실패.", e);
+        }
+    }
+
+    /**
+     * 관심 음식 리뷰 DTO 전체 조회 메서드
+     * @return List<FavoriteDietReviewDTO>
+     */
+    @Override
+    public List<FavoriteDietFoodReviewDTO> findAll() {
+        try {
+            List<FavoriteDietFoodReview> reviews = favoriteDietFoodReviewRepository.findAll();
+            if (reviews.isEmpty()) {
+                throw new NoSuchElementException("No Favorite DietFood Reviews found.");
+            }
+            return reviews.stream().map(review -> {
+                MemberEntity member = review.getMember();
+                MemberDTO memberDTO = MemberDTO.builder()
+                        .name(member.getName())
+                        .email(member.getEmail())
+                        .createdAt(member.getCreatedAt())
+                        .password(member.getPassword())
+                        .profileUrl(member.getProfileUrl())
+                        .build();
+                FavoriteDietFoodReviewDTO dto = mapToFavoriteDietFoodReviewDTO(review);
+                dto.setMemberDTO(memberDTO);
+                return dto;
+            }).collect(Collectors.toList());
+        } catch (Exception e) {
+            throw new RuntimeException("관심 음식 리뷰 dto 전체 조회 실패", e);
+        }
     }
 
     /**
@@ -127,24 +143,28 @@ public class FavoriteDietFoodReviewServiceImpl implements FavoriteDietFoodReview
      */
     @Override
     public List<FavoriteDietFoodReviewDTO> findFavoriteDietFoodReviewListByMember(String email) {
-        MemberEntity member = memberService.getMemberByEmail(email);
-        List<FavoriteDietFoodReview> reviews =
-                favoriteDietFoodReviewRepository.findFavoriteDietFoodReviewListByMember(member);
-        if (reviews.isEmpty()) {
-            throw new NoSuchElementException("No found Favorite Diet Food Review By member");
+        try {
+            MemberEntity member = memberService.getMemberByEmail(email);
+            List<FavoriteDietFoodReview> reviews = favoriteDietFoodReviewRepository.findFavoriteDietFoodReviewListByMember(member);
+            if (reviews.isEmpty()) {
+                throw new NoSuchElementException("No Favorite DietFood Reviews found for member with email: " + email);
+            }
+            return reviews.stream().map(review -> {
+                MemberDTO memberDTO = MemberDTO.builder()
+                        .name(member.getName())
+                        .email(member.getEmail())
+                        .createdAt(member.getCreatedAt())
+                        .password(member.getPassword())
+                        .profileUrl(member.getProfileUrl())
+                        .build();
+                FavoriteDietFoodReviewDTO dto = mapToFavoriteDietFoodReviewDTO(review);
+                dto.setMemberDTO(memberDTO);
+                return dto;
+            }).collect(Collectors.toList());
+        } catch (Exception e) {
+            log.error("Failed to find favorite diet food reviews by member. Email: {}", email, e);
+            throw new RuntimeException("Failed to find favorite diet food reviews by member.", e);
         }
-        return reviews.stream().map(review -> {
-            MemberDTO memberDTO = MemberDTO.builder()
-                    .name(member.getName())
-                    .email(member.getEmail())
-                    .createdAt(member.getCreatedAt())
-                    .password(member.getPassword())
-                    .profileUrl(member.getProfileUrl())
-                    .build();
-            FavoriteDietFoodReviewDTO dto = mapToFavoriteDietFoodReviewDTO(review);
-            dto.setMemberDTO(memberDTO);
-            return dto;
-        }).collect(Collectors.toList());
     }
 
     private FavoriteDietFoodReviewDTO mapToFavoriteDietFoodReviewDTO(FavoriteDietFoodReview favoriteDietFoodReview) {
@@ -157,6 +177,7 @@ public class FavoriteDietFoodReviewServiceImpl implements FavoriteDietFoodReview
      * @param reviewId (Long)
      */
     @Transactional
+    @Override
     public void deleteFavoriteReview(String email, Long reviewId) {
         MemberEntity member = memberService.getMemberByEmail(email);
         Long favoriteReviewId  = validateThisIsMine(member, reviewId);
@@ -165,8 +186,32 @@ public class FavoriteDietFoodReviewServiceImpl implements FavoriteDietFoodReview
             throw new NoSuchElementException("좋아요한 리뷰가 없습니다");
         }
 
-        favoriteDietFoodReviewRepository.delete(findOne(favoriteReviewId));
+        try {
+            favoriteDietFoodReviewRepository.delete(findOne(favoriteReviewId));
+        } catch (Exception e) {
+            throw new RuntimeException("관심 음식 리뷰 삭제 실패", e);
+        }
     }
+
+    /**
+     * 해당 리뷰에 대한 좋아요 수 카운트 추출
+     * @param reviewId (Long)
+     * @return Long
+     */
+    @Override
+    public Long getFavoriteReviewCountByReviewId(Long reviewId) {
+        if (reviewId == null) {
+            throw new IllegalArgumentException("리뷰 ID가 null 입니다");
+        }
+
+        try {
+            Long count = favoriteDietFoodReviewRepository.getCountOfFavorite(reviewId);
+            return (count != null) ? count : 0L;
+        } catch (Exception e) {
+            throw new RuntimeException("리뷰 좋아요 수 가져오기 실패", e);
+        }
+    }
+
 
     /**
      * 멤버가 해당 리뷰에 이미 좋아요 눌렀는지 확인
@@ -175,6 +220,10 @@ public class FavoriteDietFoodReviewServiceImpl implements FavoriteDietFoodReview
      * @return Long
      */
     private Long validateThisIsMine(MemberEntity member, Long reviewId) {
-        return favoriteDietFoodReviewRepository.validateThisIsMine(member, reviewId);
+        try {
+            return favoriteDietFoodReviewRepository.validateThisIsMine(member, reviewId);
+        } catch (Exception e) {
+            throw new RuntimeException("좋아요 눌렀는지 확인하기 실패", e);
+        }
     }
 }

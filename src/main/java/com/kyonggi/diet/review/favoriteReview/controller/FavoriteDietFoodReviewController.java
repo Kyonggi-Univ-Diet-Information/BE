@@ -119,7 +119,7 @@ public class FavoriteDietFoodReviewController implements FavoriteDietFoodReviewC
      * @param reviewId (Long)
      * @return ResponseEntity<Long>
      */
-    @PostMapping("/count/{reviewId}")
+    @GetMapping("/count/{reviewId}")
     public ResponseEntity<?> getFavoriteCount(@PathVariable("reviewId") Long reviewId) {
         try {
             Long count = favoriteDietFoodReviewService.getFavoriteReviewCountByReviewId(reviewId);

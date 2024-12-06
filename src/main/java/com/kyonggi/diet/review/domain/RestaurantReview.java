@@ -19,7 +19,7 @@ import java.sql.Timestamp;
 @AllArgsConstructor
 public class RestaurantReview {
 
-    @Id @GeneratedValue
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "restaurant_review_id")
     private Long id;
 

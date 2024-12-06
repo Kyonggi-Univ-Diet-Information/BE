@@ -19,7 +19,7 @@ import java.sql.Timestamp;
 @AllArgsConstructor
 public class FavoriteDietFoodReview {
 
-    @Id @GeneratedValue
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -24,6 +24,9 @@ public class FavoriteDietFoodReviewDTO {
     @Schema(description = "회원 DTO")
     private MemberDTO memberDTO;
 
+    @Schema(description = "음식 리뷰 ID")
+    private Long dietFoodId;
+
     @Schema(description = "추천 일시")
     private Timestamp createdAt;
 }

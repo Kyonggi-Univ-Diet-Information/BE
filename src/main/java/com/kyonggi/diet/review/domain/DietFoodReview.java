@@ -17,7 +17,7 @@ import java.sql.Timestamp;
 public class DietFoodReview {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "diet_food_review_id")
     private Long id;
 

@@ -25,7 +25,7 @@ public class FavoriteDietFoodReviewDTO {
     private MemberDTO memberDTO;
 
     @Schema(description = "음식 리뷰 ID")
-    private Long dietFoodId;
+    private Long dietFoodReviewId;
 
     @Schema(description = "추천 일시")
     private Timestamp createdAt;

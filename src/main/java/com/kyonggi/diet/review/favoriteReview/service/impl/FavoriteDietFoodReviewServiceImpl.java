@@ -101,7 +101,7 @@ public class FavoriteDietFoodReviewServiceImpl implements FavoriteDietFoodReview
                     .build();
             FavoriteDietFoodReviewDTO dto = mapToFavoriteDietFoodReviewDTO(review);
             dto.setMemberDTO(memberDTO);
-            dto.setDietFoodId(review.getDietFoodReview().getId());
+            dto.setDietFoodReviewId(review.getDietFoodReview().getId());
             return dto;
         } catch (Exception e) {
             throw new RuntimeException("관심 음식 리뷰 dto 찾기 실패.", e);
@@ -130,7 +130,7 @@ public class FavoriteDietFoodReviewServiceImpl implements FavoriteDietFoodReview
                         .build();
                 FavoriteDietFoodReviewDTO dto = mapToFavoriteDietFoodReviewDTO(review);
                 dto.setMemberDTO(memberDTO);
-                dto.setDietFoodId(review.getDietFoodReview().getId());
+                dto.setDietFoodReviewId(review.getDietFoodReview().getId());
                 return dto;
             }).collect(Collectors.toList());
         } catch (Exception e) {
@@ -161,7 +161,7 @@ public class FavoriteDietFoodReviewServiceImpl implements FavoriteDietFoodReview
                         .build();
                 FavoriteDietFoodReviewDTO dto = mapToFavoriteDietFoodReviewDTO(review);
                 dto.setMemberDTO(memberDTO);
-                dto.setDietFoodId(review.getDietFoodReview().getId());
+                dto.setDietFoodReviewId(review.getDietFoodReview().getId());
                 return dto;
             }).collect(Collectors.toList());
         } catch (Exception e) {

@@ -3,7 +3,7 @@ spring:
     name: diet
 
   datasource:
-    url: ${DB_URL_KIRYONG}
+    url: ${DB_URL_KIRYONG}?serverTimezone=Asia/Seoul
     username: ${DB_USERNAME_KIRYONG}
     password: ${DB_PASSWORD_KIRYONG}
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -16,6 +16,7 @@ spring:
         show_sql: true
         format_sql: true
         dialect: org.hibernate.dialect.MySQLDialect
+        jdbc.time_zone: Asia/Seoul
     defer-datasource-initialization: true
 
   sql:

@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
@@ -125,7 +126,7 @@ public class DietFoodReviewServiceImpl implements DietFoodReviewService {
     public List<ReviewDTO> findListById(Long dietFoodId) {
         List<DietFoodReview> dietFoodReviews = dietFoodReviewRepository.findListById(dietFoodId);
         if (dietFoodReviews.isEmpty()) {
-            throw new EntityNotFoundException("No reviews found for the given diet food ID.");
+            return null;
         }
         return dietFoodReviews.stream().map(this::mapToReviewDTO).collect(Collectors.toList());
     }

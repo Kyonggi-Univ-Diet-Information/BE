@@ -24,9 +24,9 @@ public class S3Config {
 
     @PostConstruct
     public void log() {
-        System.out.println("accessKet: " + accessKey);
+        /*System.out.println("accessKet: " + accessKey);
         System.out.println("secretKey: " + secretKey);
-        System.out.println("region" + region);
+        System.out.println("region" + region);*/
     }
 
     @Bean

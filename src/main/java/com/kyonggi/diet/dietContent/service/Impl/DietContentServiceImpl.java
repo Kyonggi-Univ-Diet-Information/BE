@@ -10,6 +10,8 @@ import com.kyonggi.diet.diet.DietDTO;
 import com.kyonggi.diet.dietFood.DietFood;
 import com.kyonggi.diet.dietFood.DietFoodDTO;
 import com.kyonggi.diet.dietFood.service.DietFoodService;
+import com.kyonggi.diet.review.DTO.ReviewDTO;
+import com.kyonggi.diet.review.service.DietFoodReviewService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,6 +34,7 @@ public class DietContentServiceImpl implements DietContentService {
     private final DietContentRepository dietContentRepository;
     private final DietFoodService dietFoodService;
     private final DietRepository dietRepository;
+    private final DietFoodReviewService dietFoodReviewService;
     private final ModelMapper modelMapper;
 
     /**
@@ -89,11 +92,14 @@ public class DietContentServiceImpl implements DietContentService {
         DietContent dietContent = findOne(id);
 
         List<DietDTO> dietDTOS = dietContent.getContents().stream().map(diet -> {
+            List<ReviewDTO> reviewDTOS = dietFoodReviewService.findListById(
+                    diet.getDietFood().getId()
+            );
             DietFoodDTO dietFoodDTO = DietFoodDTO.builder()
                     .id(diet.getDietFood().getId())
                     .name(diet.getDietFood().getName())
                     .type(diet.getDietFood().getDietFoodType())
-                    .dietFoodReviews(diet.getDietFood().getDietFoodReviews()).build();
+                    .dietFoodReviews(reviewDTOS).build();
 
             return DietDTO.builder()
                     .id(diet.getId())
@@ -118,11 +124,14 @@ public class DietContentServiceImpl implements DietContentService {
         }
         return dietContents.stream().map(dietContent -> {
             List<DietDTO> dietDTOs = dietContent.getContents().stream().map(diet -> {
+                List<ReviewDTO> reviewDTOS = dietFoodReviewService.findListById(
+                        diet.getDietFood().getId()
+                );
                 DietFoodDTO dietFoodDTO = DietFoodDTO.builder()
                         .id(diet.getDietFood().getId())
                         .name(diet.getDietFood().getName())
                         .type(diet.getDietFood().getDietFoodType())
-                        .dietFoodReviews(diet.getDietFood().getDietFoodReviews()).build();
+                        .dietFoodReviews(reviewDTOS).build();
                 return DietDTO.builder()
                         .id(diet.getId())
                         .dietFoodDTO(dietFoodDTO).build();
@@ -158,11 +167,14 @@ public class DietContentServiceImpl implements DietContentService {
 
         return dietContents.stream().map(dietContent -> {
             List<DietDTO> dietDTOs = dietContent.getContents().stream().map(diet -> {
+                List<ReviewDTO> reviewDTOS = dietFoodReviewService.findListById(
+                        diet.getDietFood().getId()
+                );
                 DietFoodDTO dietFoodDTO = DietFoodDTO.builder()
                         .id(diet.getDietFood().getId())
                         .name(diet.getDietFood().getName())
                         .type(diet.getDietFood().getDietFoodType())
-                        .dietFoodReviews(diet.getDietFood().getDietFoodReviews()).build();
+                        .dietFoodReviews(reviewDTOS).build();
 
                 return DietDTO.builder()
                         .id(diet.getId())

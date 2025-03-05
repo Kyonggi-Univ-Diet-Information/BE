@@ -64,12 +64,11 @@ public class DietFoodReviewController implements DietFoodReviewControllerDocs {
 
     @GetMapping("/all/{dietFoodId}")
     public ResponseEntity<?> allReviewsById(@PathVariable("dietFoodId") Long dietFoodId) {
-        try {
-            List<ReviewDTO> reviews = dietFoodReviewService.findListById(dietFoodId);
-            return ResponseEntity.ok(reviews);
-        } catch (EntityNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        if (dietFoodReviewService.findListById(dietFoodId) == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("해당 음식엔 리뷰가 없습니다");
         }
+        List<ReviewDTO> reviews = dietFoodReviewService.findListById(dietFoodId);
+        return ResponseEntity.ok(reviews);
     }
 
     /**

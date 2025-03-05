@@ -1,5 +1,6 @@
 package com.kyonggi.diet.dietFood;
 
+import com.kyonggi.diet.review.DTO.ReviewDTO;
 import com.kyonggi.diet.review.domain.DietFoodReview;
 import com.kyonggi.diet.review.domain.RestaurantReview;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -24,5 +25,5 @@ public class DietFoodDTO {
     private DietFoodType type;
 
     @Schema(description = "음식 리뷰 리스트")
-    private List<DietFoodReview> dietFoodReviews;
+    private List<ReviewDTO> dietFoodReviews;
 }

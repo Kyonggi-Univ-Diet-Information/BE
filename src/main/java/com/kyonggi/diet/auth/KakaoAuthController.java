@@ -36,11 +36,37 @@ public class KakaoAuthController {
 
 
     @GetMapping("/kakao-login")
-    public AuthResponse kakaoLogin(@RequestParam(value="code", required = false) String code, HttpSession session, RedirectAttributes rttr) throws Exception {
-        log.info("#######{}", code);
-        String accessToken = kakaoAuthService.getAccessToken(code);
-        AuthResponse response = kakaoAuthService.getUserInfo(accessToken, session, rttr);
-        log.info("AuthResponse: {}", response); // AuthResponse 객체 확인
-        return response;
+    public AuthResponse kakaoLogin(@RequestParam(value="code", required = false) String code, HttpSession session, RedirectAttributes rttr) {
+        log.info("Received authorization code: {}", code);
+
+        // 1. 인증 코드 검증
+        if (code == null || code.isBlank()) {
+            log.error("Authorization code is missing");
+            return new AuthResponse(null, "Authorization code is missing");
+        }
+
+        try {
+            // 2. 액세스 토큰 요청
+            String accessToken = kakaoAuthService.getAccessToken(code);
+            if (accessToken == null || accessToken.isBlank()) {
+                log.error("Failed to get access token from Kakao");
+                return new AuthResponse(null, "Failed to get access token");
+            }
+
+            // 3. 사용자 정보 요청
+            AuthResponse response = kakaoAuthService.getUserInfo(accessToken, session, rttr);
+            if (response == null) {
+                log.error("Failed to fetch user info from Kakao");
+                return new AuthResponse(null, "Failed to fetch user info");
+            }
+
+            log.info("AuthResponse: {}", response);
+            return response;
+
+        } catch (Exception e) {
+            log.error("Error during Kakao login process", e);
+            return new AuthResponse(null, "Internal server error");
+        }
     }
+
 }

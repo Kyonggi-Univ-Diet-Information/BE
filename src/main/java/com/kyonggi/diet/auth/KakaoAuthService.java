@@ -72,7 +72,17 @@ public class KakaoAuthService {
             int responseCode = conn.getResponseCode();
             log.info("Response Code from Kakao: {}", responseCode);
 
-            BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+            BufferedReader br;
+
+            if (responseCode == 200) {
+                br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+            } else {
+                // 카카오 API의 에러 메시지를 확인할 수 있도록 추가
+                br = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
+                log.error("Error Response from Kakao: {}", br.lines().toList());
+                return null; // 에러 발생 시 null 반환
+            }
+
             String line = "";
             String result = "";
 

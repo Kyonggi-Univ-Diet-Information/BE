@@ -2,10 +2,16 @@ spring:
   application:
     name: diet
 
+  #datasource:
+    #url: ${DB_URL_KIRYONG}
+    #username: ${DB_USERNAME_KIRYONG}
+    #password: ${DB_PASSWORD_KIRYONG}
+    #driver-class-name: com.mysql.cj.jdbc.Driver
+
   datasource:
-    url: ${DB_URL_KIRYONG}
-    username: ${DB_USERNAME_KIRYONG}
-    password: ${DB_PASSWORD_KIRYONG}
+    url: jdbc:mysql://localhost:3306/kguDiet
+    username: root
+    password: 12
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:

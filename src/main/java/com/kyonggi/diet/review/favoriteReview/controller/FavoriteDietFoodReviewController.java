@@ -66,10 +66,13 @@ public class FavoriteDietFoodReviewController implements FavoriteDietFoodReviewC
      */
     @GetMapping("/each-member/all")
     public ResponseEntity<?> findAllByMember(@RequestHeader("Authorization") String token) {
+        log.info("Received Authorization header: {}", token);
         try {
             String email = jwtTokenUtil.getUsernameFromToken(token.substring(7));
+            log.info("Extracted email: {}", email);
             return ResponseEntity.ok(favoriteDietFoodReviewService.findFavoriteDietFoodReviewListByMember(email));
         } catch (Exception e) {
+            log.error("Error processing token: ", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error fetching member reviews: " + e.getMessage());
         }
     }

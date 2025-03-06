@@ -16,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -64,8 +65,9 @@ public class DietFoodReviewController implements DietFoodReviewControllerDocs {
 
     @GetMapping("/all/{dietFoodId}")
     public ResponseEntity<?> allReviewsById(@PathVariable("dietFoodId") Long dietFoodId) {
+        List<ReviewDTO> findReview = new ArrayList<>();
         if (dietFoodReviewService.findListById(dietFoodId) == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("해당 음식엔 리뷰가 없습니다");
+            return ResponseEntity.ok(findReview);
         }
         List<ReviewDTO> reviews = dietFoodReviewService.findListById(dietFoodId);
         return ResponseEntity.ok(reviews);

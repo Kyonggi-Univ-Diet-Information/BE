@@ -4,8 +4,8 @@ pipeline {
     environment {
         APP_VERSION = "1.0.$BUILD_ID"
         APP_NAME = 'kiryong-diet'
-        AWS_DEFAULT_REGION = 'us-east-1'
-        AWS_DOCKER_REGISTRY = '920373025050.dkr.ecr.us-east-1.amazonaws.com'
+        AWS_DEFAULT_REGION = 'ap-northeast-2'
+        AWS_DOCKER_REGISTRY = '920373025050.dkr.ecr.ap-northeast-2.amazonaws.com'
         AWS_ECS_CLUSTER = 'kiryong-cluster-main'
         AWS_ECS_SERVICE_PROD ='kiryong-service-http-spring'
         AWS_ECS_TD_PROD = 'kiryong-task-new'

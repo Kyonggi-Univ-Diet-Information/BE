@@ -24,7 +24,12 @@ public class WebSecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity.csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(auth -> auth.requestMatchers("api/login", "api/register", "api/diet-content/dormitory", "/api/kakao-form", "/api/kakao-login/**" , "swagger-ui/**", "/v3/api-docs/**", "/health", "/", "/api/read-csv/*", "/api/review/diet-food/*", "/api/review/restaurant/*", "/api/review/diet-food/all/*", "/api/review/diet-food/average/*", "/api/review/favorite/diet-food/count/*").permitAll().anyRequest().authenticated())
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("swagger-ui/**", "/v3/api-docs/**").denyAll()
+                        .requestMatchers("api/login", "api/register", "api/diet-content/dormitory", "/api/kakao-form",
+                                "/api/kakao-login/**" , "/health", "/", "/api/read-csv/*", "/api/review/diet-food/*",
+                                "/api/review/restaurant/*", "/api/review/diet-food/all/*", "/api/review/diet-food/average/*",
+                                "/api/review/favorite/diet-food/count/*").permitAll().anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class)
                 .httpBasic(Customizer.withDefaults())

@@ -25,7 +25,7 @@ public class WebSecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity.csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("swagger-ui/**", "/v3/api-docs/**").denyAll()
+                        .requestMatchers("swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("api/login", "api/register", "api/diet-content/dormitory", "/api/kakao-form",
                                 "/api/kakao-login/**" , "/health", "/", "/api/read-csv/*", "/api/review/diet-food/*",
                                 "/api/review/restaurant/*", "/api/review/diet-food/all/*", "/api/review/diet-food/average/*",

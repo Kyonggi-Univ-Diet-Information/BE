@@ -1,8 +1,33 @@
-# 명시적으로 x86 아키텍처로 이미지를 빌드
-FROM --platform=linux/amd64 openjdk:17-jdk-slim
+# ===== Build Stage =====
+FROM eclipse-temurin:17-jdk-jammy AS build
+WORKDIR /src
 
-# 애플리케이션 추가
-ADD /build/libs/*.jar app.jar
+# gradlew + gradle wrapper 먼저 복사(캐시용)
+COPY gradlew settings.gradle build.gradle ./
+COPY gradle ./gradle
 
-# ENTRYPOINT 설정
-ENTRYPOINT [ "java", "-Djava.security.egd=file:/dev/./urandom", "-jar", "/app.jar"]
+# ⚠️ CRLF → LF로 변환 + 실행권한 부여
+# (Windows에서 커밋된 gradlew를 안전하게 처리)
+RUN apt-get update && apt-get install -y dos2unix \
+ && dos2unix gradlew \
+ && chmod +x gradlew \
+ && rm -rf /var/lib/apt/lists/*
+
+# 의존성 캐시 (실패 무시해 캐시 유지)
+RUN ./gradlew dependencies --no-daemon || true
+
+# 소스 복사 후 빌드
+COPY src ./src
+RUN ./gradlew clean bootJar -x test --no-daemon
+
+
+# ===== Runtime =====
+FROM eclipse-temurin:17-jre-jammy
+RUN groupadd -r app && useradd -r -g app app
+WORKDIR /app
+COPY --from=build /src/build/libs/*.jar /app/app.jar
+ENV SPRING_PROFILES_ACTIVE=prod
+ENV JAVA_OPTS="-Dfile.encoding=UTF-8 -Duser.timezone=Asia/Seoul -XX:MaxRAMPercentage=75 -XX:+UseContainerSupport"
+EXPOSE 8080
+USER app
+ENTRYPOINT ["sh","-c","exec java $JAVA_OPTS -jar /app/app.jar"]

@@ -27,7 +27,7 @@ jobs:
             aws ecr get-login-password --region ap-northeast-2 \
               | docker login --username AWS --password-stdin 381305464439.dkr.ecr.ap-northeast-2.amazonaws.com
 
-            cd ~/app
+            cd ~/BE
             sed -i "s|\(kiryong:\).*|\1$TAG|g" docker-compose.yml || true
             docker compose pull
             docker compose up -d --force-recreate

@@ -1,0 +1,113 @@
+name: Deploy to EC2
+
+on:
+  # 1) 빌드 워크플로 완료 시 자동 실행
+  workflow_run:
+    workflows: [ "Build & Push to ECR" ]
+    types: [ completed ]
+
+  # 2) 수동 실행으로 특정 태그 배포도 가능
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Image tag to deploy (default: latest)"
+        required: false
+        default: "latest"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Decide TAG (from workflow_run head_sha or manual input)
+        id: tag
+        shell: bash
+        run: |
+          # 우선순위: 수동 입력(tag) > workflow_run의 head_sha > latest
+          INPUT_TAG="${{ github.event.inputs.tag }}"
+          HEAD_SHA="${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || '' }}"
+          if [ -n "$INPUT_TAG" ] && [ "$INPUT_TAG" != "latest" ]; then
+            TAG="$INPUT_TAG"
+          elif [ -n "$HEAD_SHA" ]; then
+            TAG="$(echo "$HEAD_SHA" | cut -c1-8)"
+          else
+            TAG="latest"
+          fi
+          echo "TAG=$TAG" >> $GITHUB_ENV
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "Deploy TAG=$TAG"
+
+      - name: SSH & deploy
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            set -euo pipefail
+
+            APP_DIR="$HOME/app"
+            REPO_URL="https://github.com/Kyonggi-Univ-Diet-Information/BE.git"
+            BRANCH="main"
+            REG="381305464439.dkr.ecr.ap-northeast-2.amazonaws.com"
+            REPO="kiryong"
+            TAG="${{ env.TAG }}"
+
+            # 0) git 설치 및 코드 최신화
+            if ! command -v git >/dev/null 2>&1; then
+              sudo apt-get update -y && sudo apt-get install -y git
+            fi
+            mkdir -p "$APP_DIR"
+            if [ -d "$APP_DIR/.git" ]; then
+              cd "$APP_DIR"
+              git remote set-url origin "$REPO_URL"
+              git fetch --prune
+              git checkout "$BRANCH"
+              git reset --hard "origin/$BRANCH"
+              git clean -fd
+            else
+              git clone --depth 1 --branch "$BRANCH" "$REPO_URL" "$APP_DIR"
+              cd "$APP_DIR"
+            fi
+
+            # 1) AWS CLI / Docker Compose 없으면 설치 (Ubuntu)
+            if ! command -v aws >/dev/null 2>&1; then
+              sudo apt-get update -y
+              sudo apt-get install -y unzip ca-certificates curl
+              curl -sL https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o /tmp/awscliv2.zip
+              unzip -q /tmp/awscliv2.zip -d /tmp
+              sudo /tmp/aws/install --update
+            fi
+            if ! docker compose version >/dev/null 2>&1; then
+              DOCKER_CONFIG=${DOCKER_CONFIG:-$HOME/.docker}
+              mkdir -p "$DOCKER_CONFIG/cli-plugins"
+              curl -sSL https://github.com/docker/compose/releases/download/v2.29.2/docker-compose-linux-x86_64 \
+                -o "$DOCKER_CONFIG/cli-plugins/docker-compose"
+              chmod +x "$DOCKER_CONFIG/cli-plugins/docker-compose"
+            fi
+
+            # 2) ECR 로그인 (Credential Helper를 쓰면 이 블럭 제거 가능)
+            if ! docker pull "$REG/$REPO:$TAG" >/dev/null 2>&1; then
+              aws ecr get-login-password --region ap-northeast-2 \
+                | docker login --username AWS --password-stdin "$REG"
+            fi
+
+            # 3) compose의 이미지 태그를 정확히 교체
+            sed -i "s|$REG/$REPO:[A-Za-z0-9._-]\+|$REG/$REPO:${TAG}|g" docker-compose.yml
+
+            # 4) 배포
+            docker compose pull
+            docker compose up -d --force-recreate
+            docker image prune -f
+
+            # 5) 헬스체크 (/actuator/health 우선, 없으면 /health)
+            for i in {1..20}; do
+              if curl -fsS http://localhost:8080/actuator/health >/dev/null 2>&1 \
+                 || curl -fsS http://localhost:8080/health >/dev/null 2>&1; then
+                echo "healthy ✅"; exit 0
+              fi
+              sleep 3
+            done
+            echo "health check failed ❌"
+            docker compose logs --tail=200
+            exit 1

@@ -46,7 +46,7 @@ jobs:
           script: |
             set -euo pipefail
 
-            APP_DIR="$HOME/app"
+            APP_DIR="$HOME/BE"
             REPO_URL="https://github.com/Kyonggi-Univ-Diet-Information/BE.git"
             BRANCH="main"
             REG="381305464439.dkr.ecr.ap-northeast-2.amazonaws.com"

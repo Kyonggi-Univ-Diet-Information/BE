@@ -8,7 +8,7 @@ jobs:
   build-push:
     runs-on: ubuntu-latest
     permissions:
-      id-token: write        # OIDC (키리스)
+      id-token: write
       contents: read
 
     steps:
@@ -42,7 +42,25 @@ jobs:
           echo "TAG=$TAG" >> $GITHUB_ENV
           echo "tag=$TAG" >> $GITHUB_OUTPUT
 
+      # ✅ 태그 존재 여부 확인 (있으면 exists=true)
+      - name: Check if tag exists in ECR
+        id: check
+        env:
+          REPO: kiryong
+          TAG: ${{ env.TAG }}
+        run: |
+          set -euo pipefail
+          if aws ecr describe-images --repository-name "$REPO" --image-ids imageTag="$TAG" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "Image tag $TAG already exists in ECR (skipping build & push)."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "Image tag $TAG not found in ECR (will build & push)."
+          fi
+
+      # ⛳ exists=false 일 때만 빌드/푸시
       - name: Build & Push image
+        if: steps.check.outputs.exists != 'true'
         env:
           REG: 381305464439.dkr.ecr.ap-northeast-2.amazonaws.com
           REPO: kiryong
@@ -51,3 +69,8 @@ jobs:
           docker build -t $REG/$REPO:$TAG -t $REG/$REPO:latest .
           docker push $REG/$REPO:$TAG
           docker push $REG/$REPO:latest
+
+      # (선택) 이미 존재해도 성공 표시용 메시지
+      - name: Already exists — mark success
+        if: steps.check.outputs.exists == 'true'
+        run: echo "ECR image with tag '${{ env.TAG }} ' already exists. ✅"

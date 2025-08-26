@@ -54,3 +54,11 @@ dependencies {
 tasks.named('test') {
 	useJUnitPlatform()
 }
+
+bootBuildImage {
+	imageName = 'build/myapp'
+}
+
+jar {
+	enabled = false
+}

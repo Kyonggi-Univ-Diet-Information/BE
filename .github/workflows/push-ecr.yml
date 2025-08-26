@@ -1,4 +1,5 @@
 name: Build & Push to ECR
+
 on:
   push:
     branches: [ "main" ]
@@ -7,8 +8,9 @@ jobs:
   build-push:
     runs-on: ubuntu-latest
     permissions:
-      id-token: write   # OIDC
+      id-token: write        # OIDC (키리스)
       contents: read
+
     steps:
       - uses: actions/checkout@v4
 
@@ -26,22 +28,26 @@ jobs:
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::381305464439:role/push
+          role-to-assume: arn:aws:iam::381305464439:role/GitHubActionsECRPushRole
           aws-region: ap-northeast-2
 
       - name: Login to ECR
-        id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build & Tag image
+      - name: Compute image tag (short SHA)
+        id: meta
+        shell: bash
         run: |
-          ECR="${{ steps.login-ecr.outputs.registry }}/kiryong"
           TAG=$(git rev-parse --short=8 HEAD)
-          echo "ECR=$ECR" >> $GITHUB_ENV
           echo "TAG=$TAG" >> $GITHUB_ENV
-          docker build -t $ECR:$TAG -t $ECR:latest .
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
 
-      - name: Push image
+      - name: Build & Push image
+        env:
+          REG: 381305464439.dkr.ecr.ap-northeast-2.amazonaws.com
+          REPO: kiryong
+          TAG: ${{ env.TAG }}
         run: |
-          docker push $ECR:$TAG
-          docker push $ECR:latest
+          docker build -t $REG/$REPO:$TAG -t $REG/$REPO:latest .
+          docker push $REG/$REPO:$TAG
+          docker push $REG/$REPO:latest

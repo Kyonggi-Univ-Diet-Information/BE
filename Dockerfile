@@ -1,8 +1,9 @@
-# 명시적으로 x86 아키텍처로 이미지를 빌드
-FROM --platform=linux/amd64 openjdk:17-jdk-slim
+FROM eclipse-temurin:21-jdk-jammy
 
-# 애플리케이션 추가
-ADD /build/libs/*.jar app.jar
+WORKDIR /app
 
-# ENTRYPOINT 설정
-ENTRYPOINT [ "java", "-Djava.security.egd=file:/dev/./urandom", "-jar", "/app.jar"]
+# JAR 복사
+COPY build/libs/diet-0.0.1-SNAPSHOT.jar app.jar
+
+# 실행 (중요: -jar 붙여야 함)
+ENTRYPOINT ["java","-Dspring.profiles.active=prod","-jar","/app/app.jar"]

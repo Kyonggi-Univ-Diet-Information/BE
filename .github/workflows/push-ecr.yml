@@ -1,0 +1,58 @@
+name: Build & Push to ECR (Buildpacks)
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-push:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write   # OIDC 필수
+      contents: read
+
+    env:
+      AWS_REGION: ap-northeast-2
+      ECR_REPO: kiryong                    # <- ECR 리포 이름
+      JAVA_VERSION: "21"                    # <- 자바 버전
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - uses: gradle/actions/setup-gradle@v3
+
+      # 테스트까지 돌리고 싶으면 이 스텝 넣기
+      # - name: Test
+      #   run: ./gradlew test
+
+      # OIDC로 AWS 크레덴셜 설정 (키리스)
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::381305464439:role/BE
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build image with Buildpacks (sha tag)
+        env:
+          REGISTRY: ${{ steps.ecr.outputs.registry }}
+          SHA_TAG: ${{ github.sha }}
+        run: |
+          ./gradlew \
+            -Dspring-boot.build-image.imageName=${REGISTRY}/${ECR_REPO}:${SHA_TAG} \
+            bootBuildImage
+
+      - name: Add latest tag and push both
+        env:
+          REGISTRY: ${{ steps.ecr.outputs.registry }}
+          SHA_TAG: ${{ github.sha }}
+        run: |
+          docker tag ${REGISTRY}/${ECR_REPO}:${SHA_TAG} ${REGISTRY}/${ECR_REPO}:latest
+          docker push ${REGISTRY}/${ECR_REPO}:${SHA_TAG}
+          docker push ${REGISTRY}/${ECR_REPO}:latest

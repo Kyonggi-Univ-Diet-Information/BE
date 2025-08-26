@@ -1,0 +1,14 @@
+services:
+  kiryong:
+    image: 381305464439.dkr.ecr.ap-northeast-2.amazonaws.com/kiryong:latest
+    container_name: kiryong
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    env_file:
+      - /opt/kiryong/.env
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 10

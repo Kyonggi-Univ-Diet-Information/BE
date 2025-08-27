@@ -3,12 +3,30 @@ services:
     image: 381305464439.dkr.ecr.ap-northeast-2.amazonaws.com/kiryong:latest
     container_name: kiryong
     restart: unless-stopped
-    ports:
-      - "8080:8080"
-    env_file:
-      - /opt/kiryong/.env
+    ports: ["8080:8080"]
+    env_file: [/opt/kiryong/.env]
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 10s
       timeout: 3s
       retries: 10
+    networks: [web]
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: nginx
+    restart: unless-stopped
+    depends_on:
+      kiryong:
+        condition: service_healthy
+    ports: ["80:80", "443:443"]
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/html:/usr/share/nginx/html:ro
+      - ./nginx/letsencrypt:/var/www/certbot             # ACME 웹루트
+      - letsencrypt:/etc/letsencrypt                      # 인증서 영구 저장
+    networks: [web]
+
+networks: { web: { driver: bridge } }
+volumes:  { letsencrypt: {} }

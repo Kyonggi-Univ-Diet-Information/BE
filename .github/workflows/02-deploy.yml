@@ -37,7 +37,7 @@ jobs:
           echo "tag=$TAG" >> $GITHUB_OUTPUT
           echo "Deploy TAG=$TAG"
 
-      - name: SSH & deploy
+      - name: SSH & deploy (git fetch + reset --hard)
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -47,30 +47,23 @@ jobs:
             set -euo pipefail
 
             APP_DIR="$HOME/BE"
-            REPO_URL="https://github.com/Kyonggi-Univ-Diet-Information/BE.git"
+            REPO_URL="git@github.com:Kyonggi-Univ-Diet-Information/BE.git"  # SSH URL (Deploy Key)
             BRANCH="main"
             REG="381305464439.dkr.ecr.ap-northeast-2.amazonaws.com"
             REPO="kiryong"
             TAG="${{ env.TAG }}"
 
-            # 0) git 설치 및 코드 최신화
+            # --- GitHub Deploy Key 설정 (Secrets.GH_DEPLOY_KEY 필요) ---
+            mkdir -p ~/.ssh
+            printf "%s" "${{ secrets.GH_DEPLOY_KEY }}" > ~/.ssh/github_deploy
+            chmod 600 ~/.ssh/github_deploy
+            ssh-keyscan -H github.com >> ~/.ssh/known_hosts 2>/dev/null
+            export GIT_SSH_COMMAND='ssh -i ~/.ssh/github_deploy -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes'
+
+            # 0) git / awscli / docker compose 설치 확인
             if ! command -v git >/dev/null 2>&1; then
               sudo apt-get update -y && sudo apt-get install -y git
             fi
-            mkdir -p "$APP_DIR"
-            if [ -d "$APP_DIR/.git" ]; then
-              cd "$APP_DIR"
-              git remote set-url origin "$REPO_URL"
-              git fetch --prune
-              git checkout "$BRANCH"
-              git reset --hard "origin/$BRANCH"
-              git clean -fd
-            else
-              git clone --depth 1 --branch "$BRANCH" "$REPO_URL" "$APP_DIR"
-              cd "$APP_DIR"
-            fi
-
-            # 1) AWS CLI / Docker Compose 없으면 설치 (Ubuntu)
             if ! command -v aws >/dev/null 2>&1; then
               sudo apt-get update -y
               sudo apt-get install -y unzip ca-certificates curl
@@ -86,6 +79,20 @@ jobs:
               chmod +x "$DOCKER_CONFIG/cli-plugins/docker-compose"
             fi
 
+            # 1) 코드 동기화: git fetch + reset --hard (존재하면) / 없으면 최초 clone
+            mkdir -p "$APP_DIR"
+            if [ -d "$APP_DIR/.git" ]; then
+              cd "$APP_DIR"
+              git remote set-url origin "$REPO_URL"
+              git fetch --prune origin
+              git checkout "$BRANCH" || git checkout -b "$BRANCH"
+              git reset --hard "origin/$BRANCH"
+              git clean -fd
+            else
+              git clone --depth 1 --branch "$BRANCH" "$REPO_URL" "$APP_DIR"
+              cd "$APP_DIR"
+            fi
+
             # 2) ECR 로그인 (Credential Helper를 쓰면 이 블럭 제거 가능)
             if ! docker pull "$REG/$REPO:$TAG" >/dev/null 2>&1; then
               aws ecr get-login-password --region ap-northeast-2 \
@@ -93,18 +100,15 @@ jobs:
             fi
 
             # 3) compose의 이미지 태그를 정확히 교체
-            sed -i "s|$REG/$REPO:[A-Za-z0-9._-]\+|$REG/$REPO:${TAG}|g" docker-compose.yml
-            
+            sed -i "s|$REG/$REPO:[A-Za-z0-9._-]\\+|$REG/$REPO:${TAG}|g" docker-compose.yml
+
             # .env 자동 생성
             sudo mkdir -p /opt/kiryong
-            # 퍼미션 안전하게
             umask 177
-            # Secrets의 멀티라인을 그대로 파일로
             printf "%s" "${{ secrets.ENV_FILE }}" | sudo tee /opt/kiryong/.env >/dev/null
-            # 소유자/권한 정리(ubuntu 사용자라면)
             sudo chown ubuntu:ubuntu /opt/kiryong/.env
             sudo chmod 600 /opt/kiryong/.env
-  
+
             # 4) 배포
             docker compose pull
             docker compose up -d --force-recreate

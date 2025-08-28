@@ -1,125 +1,49 @@
-name: Deploy to EC2
+spring:
+  application:
+    name: diet
 
-on:
-  workflow_run:
-    workflows: [ "Build & Push to ECR" ]
-    types: [ completed ]
-  workflow_dispatch:
-    inputs:
-      tag:
-        description: "Image tag to deploy (default: latest)"
-        required: false
-        default: "latest"
+  datasource:
+    url: ${DB_URL_KIRYONG}               # 예: jdbc:postgresql://HOST:5432/kibab?sslmode=require
+    username: ${DB_USERNAME_KIRYONG}
+    password: ${DB_PASSWORD_KIRYONG}
+    # driver-class-name: org.postgresql.Driver   # (선택) 명시하고 싶으면 이렇게
 
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        show_sql: false
+        format_sql: false
+        dialect: org.hibernate.dialect.PostgreSQLDialect   # ✅ 또는 이 줄을 통째로 제거(자동 판별)
+    defer-datasource-initialization: true
 
-    steps:
-      - name: Decide TAG (from workflow_run head_sha or manual input)
-        id: tag
-        shell: bash
-        run: |
-          INPUT_TAG="${{ github.event.inputs.tag }}"
-          HEAD_SHA="${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || '' }}"
-          if [ -n "$INPUT_TAG" ] && [ "$INPUT_TAG" != "latest" ]; then
-            TAG="$INPUT_TAG"
-          elif [ -n "$HEAD_SHA" ]; then
-            TAG="$(echo "$HEAD_SHA" | cut -c1-8)"
-          else
-            TAG="latest"
-          fi
-          echo "TAG=$TAG" >> $GITHUB_ENV
-          echo "tag=$TAG" >> $GITHUB_OUTPUT
-          echo "Deploy TAG=$TAG"
+  sql:
+    init:
+      mode: never
+      encoding: UTF-8
 
-      - name: SSH & deploy (git fetch + reset --hard)  # ← GH_DEPLOY_KEY 없이 동작
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script_stop: true
-          script: |
-            set -euo pipefail
+server:
+  port: 8080
 
-            APP_DIR="$HOME/BE"
-            REPO_URL="git@github.com:Kyonggi-Univ-Diet-Information/BE.git"  # SSH URL
-            BRANCH="main"
-            REG="381305464439.dkr.ecr.ap-northeast-2.amazonaws.com"
-            REPO="kiryong"
-            TAG="${{ env.TAG }}"
+logging:
+  level:
+    org.hibernate.SQL: info
+    org.hibernate.orm.jdbc.bind: warn
 
-            # ✅ EC2에 상주한 배포키만 사용
-            if [ ! -f ~/.ssh/github_deploy ]; then
-              echo "❌ Missing deploy key at ~/.ssh/github_deploy (create on EC2 and add its .pub to repo Deploy keys)"; exit 1
-            fi
-            chmod 600 ~/.ssh/github_deploy || true
-            ssh-keyscan -H github.com >> ~/.ssh/known_hosts 2>/dev/null
-            export GIT_SSH_COMMAND='ssh -i ~/.ssh/github_deploy -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes'
+jwt:
+  secret: ${JWT_KEY}
 
-            # 0) git / awscli / docker compose 설치 확인
-            if ! command -v git >/dev/null 2>&1; then
-              sudo apt-get update -y && sudo apt-get install -y git
-            fi
-            if ! command -v aws >/dev/null 2>&1; then
-              sudo apt-get update -y
-              sudo apt-get install -y unzip ca-certificates curl
-              curl -sL https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o /tmp/awscliv2.zip
-              unzip -q /tmp/awscliv2.zip -d /tmp
-              sudo /tmp/aws/install --update
-            fi
-            if ! docker compose version >/dev/null 2>&1; then
-              DOCKER_CONFIG=${DOCKER_CONFIG:-$HOME/.docker}
-              mkdir -p "$DOCKER_CONFIG/cli-plugins"
-              curl -sSL https://github.com/docker/compose/releases/download/v2.29.2/docker-compose-linux-x86_64 \
-                -o "$DOCKER_CONFIG/cli-plugins/docker-compose"
-              chmod +x "$DOCKER_CONFIG/cli-plugins/docker-compose"
-            fi
+cloud:
+  aws:
+    s3:
+      bucketName: ${BUCKET_NAME}
+    credentials:
+      accessKey: ${ACCESS_KEY}
+      secretKey: ${SECRET_KEY}
+    region.static: ${REGION}
+    stack.auto: false
 
-            # 1) 코드 동기화: git fetch + reset --hard (있으면) / 없으면 clone
-            mkdir -p "$APP_DIR"
-            if [ -d "$APP_DIR/.git" ]; then
-              cd "$APP_DIR"
-              git remote set-url origin "$REPO_URL"
-              git fetch --prune origin
-              git checkout "$BRANCH" || git checkout -b "$BRANCH"
-              git reset --hard "origin/$BRANCH"
-              git clean -fd
-            else
-              git clone --depth 1 --branch "$BRANCH" "$REPO_URL" "$APP_DIR"
-              cd "$APP_DIR"
-            fi
-
-            # 2) ECR 로그인
-            if ! docker pull "$REG/$REPO:$TAG" >/dev/null 2>&1; then
-              aws ecr get-login-password --region ap-northeast-2 \
-                | docker login --username AWS --password-stdin "$REG"
-            fi
-
-            # 3) compose의 이미지 태그 반영
-            sed -i "s|$REG/$REPO:[A-Za-z0-9._-]\\+|$REG/$REPO:${TAG}|g" docker-compose.yml
-
-            # .env 생성/권한
-            sudo mkdir -p /opt/kiryong
-            umask 177
-            printf "%s" "${{ secrets.ENV_FILE }}" | sudo tee /opt/kiryong/.env >/dev/null
-            sudo chown ubuntu:ubuntu /opt/kiryong/.env
-            sudo chmod 600 /opt/kiryong/.env
-
-            # 4) 배포
-            docker compose pull
-            docker compose up -d --force-recreate
-            docker image prune -f
-
-            # 5) 헬스체크 (200이면 성공)
-            for i in {1..20}; do
-              if curl -fsS http://localhost:8080/actuator/health >/dev/null 2>&1 \
-                 || curl -fsS http://localhost:8080/health >/dev/null 2>&1; then
-                echo "healthy ✅"; exit 0
-              fi
-              sleep 3
-            done
-            echo "health check failed ❌"
-            docker compose logs --tail=200
-            exit 1
+kakao:
+  client_id: ${REST_API_KEY}
+  redirect_uri: http://localhost:8080/api/kakao-login

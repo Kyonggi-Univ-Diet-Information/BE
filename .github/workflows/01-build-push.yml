@@ -1,0 +1,48 @@
+name: Build & Push to ECR
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-push:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Build JAR
+        run: ./gradlew clean build -x test
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::381305464439:role/push
+          aws-region: ap-northeast-2
+
+      - name: Login to ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Compute image tag
+        id: meta
+        run: |
+          TAG=$(git rev-parse --short=8 HEAD)
+          echo "TAG=$TAG" >> $GITHUB_ENV
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+
+      - name: Build & Push image
+        env:
+          REG: 381305464439.dkr.ecr.ap-northeast-2.amazonaws.com
+          REPO: kiryong
+          TAG: ${{ env.TAG }}
+        run: |
+          docker build -t $REG/$REPO:$TAG .
+          docker push $REG/$REPO:$TAG

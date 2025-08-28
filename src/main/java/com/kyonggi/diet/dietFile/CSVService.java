@@ -57,7 +57,9 @@ public class CSVService {
                     while (st.hasMoreTokens()) {
                         foods.add(st.nextToken());
                     }
-
+/*
+* save 하고 다시 find 하는 부분 수정
+* */
                     for (String food : foods) { //식단의 각 음식에 대해서 db에 저장 (음식이 저장되어 있어야, 식단 설정 가능)
                         DietFoodDTO dietFoodDTO = DietFoodDTO.builder()
                                 .name(food).build();

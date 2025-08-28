@@ -36,7 +36,9 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-devtools'
 	implementation 'org.modelmapper:modelmapper:3.1.0'
 	compileOnly 'org.projectlombok:lombok'
-	runtimeOnly 'com.mysql:mysql-connector-j'
+//	runtimeOnly 'com.mysql:mysql-connector-j'
+
+	runtimeOnly 'org.postgresql:postgresql'        // ✅ 추가
 	annotationProcessor 'org.projectlombok:lombok'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -51,4 +53,12 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+}
+
+bootBuildImage {
+	imageName = 'build/myapp'
+}
+
+jar {
+	enabled = false
 }

@@ -1,9 +1,12 @@
 name: Deploy to EC2
 
 on:
+  # 1) 빌드 워크플로 완료 시 자동 실행
   workflow_run:
     workflows: [ "Build & Push to ECR" ]
     types: [ completed ]
+
+  # 2) 수동 실행으로 특정 태그 배포도 가능
   workflow_dispatch:
     inputs:
       tag:
@@ -20,6 +23,7 @@ jobs:
         id: tag
         shell: bash
         run: |
+          # 우선순위: 수동 입력(tag) > workflow_run의 head_sha > latest
           INPUT_TAG="${{ github.event.inputs.tag }}"
           HEAD_SHA="${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || '' }}"
           if [ -n "$INPUT_TAG" ] && [ "$INPUT_TAG" != "latest" ]; then
@@ -33,28 +37,26 @@ jobs:
           echo "tag=$TAG" >> $GITHUB_OUTPUT
           echo "Deploy TAG=$TAG"
 
-      - name: SSH & deploy (git fetch + reset --hard)  # ← GH_DEPLOY_KEY 없이 동작
+      - name: SSH & deploy (git fetch + reset --hard)
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
-          script_stop: true
           script: |
             set -euo pipefail
 
             APP_DIR="$HOME/BE"
-            REPO_URL="git@github.com:Kyonggi-Univ-Diet-Information/BE.git"  # SSH URL
+            REPO_URL="git@github.com:Kyonggi-Univ-Diet-Information/BE.git"  # SSH URL (Deploy Key)
             BRANCH="main"
             REG="381305464439.dkr.ecr.ap-northeast-2.amazonaws.com"
             REPO="kiryong"
             TAG="${{ env.TAG }}"
 
-            # ✅ EC2에 상주한 배포키만 사용
-            if [ ! -f ~/.ssh/github_deploy ]; then
-              echo "❌ Missing deploy key at ~/.ssh/github_deploy (create on EC2 and add its .pub to repo Deploy keys)"; exit 1
-            fi
-            chmod 600 ~/.ssh/github_deploy || true
+            # --- GitHub Deploy Key 설정 (Secrets.GH_DEPLOY_KEY 필요) ---
+            mkdir -p ~/.ssh
+            printf "%s" "${{ secrets.GH_DEPLOY_KEY }}" > ~/.ssh/github_deploy
+            chmod 600 ~/.ssh/github_deploy
             ssh-keyscan -H github.com >> ~/.ssh/known_hosts 2>/dev/null
             export GIT_SSH_COMMAND='ssh -i ~/.ssh/github_deploy -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes'
 
@@ -77,7 +79,7 @@ jobs:
               chmod +x "$DOCKER_CONFIG/cli-plugins/docker-compose"
             fi
 
-            # 1) 코드 동기화: git fetch + reset --hard (있으면) / 없으면 clone
+            # 1) 코드 동기화: git fetch + reset --hard (존재하면) / 없으면 최초 clone
             mkdir -p "$APP_DIR"
             if [ -d "$APP_DIR/.git" ]; then
               cd "$APP_DIR"
@@ -91,16 +93,16 @@ jobs:
               cd "$APP_DIR"
             fi
 
-            # 2) ECR 로그인
+            # 2) ECR 로그인 (Credential Helper를 쓰면 이 블럭 제거 가능)
             if ! docker pull "$REG/$REPO:$TAG" >/dev/null 2>&1; then
               aws ecr get-login-password --region ap-northeast-2 \
                 | docker login --username AWS --password-stdin "$REG"
             fi
 
-            # 3) compose의 이미지 태그 반영
+            # 3) compose의 이미지 태그를 정확히 교체
             sed -i "s|$REG/$REPO:[A-Za-z0-9._-]\\+|$REG/$REPO:${TAG}|g" docker-compose.yml
 
-            # .env 생성/권한
+            # .env 자동 생성
             sudo mkdir -p /opt/kiryong
             umask 177
             printf "%s" "${{ secrets.ENV_FILE }}" | sudo tee /opt/kiryong/.env >/dev/null
@@ -112,7 +114,7 @@ jobs:
             docker compose up -d --force-recreate
             docker image prune -f
 
-            # 5) 헬스체크 (200이면 성공)
+            # 5) 헬스체크 (/actuator/health 우선, 없으면 /health)
             for i in {1..20}; do
               if curl -fsS http://localhost:8080/actuator/health >/dev/null 2>&1 \
                  || curl -fsS http://localhost:8080/health >/dev/null 2>&1; then

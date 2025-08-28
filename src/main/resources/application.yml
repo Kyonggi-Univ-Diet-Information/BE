@@ -3,19 +3,19 @@ spring:
     name: diet
 
   datasource:
-    url: ${DB_URL_KIRYONG}
+    url: ${DB_URL_KIRYONG}               # 예: jdbc:postgresql://HOST:5432/kibab?sslmode=require
     username: ${DB_USERNAME_KIRYONG}
     password: ${DB_PASSWORD_KIRYONG}
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    # driver-class-name: org.postgresql.Driver   # (선택) 명시하고 싶으면 이렇게
 
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: update
     properties:
       hibernate:
         show_sql: false
         format_sql: false
-        dialect: org.hibernate.dialect.MySQLDialect
+        dialect: org.hibernate.dialect.PostgreSQLDialect   # ✅ 또는 이 줄을 통째로 제거(자동 판별)
     defer-datasource-initialization: true
 
   sql:
@@ -24,7 +24,7 @@ spring:
       encoding: UTF-8
 
 server:
-  port: 8081
+  port: 8080
 
 logging:
   level:
@@ -46,4 +46,4 @@ cloud:
 
 kakao:
   client_id: ${REST_API_KEY}
-  redirect_uri: http://localhost:8081/api/kakao-login
+  redirect_uri: http://localhost:8080/api/kakao-login

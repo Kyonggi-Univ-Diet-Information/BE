@@ -23,7 +23,4 @@ public class DietFoodDTO {
 
     @Schema(description = "음식 타입")
     private DietFoodType type;
-
-    @Schema(description = "음식 리뷰 리스트")
-    private List<ReviewDTO> dietFoodReviews;
 }

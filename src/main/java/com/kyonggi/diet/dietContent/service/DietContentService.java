@@ -9,41 +9,10 @@ import java.util.List;
 public interface DietContentService {
 
     /**
-     * DietContent 엔티티 조회
-     * @param id (Long)
-     * @return dietContent (DietContent)
-     */
-    public DietContent findOne(Long id);
-
-
-    /**
      * 저장 메서드
      * @param dietContentDTO (DietContentDTO)
      */
     public void save(DietContentDTO dietContentDTO);
-
-
-    /**
-     * DietContent DTO 조회
-     * @param id (Long)
-     * @return DietContentDTO
-     */
-    public DietContentDTO findDietContent(Long id);
-
-
-    /**
-     * DietContent DTO 리스트 조회
-     * @return List<DietContentDTO>
-     */
-    public List<DietContentDTO> findAll();
-
-
-    /**
-     * DietContent 삭제 메서드
-     * @param dietContent (DietContent)
-     */
-    public void delete(DietContent dietContent);
-
 
     /**
      * 이번 주의 Diet 조회

@@ -358,3 +358,6 @@ gradle-app.setting
 src/main/resources/*.env
 
 .idea
+
+nginx/html/
+nginx/letsencrypt/

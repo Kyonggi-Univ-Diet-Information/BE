@@ -53,7 +53,7 @@ public class CSVService {
                     List<String> foods = new ArrayList<>();
                     String str = nextLine[j];
 
-                    StringTokenizer st = new StringTokenizer(str, "&"); //&로 구분된 식단을 각 메뉴로 받아냄
+                    StringTokenizer st = new StringTokenizer(str, "&/"); //&로 구분된 식단을 각 메뉴로 받아냄
                     while (st.hasMoreTokens()) {
                         foods.add(st.nextToken());
                     }

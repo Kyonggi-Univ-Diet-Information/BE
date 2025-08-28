@@ -57,18 +57,23 @@ jobs:
             chmod 600 ~/.ssh/github_deploy || true
             ssh-keyscan -H github.com >> ~/.ssh/known_hosts 2>/dev/null
             export GIT_SSH_COMMAND='ssh -i ~/.ssh/github_deploy -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes'
-
+            
             # 0) git / awscli / docker compose 설치 확인
             if ! command -v git >/dev/null 2>&1; then
-              sudo apt-get update -y && sudo apt-get install -y git
+            sudo apt-get update -y && sudo apt-get install -y git
             fi
             if ! command -v aws >/dev/null 2>&1; then
-              sudo apt-get update -y
-              sudo apt-get install -y unzip ca-certificates curl
-              curl -sL https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o /tmp/awscliv2.zip
-              unzip -q /tmp/awscliv2.zip -d /tmp
-              sudo /tmp/aws/install --update
+            sudo apt-get update -y
+            sudo apt-get install -y unzip ca-certificates curl
+            curl -sL https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o /tmp/awscliv2.zip
+            unzip -q /tmp/awscliv2.zip -d /tmp
+            sudo /tmp/aws/install --update
             fi
+            # ← aws 유무와 상관없이 curl 보장
+            if ! command -v curl >/dev/null 2>&1; then
+            sudo apt-get update -y && sudo apt-get install -y curl
+            fi
+
             if ! docker compose version >/dev/null 2>&1; then
               DOCKER_CONFIG=${DOCKER_CONFIG:-$HOME/.docker}
               mkdir -p "$DOCKER_CONFIG/cli-plugins"
@@ -76,7 +81,11 @@ jobs:
                 -o "$DOCKER_CONFIG/cli-plugins/docker-compose"
               chmod +x "$DOCKER_CONFIG/cli-plugins/docker-compose"
             fi
-
+            
+            # 1) 코드 동기화 직전/직후 보완
+            sudo chown -R ubuntu:ubuntu "$APP_DIR" || true
+            sudo rm -rf "$APP_DIR/nginx/html" "$APP_DIR/nginx/letsencrypt" || true
+  
             # 1) 코드 동기화: git fetch + reset --hard (있으면) / 없으면 clone
             mkdir -p "$APP_DIR"
             if [ -d "$APP_DIR/.git" ]; then

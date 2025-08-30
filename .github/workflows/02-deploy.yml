@@ -107,7 +107,7 @@ jobs:
             fi
 
             # 3) compose의 이미지 태그 반영
-            sed -i "s|$REG/$REPO:[A-Za-z0-9._-]\\+|$REG/$REPO:${TAG}|g" docker-compose.yml
+            # sed -i "s|$REG/$REPO:[A-Za-z0-9._-]\\+|$REG/$REPO:${TAG}|g" docker-compose.yml
 
             # .env 생성/권한
             sudo mkdir -p /opt/kiryong

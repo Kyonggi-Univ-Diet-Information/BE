@@ -44,5 +44,7 @@ jobs:
           REPO: kiryong
           TAG: ${{ env.TAG }}
         run: |
-          docker build -t $REG/$REPO:$TAG .
+          docker build -t $REG/$REPO:$TAG -t $REG/$REPO:latest .
           docker push $REG/$REPO:$TAG
+          docker push $REG/$REPO:latest
+      

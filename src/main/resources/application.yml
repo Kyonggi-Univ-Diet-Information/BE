@@ -46,7 +46,7 @@ cloud:
 
 kakao:
   client_id: ${REST_API_KEY}
-  redirect_uri: http://localhost:8080/api/kakao-login
+  redirect_uri: https://api.kiryong.kr/api/kakao-login
 
 springdoc:
   swagger-ui:

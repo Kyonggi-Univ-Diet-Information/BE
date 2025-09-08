@@ -39,6 +39,8 @@ public class DietContentController implements DietContentControllerDocs {
         LocalDate startOfWeek = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
         LocalDate endOfWeek = today.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
 
+        Map<String, Map<DayOfWeek, Map<DietTime, DietContentDTO>>> result = new HashMap<>();
+
         try {
             // 이번주 식단 가져오기
             List<DietContentDTO> diets = dietContentService.findDietContentsBetweenDates(startOfWeek, endOfWeek);
@@ -54,14 +56,12 @@ public class DietContentController implements DietContentControllerDocs {
 
                 dietMap.get(dayOfWeek).put(diet.getTime(), diet);
             }
-
-            // 최상단에 'documents' 키 추가
-            Map<String, Map<DayOfWeek, Map<DietTime, DietContentDTO>>> result = new HashMap<>();
             result.put("result", dietMap);
 
             return result;
         } catch (EntityNotFoundException e) {
-            return null; //이번주 식단 조회 안될 시 null 반환
+            result.put("result", null);
+            return result; //이번주 식단 조회 안될 시 null 반환
         }
     }
 }

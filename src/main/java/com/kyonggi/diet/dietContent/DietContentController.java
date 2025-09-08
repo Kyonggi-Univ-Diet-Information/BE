@@ -9,6 +9,7 @@ import com.kyonggi.diet.dietFood.DietFoodDTO;
 import com.kyonggi.diet.dietFood.service.DietFoodService;
 import com.kyonggi.diet.dietFood.DietFoodType;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -38,25 +39,29 @@ public class DietContentController implements DietContentControllerDocs {
         LocalDate startOfWeek = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
         LocalDate endOfWeek = today.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
 
-        // 이번주 식단 가져오기
-        List<DietContentDTO> diets = dietContentService.findDietContentsBetweenDates(startOfWeek, endOfWeek);
+        try {
+            // 이번주 식단 가져오기
+            List<DietContentDTO> diets = dietContentService.findDietContentsBetweenDates(startOfWeek, endOfWeek);
 
-        // 이번주 식단 반환
-        Map<DayOfWeek, Map<DietTime, DietContentDTO>> dietMap = new HashMap<>();
-        for (DietContentDTO diet : diets) {
-            LocalDate localDate = LocalDate.parse(diet.getDate());
-            DayOfWeek dayOfWeek = localDate.getDayOfWeek();
+            // 이번주 식단 반환
+            Map<DayOfWeek, Map<DietTime, DietContentDTO>> dietMap = new HashMap<>();
+            for (DietContentDTO diet : diets) {
+                LocalDate localDate = LocalDate.parse(diet.getDate());
+                DayOfWeek dayOfWeek = localDate.getDayOfWeek();
 
-            // 해당 요일에 map 없으면 생성
-            dietMap.putIfAbsent(dayOfWeek, new HashMap<>());
+                // 해당 요일에 map 없으면 생성
+                dietMap.putIfAbsent(dayOfWeek, new HashMap<>());
 
-            dietMap.get(dayOfWeek).put(diet.getTime(), diet);
+                dietMap.get(dayOfWeek).put(diet.getTime(), diet);
+            }
+
+            // 최상단에 'documents' 키 추가
+            Map<String, Map<DayOfWeek, Map<DietTime, DietContentDTO>>> result = new HashMap<>();
+            result.put("result", dietMap);
+
+            return result;
+        } catch (EntityNotFoundException e) {
+            return null; //이번주 식단 조회 안될 시 null 반환
         }
-
-        // 최상단에 'documents' 키 추가
-        Map<String, Map<DayOfWeek, Map<DietTime, DietContentDTO>>> result = new HashMap<>();
-        result.put("result", dietMap);
-
-        return result;
     }
 }

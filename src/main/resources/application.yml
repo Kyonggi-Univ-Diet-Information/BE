@@ -16,6 +16,8 @@ spring:
         show_sql: false
         format_sql: false
         dialect: org.hibernate.dialect.PostgreSQLDialect   # ✅ 또는 이 줄을 통째로 제거(자동 판별)
+        jdbc:
+          time_zone: Asia/Seoul   # ✅ 타임존 서울로 고정
     defer-datasource-initialization: true
 
   sql:

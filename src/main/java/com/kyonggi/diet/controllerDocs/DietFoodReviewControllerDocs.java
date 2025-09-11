@@ -4,6 +4,7 @@ import com.kyonggi.diet.review.DTO.CreateReviewDTO;
 import com.kyonggi.diet.review.DTO.ReviewDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -49,4 +50,8 @@ public interface DietFoodReviewControllerDocs {
     @Operation(summary = "특정 음식 리뷰 평점 구하기", description = "사용자로부터 음식 리뷰 id를 입력받아, 특정 음식의 리뷰 평점을 반환하는 API")
     @Parameter(name = "dietFoodId", description = "음식 ID")
     public ResponseEntity<?> getAverageRating(@PathVariable("dietFoodId") Long dietFoodId);
+
+    @Operation(summary = "페이징된 음식 리뷰 구하기", description = "원하는 페이지 입력시, 해당 페이지에 대한 음식 리뷰들을 반환하는 API (최신순으로 적용하여 마지막 리뷰가 1페이지에 있게 적용), 현재 각 페이지당 10개의 리뷰 확인하도록 설정")
+    @Parameter(name = "pageNo", description = "페이지 번호 (default: 0) index 0이 1페이지이므로 주의. ")
+    public Page<ReviewDTO> getPagedDietFoodReviews(@RequestParam(required = false, defaultValue = "0", value = "pageNo") int pageNo);
 }

@@ -17,6 +17,10 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -115,6 +119,21 @@ public class DietFoodReviewServiceImpl implements DietFoodReviewService {
             reviewDTO.setMemberName(review.getMember().getName());
             return reviewDTO;
         }).collect(Collectors.toList());
+    }
+
+    /**
+     * 페이징된 ReivewDTO 조회
+     * @param pageNo (Int)
+     * @return Page<ReviewDTO>
+     */
+    @Override
+    public Page<ReviewDTO> getAllReviewsPaged(int pageNo) {
+        Pageable pageable = PageRequest.of(pageNo, 10, Sort.by(Sort.Direction.DESC, "id"));
+        Page<DietFoodReview> all = dietFoodReviewRepository.findAll(pageable);
+        if (all.isEmpty()) {
+            throw new EntityNotFoundException("Can't find Paged DietFood reviews");
+        }
+        return  all.map(this::mapToReviewDTO);
     }
 
     /**

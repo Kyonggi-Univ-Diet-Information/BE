@@ -5,6 +5,8 @@ import com.kyonggi.diet.member.MemberEntity;
 import com.kyonggi.diet.review.DTO.ReviewDTO;
 import com.kyonggi.diet.review.domain.DietFoodReview;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -51,6 +53,13 @@ public interface DietFoodReviewService {
      * @return List<ReviewDTO>
      */
     public List<ReviewDTO> findAllReview();
+
+    /**
+     * 페이징된 ReivewDTO 조회
+     * @param pageNo (int)
+     * @return Page<ReviewDTO>
+     */
+    public Page<ReviewDTO> getAllReviewsPaged(int pageNo);
 
     /**
      * 음식 리뷰 수정 메서드

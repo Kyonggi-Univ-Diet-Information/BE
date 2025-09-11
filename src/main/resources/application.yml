@@ -57,3 +57,7 @@ springdoc:
     urls:
       - url: https://api.kiryong.kr/v3/api-docs   # ✅ HTTPS 강제
         name: Kiryong API
+
+openai:
+  api-key: ${OPENAI_API_KEY}
+  base-url: https://api.openai.com/v1

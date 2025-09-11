@@ -6,8 +6,10 @@ import com.kyonggi.diet.diet.DietDTO;
 import com.kyonggi.diet.dietContent.DTO.DietContentDTO;
 import com.kyonggi.diet.dietContent.DietTime;
 import com.kyonggi.diet.dietContent.service.DietContentService;
+import com.kyonggi.diet.dietFood.DietFood;
 import com.kyonggi.diet.dietFood.DietFoodDTO;
 import com.kyonggi.diet.dietFood.service.DietFoodService;
+import com.kyonggi.diet.translation.service.TranslationService;
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvValidationException;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +22,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.StringTokenizer;
 
 @Service
@@ -32,7 +35,9 @@ public class CSVService {
     private final AmazonS3 amazonS3;
     private final DietContentService dietContentService;
     private final DietFoodService dietFoodService;
+    private final TranslationService translationService;
 
+    @Transactional
     public void readAndSave(String key) throws IOException, CsvValidationException {
 
         S3Object s3Object = amazonS3.getObject(bucketName, key);
@@ -60,16 +65,43 @@ public class CSVService {
 /*
 * save 하고 다시 find 하는 부분 수정
 * */
-                    for (String food : foods) { //식단의 각 음식에 대해서 db에 저장 (음식이 저장되어 있어야, 식단 설정 가능)
+                    for (String food : foods) {
+                        // 기존 엔티티 조회
+                        DietFood existing = dietFoodService.findDietFoodByName(food);
+
+                        String nameEn;
+                        if (existing != null) {
+                            // 이미 존재하면 그대로 사용
+                            nameEn = (existing.getNameEn() != null)
+                                    ? existing.getNameEn()
+                                    : translationService.translateToEnglish(food); // nameEn이 NULL일 때만 번역
+                        } else {
+                            // 없으면 새로 번역
+                            nameEn = translationService.translateToEnglish(food);
+                        }
+
+                        // DTO 생성
                         DietFoodDTO dietFoodDTO = DietFoodDTO.builder()
-                                .name(food).build();
-                        dietFoodService.save(dietFoodDTO);
+                                .name(food)
+                                .nameEn(nameEn)
+                                .build();
 
-                        dietFoodDTO.setId(dietFoodService.findDietFoodByName(food).getId()); //저장된 음식을 기반으로, DietFoodDTO 설정
+                        DietFood savedEntity = dietFoodService.save(dietFoodDTO);
 
-                        dietDTOS.add(DietDTO.builder()  //설정된 dietFoodDTO 를 기반으로, dietDTOS 설정
-                                .dietFoodDTO(dietFoodDTO).build());
+                        DietFoodDTO savedDTO = DietFoodDTO.builder()
+                                .id(savedEntity.getId())
+                                .name(savedEntity.getName())
+                                .nameEn(savedEntity.getNameEn())
+                                .type(savedEntity.getDietFoodType())
+                                .build();
+
+                        dietDTOS.add(DietDTO.builder()
+                                .dietFoodDTO(savedDTO)
+                                .build());
                     }
+
+
+
 
                     DietContentDTO dietContentDTO = DietContentDTO //최종적으로 Diet, DietContent db 저장 로직
                             .builder()

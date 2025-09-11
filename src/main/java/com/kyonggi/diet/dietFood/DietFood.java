@@ -4,10 +4,7 @@ import com.kyonggi.diet.diet.Diet;
 import com.kyonggi.diet.review.domain.DietFoodReview;
 import com.kyonggi.diet.review.domain.RestaurantReview;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.List;
 
@@ -23,6 +20,9 @@ public class DietFood {
     private Long id;
     private String name;
 
+    @Column(name = "name_en")
+    private String nameEn;
+
     @Enumerated(value = EnumType.STRING)
     private DietFoodType dietFoodType;
 
@@ -32,4 +32,11 @@ public class DietFood {
     @OneToMany(mappedBy = "dietFood")
     private List<Diet> contents;
 
+    public void updateNameEn(String nameEn) {
+        this.nameEn = nameEn;
+    }
+
+    public void updateDietFoodType(DietFoodType dietFoodType) {
+        this.dietFoodType = dietFoodType;
+    }
 }

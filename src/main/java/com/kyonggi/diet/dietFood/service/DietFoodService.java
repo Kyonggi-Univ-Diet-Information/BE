@@ -20,8 +20,7 @@ public interface DietFoodService {
      * 저장 메서드
      * @param dietFoodDTO (DietFoodDTO)
      */
-    public void save(DietFoodDTO dietFoodDTO);
-
+    public DietFood save(DietFoodDTO dietFoodDTO);
 
     /**
      * DietFood DTO 조회

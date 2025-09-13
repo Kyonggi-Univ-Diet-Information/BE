@@ -43,20 +43,35 @@ public class DietFoodServiceImpl implements DietFoodService {
      */
     @Transactional
     @Override
-    public void save(DietFoodDTO dietFoodDTO) {
+    public DietFood save(DietFoodDTO dietFoodDTO) {
         try {
-            if (!checkExistByName(dietFoodDTO.getName())) {
-                DietFood dietFood = DietFood.builder()
-                        .name(dietFoodDTO.getName())
-                        .dietFoodType(dietFoodDTO.getType())
-                        .build();
-                dietFoodRepository.save(dietFood);
-            }
+            return dietFoodRepository.findByName(dietFoodDTO.getName())
+                    .map(existing -> {
+                        // ✅ 업데이트 처리
+                        if (dietFoodDTO.getNameEn() != null && existing.getNameEn() == null) {
+                            existing.updateNameEn(dietFoodDTO.getNameEn());
+                        }
+                        if (dietFoodDTO.getType() != null) {
+                            existing.updateDietFoodType(dietFoodDTO.getType());
+                        }
+                        return dietFoodRepository.save(existing); // update
+                    })
+                    .orElseGet(() -> {
+                        // ✅ 새로 저장
+                        DietFood dietFood = DietFood.builder()
+                                .name(dietFoodDTO.getName())
+                                .nameEn(dietFoodDTO.getNameEn())
+                                .dietFoodType(dietFoodDTO.getType())
+                                .build();
+                        return dietFoodRepository.save(dietFood);
+                    });
         } catch (Exception e) {
-            log.error("DietFood 저장  중예외 발생: {}" ,e.getMessage(), e);
+            log.error("DietFood 저장 중 예외 발생: {}", e.getMessage(), e);
             throw new RuntimeException("DietFood 저장 중 오류가 발생했습니다.");
         }
     }
+
+
 
     /**
      * DietFood DTO 조회

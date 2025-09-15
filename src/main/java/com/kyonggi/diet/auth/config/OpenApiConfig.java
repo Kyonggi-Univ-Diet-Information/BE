@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Configuration;
 @OpenAPIDefinition(
         servers = {
                 @Server(url = "https://api.kiryong.kr", description = "Production API"),
-//                @Server(url = "http://localhost:8080", description = "Dev API") // dev
+                //@Server(url = "http://localhost:8080", description = "Dev API") // dev
         }
 )
 @Configuration

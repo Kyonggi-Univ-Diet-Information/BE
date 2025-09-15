@@ -4,6 +4,7 @@ import com.kyonggi.diet.auth.util.JwtTokenUtil;
 import com.kyonggi.diet.controllerDocs.DietFoodReviewControllerDocs;
 import com.kyonggi.diet.member.service.CustomMembersDetailService;
 import com.kyonggi.diet.member.service.MemberService;
+import com.kyonggi.diet.restaurant.RestaurantType;
 import com.kyonggi.diet.review.DTO.CreateReviewDTO;
 import com.kyonggi.diet.review.DTO.ReviewDTO;
 import com.kyonggi.diet.review.service.DietFoodReviewService;
@@ -72,15 +73,15 @@ public class DietFoodReviewController implements DietFoodReviewControllerDocs {
      * @param pageNo (int)
      * @return Page<ReviewDTO>
      */
-    @GetMapping("/paged")
-    public Page<ReviewDTO> getPagedDietFoodReviews(@RequestParam(required = false, defaultValue = "0", value = "pageNo") int pageNo) {
+    @GetMapping("/all/{dietFoodId}/paged")
+    public Page<ReviewDTO> getPagedDietFoodReviews(@PathVariable("dietFoodId") Long dietFoodId,
+                                                    @RequestParam(required = false, defaultValue = "0", value = "pageNo") int pageNo) {
         try {
-            return dietFoodReviewService.getAllReviewsPaged(pageNo);
+            return dietFoodReviewService.getAllReviewsByFoodIdPaged(dietFoodId, pageNo);
         } catch (EntityNotFoundException e) {
             return null;
         }
     }
-
 
     @GetMapping("/all/{dietFoodId}")
     public ResponseEntity<?> allReviewsById(@PathVariable("dietFoodId") Long dietFoodId) {

@@ -127,9 +127,9 @@ public class DietFoodReviewServiceImpl implements DietFoodReviewService {
      * @return Page<ReviewDTO>
      */
     @Override
-    public Page<ReviewDTO> getAllReviewsPaged(int pageNo) {
+    public Page<ReviewDTO> getAllReviewsByFoodIdPaged(Long foodId, int pageNo) {
         Pageable pageable = PageRequest.of(pageNo, 10, Sort.by(Sort.Direction.DESC, "id"));
-        Page<DietFoodReview> all = dietFoodReviewRepository.findAll(pageable);
+        Page<DietFoodReview> all = dietFoodReviewRepository.findAllByDietFoodId(foodId, pageable);
         if (all.isEmpty()) {
             throw new EntityNotFoundException("Can't find Paged DietFood reviews");
         }

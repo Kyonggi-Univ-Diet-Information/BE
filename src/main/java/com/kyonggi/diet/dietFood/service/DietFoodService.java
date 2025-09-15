@@ -43,8 +43,6 @@ public interface DietFoodService {
      * @return dietFoodDTOS (List<DietFoodDTO>)
      */
     public List<DietFoodDTO> findDietFoodByType(DietFoodType type);
-
-
     /**
      * Id 리스트들로 DietFood DTO 리스트 조회
      * @param IdList (List<Long>)

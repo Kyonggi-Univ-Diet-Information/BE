@@ -2,6 +2,7 @@ package com.kyonggi.diet.review.service;
 
 import com.kyonggi.diet.dietFood.DietFood;
 import com.kyonggi.diet.member.MemberEntity;
+import com.kyonggi.diet.restaurant.RestaurantType;
 import com.kyonggi.diet.review.DTO.ReviewDTO;
 import com.kyonggi.diet.review.domain.DietFoodReview;
 import jakarta.persistence.EntityNotFoundException;
@@ -59,7 +60,7 @@ public interface DietFoodReviewService {
      * @param pageNo (int)
      * @return Page<ReviewDTO>
      */
-    public Page<ReviewDTO> getAllReviewsPaged(int pageNo);
+    public Page<ReviewDTO> getAllReviewsByFoodIdPaged(Long foodId, int pageNo);
 
     /**
      * 음식 리뷰 수정 메서드

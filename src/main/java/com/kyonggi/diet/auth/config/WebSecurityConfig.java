@@ -30,7 +30,7 @@ public class WebSecurityConfig {
                                 "/api/kakao-login/**" , "/health", "/", "/api/read-csv/*", "/api/review/diet-food/*",
                                 "/api/review/restaurant/*", "/api/review/diet-food/all/*", "/api/review/diet-food/average/*",
                                 "/api/review/favorite/diet-food/count/*","swagger-ui/**", "/v3/api-docs/**",
-                                "/api/review/diet-food").permitAll().anyRequest().authenticated())
+                                "/api/review/diet-food", "/api/review/diet-food/all/paged/**").permitAll().anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class)
                 .httpBasic(Customizer.withDefaults())

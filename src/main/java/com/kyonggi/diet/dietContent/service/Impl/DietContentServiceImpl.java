@@ -92,6 +92,7 @@ public class DietContentServiceImpl implements DietContentService {
                         .id(diet.getDietFood().getId())
                         .name(diet.getDietFood().getName())
                         .type(diet.getDietFood().getDietFoodType())
+                        .nameEn(diet.getDietFood().getNameEn())
                         .build();
 
                 return DietDTO.builder()

@@ -73,7 +73,7 @@ public class DietFoodReviewController implements DietFoodReviewControllerDocs {
      * @param pageNo (int)
      * @return Page<ReviewDTO>
      */
-    @GetMapping("/all/{dietFoodId}/paged")
+    @GetMapping("/all/paged/{dietFoodId}")
     public Page<ReviewDTO> getPagedDietFoodReviews(@PathVariable("dietFoodId") Long dietFoodId,
                                                     @RequestParam(required = false, defaultValue = "0", value = "pageNo") int pageNo) {
         try {

@@ -1,6 +1,7 @@
 package com.kyonggi.diet.member;
 
 import com.kyonggi.diet.review.domain.DietFoodReview;
+import com.kyonggi.diet.review.domain.KyongsulFoodReview;
 import com.kyonggi.diet.review.domain.RestaurantReview;
 import com.kyonggi.diet.review.favoriteReview.domain.FavoriteDietFoodReview;
 import com.kyonggi.diet.review.favoriteReview.domain.FavoriteRestaurantReview;
@@ -46,6 +47,9 @@ public class MemberEntity {
 
     @OneToMany(mappedBy = "member")
     private List<DietFoodReview> dietFoodReviews;
+
+    @OneToMany(mappedBy = "member")
+    private List<KyongsulFoodReview> kyongsulFoodReviews;
 
     @OneToMany(mappedBy = "member")
     private List<FavoriteDietFoodReview> favoriteDietFoodReviews;

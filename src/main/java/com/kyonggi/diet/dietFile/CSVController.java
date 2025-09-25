@@ -22,4 +22,12 @@ public class CSVController implements CSVControllerDocs {
             return;
         csvReader.readAndSave(keyDTO.getKey());
     }
+
+    @PostMapping("/kyongsul")
+    public void readKyongsul(@RequestBody KeyDTO keyDTO) throws CsvValidationException, IOException {
+        if(keyDTO.getKey() == null)
+            return;
+        csvReader.readerKyongsulExcelFile(keyDTO.getKey());
+    }
+
 }

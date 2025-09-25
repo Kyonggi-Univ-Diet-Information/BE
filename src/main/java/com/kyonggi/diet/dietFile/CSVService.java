@@ -153,32 +153,32 @@ public class CSVService {
         for (Row row : sheet) {
             if (row.getRowNum() == 0) continue;
 
-            parseAndSave(row, 0, 1, SubRestaurant.MANKWON);
-            parseAndSave(row, 2, 3, SubRestaurant.SYONG);
-            parseAndSave(row, 4, 5, SubRestaurant.BURGER_TACO);
-            parseAndSave(row, 6, 7, SubRestaurant.WIDELGA);
-            parseAndSave(row, 8, 9, SubRestaurant.SINMEOI);
+            parseAndSave(row, 0, 1, 2, SubRestaurant.MANKWON);
+            parseAndSave(row, 3, 4, 5, SubRestaurant.SYONG);
+            parseAndSave(row, 6, 7, 8, SubRestaurant.BURGER_TACO);
+            parseAndSave(row, 9, 10,11, SubRestaurant.WIDELGA);
+            parseAndSave(row, 12, 13,14, SubRestaurant.SINMEOI);
         }
     }
 
-    private void parseAndSave(Row row, int nameCol, int priceCol, SubRestaurant subRestaurant) {
+    private void parseAndSave(Row row, int nameCol, int priceCol, int englishNameCol,SubRestaurant subRestaurant) {
         Cell nameCell = row.getCell(nameCol);
         Cell priceCell = row.getCell(priceCol);
+        Cell englishNameCell = row.getCell(englishNameCol);
 
         if (nameCell == null || priceCell == null) return;
         if (nameCell.getCellType() == CellType.BLANK) return;
 
         String name = nameCell.getStringCellValue();
         Long price = parsePrice(priceCell);
+        String englishName = englishNameCell.getStringCellValue();
 
         Optional<KyongsulFood> exist = kyongsulFoodRepository.findByNameAndSubRestaurant(name, subRestaurant);
         if (exist.isPresent()) return;
 
-        String nameEn = translationService.translateToEnglish(name);
-
         KyongsulFood food = KyongsulFood.builder()
                 .name(name)
-                .nameEn(nameEn)
+                .nameEn(englishName)
                 .price(price)
                 .subRestaurant(subRestaurant)
                 .build();

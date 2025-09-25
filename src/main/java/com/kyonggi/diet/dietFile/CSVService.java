@@ -9,16 +9,20 @@ import com.kyonggi.diet.dietContent.service.DietContentService;
 import com.kyonggi.diet.dietFood.DietFood;
 import com.kyonggi.diet.dietFood.DietFoodDTO;
 import com.kyonggi.diet.dietFood.service.DietFoodService;
+import com.kyonggi.diet.kyongsul.KyongsulFood;
+import com.kyonggi.diet.kyongsul.KyongsulFoodRepository;
+import com.kyonggi.diet.kyongsul.SubRestaurant;
 import com.kyonggi.diet.translation.service.TranslationService;
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvValidationException;
 import lombok.RequiredArgsConstructor;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,11 +34,16 @@ import java.util.StringTokenizer;
 @RequiredArgsConstructor
 public class CSVService {
 
-    @Value("${cloud.aws.s3.bucketName}")
+    @Value("${cloud.aws.s3.bucketName.diet}")
     private String bucketName;
+
+    @Value("${cloud.aws.s3.bucketName.kyongsul}")
+    private String bucketNameKyongsul;
+
     private final AmazonS3 amazonS3;
     private final DietContentService dietContentService;
     private final DietFoodService dietFoodService;
+    private final KyongsulFoodRepository kyongsulFoodRepository;
     private final TranslationService translationService;
 
     @Transactional
@@ -132,4 +141,58 @@ public class CSVService {
         };
     }
 
+    @Transactional
+    public void readerKyongsulExcelFile(String key) throws IOException {
+
+        S3Object s3Object = amazonS3.getObject(bucketNameKyongsul, key);
+        InputStream inputStream = s3Object.getObjectContent();
+
+        Workbook workbook = new XSSFWorkbook(inputStream);
+        Sheet sheet = workbook.getSheetAt(0);
+
+        for (Row row : sheet) {
+            if (row.getRowNum() == 0) continue;
+
+            parseAndSave(row, 0, 1, SubRestaurant.MANKWON);
+            parseAndSave(row, 2, 3, SubRestaurant.SYONG);
+            parseAndSave(row, 4, 5, SubRestaurant.BURGER_TACO);
+            parseAndSave(row, 6, 7, SubRestaurant.WIDELGA);
+            parseAndSave(row, 8, 9, SubRestaurant.SINMEOI);
+        }
+    }
+
+    private void parseAndSave(Row row, int nameCol, int priceCol, SubRestaurant subRestaurant) {
+        Cell nameCell = row.getCell(nameCol);
+        Cell priceCell = row.getCell(priceCol);
+
+        if (nameCell == null || priceCell == null) return;
+        if (nameCell.getCellType() == CellType.BLANK) return;
+
+        String name = nameCell.getStringCellValue();
+        Long price = parsePrice(priceCell);
+
+        Optional<KyongsulFood> exist = kyongsulFoodRepository.findByNameAndSubRestaurant(name, subRestaurant);
+        if (exist.isPresent()) return;
+
+        String nameEn = translationService.translateToEnglish(name);
+
+        KyongsulFood food = KyongsulFood.builder()
+                .name(name)
+                .nameEn(nameEn)
+                .price(price)
+                .subRestaurant(subRestaurant)
+                .build();
+
+        kyongsulFoodRepository.save(food);
+    }
+
+    private Long parsePrice(Cell cell) {
+        if (cell.getCellType() == CellType.NUMERIC) {
+            return (long)cell.getNumericCellValue();
+        } else if (cell.getCellType() == CellType.STRING) {
+            String raw = cell.getStringCellValue().replace("[^0-9]", "");
+            if (!raw.isEmpty()) return Long.parseLong(raw);
+        }
+        return 0L;
+    }
 }

@@ -39,7 +39,9 @@ jwt:
 cloud:
   aws:
     s3:
-      bucketName: ${BUCKET_NAME}
+      bucketName:
+        diet: ${BUCKET_NAME}
+        kyongsul: ${KYONGSUL_BUCKET_NAME}
     credentials:
       accessKey: ${ACCESS_KEY}
       secretKey: ${SECRET_KEY}

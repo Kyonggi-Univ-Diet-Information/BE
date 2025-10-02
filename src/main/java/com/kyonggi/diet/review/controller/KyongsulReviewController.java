@@ -3,6 +3,7 @@ package com.kyonggi.diet.review.controller;
 import com.kyonggi.diet.auth.util.JwtTokenUtil;
 import com.kyonggi.diet.controllerDocs.KyongsulReviewControllerDocs;
 import com.kyonggi.diet.review.DTO.CreateReviewDTO;
+import com.kyonggi.diet.review.DTO.RatingCountResponse;
 import com.kyonggi.diet.review.DTO.ReviewDTO;
 import com.kyonggi.diet.review.service.KyongsulFoodReviewService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -12,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
 import java.util.NoSuchElementException;
 
 @RestController
@@ -144,5 +146,16 @@ public class KyongsulReviewController implements KyongsulReviewControllerDocs {
     @GetMapping("/average-rating/{kyongsulFoodId}")
     public Double getAverageRatingByKyongsulFoodId(@PathVariable("kyongsulFoodId") Long kyongsulFoodId) {
         return kyongsulFoodReviewService.getAverageRatingForReview(kyongsulFoodId);
+    }
+
+    /**
+     * 특정 음식에 대한 평점별 리뷰 개수 (1~5까지, 없는 평점은 0)
+     * @param kyongsulFoodId (Long)
+     */
+    @GetMapping("/rating-count/{kyongsulFoodId}")
+    public ResponseEntity<RatingCountResponse> getRatingCount(@PathVariable("kyongsulFoodId") Long kyongsulFoodId) {
+        Map<Integer, Long> ratingCounts = kyongsulFoodReviewService.getCountEachRating(kyongsulFoodId);
+        RatingCountResponse ratingCountResponse = new RatingCountResponse(ratingCounts);
+        return ResponseEntity.ok(ratingCountResponse);
     }
 }

@@ -21,6 +21,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 
 @Service
@@ -137,6 +140,27 @@ public class KyongsulFoodReviewServiceImpl implements KyongsulFoodReviewService 
         MemberEntity member = memberService.getMemberByEmail(email);
         KyongsulFoodReview review = findOne(reviewId);
         return member.getId().equals(review.getMember().getId());
+    }
+
+    /**
+     * 해당 음식에 대한 각 리뷰 rating 카운팅 개수 리턴  메서드
+     * @param foodId (Long)
+     * @return Map<Integer, Long>
+     */
+    @Override
+    public Map<Integer, Long> getCountEachRating(Long foodId) {
+        List<Object[]> results = kyongsulFoodReviewRepository.findRatingCountByKyongsulFoodId(foodId);
+
+        Map<Integer, Long> ratingCountMap = new HashMap<>();
+        for  (int i = 1; i <= 5; i++) {
+            ratingCountMap.put(i, 0L);
+        }
+        for (Object[] result : results) {
+            Double rating = (Double) result[0];
+            Long count = (Long) result[1];
+            ratingCountMap.put(rating.intValue(), count);
+        }
+        return ratingCountMap;
     }
 
     /**

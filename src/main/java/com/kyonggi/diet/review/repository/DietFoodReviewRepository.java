@@ -21,4 +21,7 @@ public interface DietFoodReviewRepository extends JpaRepository<DietFoodReview, 
 
     @Query("select r from DietFoodReview r where r.dietFood.id = :dietFoodId")
     Page<DietFoodReview> findAllByDietFoodId(Long dietFoodId, Pageable pageable);
+
+    @Query("select r.rating, count(r) from DietFoodReview r where r.dietFood.id = :id group by r.rating")
+    List<Object[]> findRatingCountByDietFoodId(@Param("id") Long id);
 }

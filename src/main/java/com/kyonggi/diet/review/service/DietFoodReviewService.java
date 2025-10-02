@@ -11,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 
 public interface DietFoodReviewService {
@@ -56,11 +57,18 @@ public interface DietFoodReviewService {
     public List<ReviewDTO> findAllReview();
 
     /**
-     * 페이징된 ReivewDTO 조회
+     * 페이징된 ReviewDTO 조회
      * @param pageNo (int)
      * @return Page<ReviewDTO>
      */
     public Page<ReviewDTO> getAllReviewsByFoodIdPaged(Long foodId, int pageNo);
+
+    /**
+     * 해당 음식에 대한 각 리뷰 rating 카운팅 개수 리턴  메서드
+     * @param foodId (Long)
+     * @return Map<Integer, Long>
+     */
+    public Map<Integer, Long> getCountEachRating(Long foodId);
 
     /**
      * 음식 리뷰 수정 메서드

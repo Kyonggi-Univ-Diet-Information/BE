@@ -25,9 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Transactional(readOnly = true)
@@ -134,6 +132,29 @@ public class DietFoodReviewServiceImpl implements DietFoodReviewService {
             throw new EntityNotFoundException("Can't find Paged DietFood reviews");
         }
         return  all.map(this::mapToReviewDTO);
+    }
+
+    /**
+     * 해당 음식에 대한 각 리뷰 rating 카운팅 개수 리턴  메서드
+     * @param foodId (Long)
+     * @return Map<Integer, Long>
+     */
+    @Override
+    public Map<Integer, Long> getCountEachRating(Long foodId) {
+        List<Object[]> results = dietFoodReviewRepository.findRatingCountByDietFoodId(foodId);
+
+        Map<Integer, Long> ratingCountMap = new HashMap<>();
+        for (int i = 1; i <= 5; i++) {
+            ratingCountMap.put(i, 0L);
+        }
+
+        for (Object[] result : results) {
+            Double rating = (Double) result[0];
+            Long count = (Long) result[1];
+            ratingCountMap.put(rating.intValue(), count);
+        }
+
+        return ratingCountMap;
     }
 
     /**

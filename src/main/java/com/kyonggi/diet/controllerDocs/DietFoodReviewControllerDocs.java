@@ -2,6 +2,7 @@ package com.kyonggi.diet.controllerDocs;
 
 import com.kyonggi.diet.restaurant.RestaurantType;
 import com.kyonggi.diet.review.DTO.CreateReviewDTO;
+import com.kyonggi.diet.review.DTO.RatingCountResponse;
 import com.kyonggi.diet.review.DTO.ReviewDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -56,4 +57,12 @@ public interface DietFoodReviewControllerDocs {
     @Parameter(name = "pageNo", description = "페이지 번호 (default: 0) index 0이 1페이지이므로 주의. ")
     public Page<ReviewDTO> getPagedDietFoodReviews(@PathVariable("dietFoodId") Long dietFoodId,
                                                     @RequestParam(required = false, defaultValue = "0", value = "pageNo") int pageNo);
+
+    @Operation(
+            summary = "일반 음식 평점별 리뷰 개수 조회",
+            description = "dietFoodId를 기준으로 1~5점 평점별 리뷰 개수를 반환합니다. 평점이 없는 경우 0으로 채워집니다."
+    )
+    @Parameter(name = "dietFoodId", description = "일반 음식 ID")
+    @GetMapping("/rating-count/{dietFoodId}")
+    ResponseEntity<RatingCountResponse> getRatingCount(@PathVariable("dietFoodId") Long dietFoodId);
 }

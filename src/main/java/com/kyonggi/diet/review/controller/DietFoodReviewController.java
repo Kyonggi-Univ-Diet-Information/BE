@@ -6,6 +6,7 @@ import com.kyonggi.diet.member.service.CustomMembersDetailService;
 import com.kyonggi.diet.member.service.MemberService;
 import com.kyonggi.diet.restaurant.RestaurantType;
 import com.kyonggi.diet.review.DTO.CreateReviewDTO;
+import com.kyonggi.diet.review.DTO.RatingCountResponse;
 import com.kyonggi.diet.review.DTO.ReviewDTO;
 import com.kyonggi.diet.review.service.DietFoodReviewService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 
 @RestController
@@ -195,5 +197,16 @@ public class DietFoodReviewController implements DietFoodReviewControllerDocs {
                                  .body("No ratings available for the given diet food ID.");
         }
         return ResponseEntity.ok(averageRating);
+    }
+
+    /**
+     * 특정 음식에 대한 평점별 리뷰 개수 (1~5까지, 없는 평점은 0)
+     * @param dietFoodId (Long)
+     */
+    @GetMapping("/rating-count/{dietFoodId}")
+    public ResponseEntity<RatingCountResponse> getRatingCount(@PathVariable("dietFoodId") Long dietFoodId) {
+        Map<Integer, Long> ratingCounts = dietFoodReviewService.getCountEachRating(dietFoodId);
+        RatingCountResponse ratingCountResponse = new RatingCountResponse(ratingCounts);
+        return ResponseEntity.ok(ratingCountResponse);
     }
 }

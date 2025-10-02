@@ -4,6 +4,8 @@ import com.kyonggi.diet.review.DTO.CreateReviewDTO;
 import com.kyonggi.diet.review.DTO.ReviewDTO;
 import org.springframework.data.domain.Page;
 
+import java.util.Map;
+
 public interface KyongsulFoodReviewService {
 
     /**
@@ -55,4 +57,11 @@ public interface KyongsulFoodReviewService {
      * @return boolean
      */
     boolean verifyMember(Long reviewId, String email);
+
+    /**
+     * 해당 음식에 대한 각 리뷰 rating 카운팅 개수 리턴  메서드
+     * @param foodId (Long)
+     * @return Map<Integer, Long>
+     */
+    Map<Integer, Long> getCountEachRating(Long foodId);
 }

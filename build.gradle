@@ -58,7 +58,7 @@ dependencies {
     implementation 'org.apache.poi:poi:5.2.3'
     implementation 'org.apache.poi:poi-ooxml:5.2.3'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
-    testImplementation 'com.h2database:h2'
+    runtimeOnly 'com.h2database:h2'
 }
 
 tasks.named('test') {

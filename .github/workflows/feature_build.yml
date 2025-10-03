@@ -6,12 +6,12 @@ on:
     branches:
       - 'develop'
       - 'hotfix'
-      - 'feat/*'
+      - 'feat/**'
   pull_request:
     branches:
       - 'develop'
       - 'hotfix'
-      - 'feat/*'
+      - 'feat/**'
 
 jobs:
   build:

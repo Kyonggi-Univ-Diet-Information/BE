@@ -64,3 +64,12 @@ springdoc:
 openai:
   api-key: ${OPENAI_API_KEY}
   base-url: https://api.openai.com/v1
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+  endpoint:
+    health:
+      show-details: always

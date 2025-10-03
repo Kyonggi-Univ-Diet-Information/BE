@@ -1,0 +1,17 @@
+version: '3.9'
+services:
+  postgres:
+    image: postgres:15
+    container_name: local-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USERNAME_KIRYONG}
+      POSTGRES_PASSWORD: ${DB_PASSWORD_KIRYONG}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data  # 여기서 참조하는 볼륨 이름
+
+volumes:
+  postgres_data: {}  # 👈 루트에 반드시 정의

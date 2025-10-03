@@ -41,9 +41,12 @@ jobs:
       - name: Run Spring Boot app
         run: nohup java -jar build/libs/*.jar --spring.profiles.active=test > app.log 2>&1 &
 
+      - run: sleep 10
+      - run: cat app.log
       # 6. 로그 확인 (디버깅용)
       - name: Tail logs
         run: tail -n 100 app.log || true
+
 
       # 7. Smoke Test (Actuator health)
       - name: Wait for server and run actuator healthcheck
@@ -58,5 +61,3 @@ jobs:
           done
           echo "❌ Server failed to start in time"
           exit 1
-
-      - run: cat app.log

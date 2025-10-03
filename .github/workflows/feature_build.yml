@@ -35,7 +35,10 @@ jobs:
 
       # 빌드된 JAR 실행
       - name: Run Spring Boot app
-        run: nohup java -jar build/libs/*.jar &
+        run: nohup java -jar build/libs/*.jar --spring.profiles.active=ci > app.log 2>&1 &
+
+      - name: Tail Spring Boot logs
+        run: tail -n 100 -f app.log &
 
       # Smoke Test (Actuator 헬스체크)
       - name: Wait for server and run actuator healthcheck

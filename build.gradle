@@ -1,76 +1,78 @@
 plugins {
-	id 'java'
-	id 'org.springframework.boot' version '3.3.2'
-	id 'io.spring.dependency-management' version '1.1.6'
+    id 'java'
+    id 'org.springframework.boot' version '3.3.2'
+    id 'io.spring.dependency-management' version '1.1.6'
 }
 
 group = 'com.kyonggi'
 version = '0.0.1-SNAPSHOT'
 
 java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(17)
-	}
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
 }
 
 configurations {
-	compileOnly {
-		extendsFrom annotationProcessor
-	}
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+    developmentOnly   // devtools 전용 구성
+    runtimeClasspath {
+        extendsFrom developmentOnly
+    }
 }
 
 repositories {
-	mavenCentral()
+    mavenCentral()
 }
 
 dependencies {
-	implementation 'com.google.code.gson:gson:2.8.9'
-	implementation "org.springframework.security:spring-security-web"
-	implementation "org.springframework.security:spring-security-config"
-	implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
-	implementation 'io.jsonwebtoken:jjwt-impl:0.11.5'
-	implementation 'io.jsonwebtoken:jjwt-jackson:0.11.5'
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
-	implementation 'org.springframework.boot:spring-boot-starter-web'
-	implementation 'org.modelmapper:modelmapper:3.1.0'
-	compileOnly 'org.projectlombok:lombok'
+    implementation 'com.google.code.gson:gson:2.8.9'
+    implementation "org.springframework.security:spring-security-web"
+    implementation "org.springframework.security:spring-security-config"
+    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+    implementation 'io.jsonwebtoken:jjwt-impl:0.11.5'
+    implementation 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
 
-    // ✅ devtools는 developmentOnly로 변경 (CI에서는 제외됨)
+    // devtools는 developmentOnly로 변경 (CI에서는 제외됨)
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
+    implementation 'org.modelmapper:modelmapper:3.1.0'
+    compileOnly 'org.projectlombok:lombok'
+
     runtimeOnly 'org.postgresql:postgresql'
-    runtimeOnly 'com.h2database:h2'
+    runtimeOnly 'com.h2database:h2'   // CI/H2 실행용
 
-	annotationProcessor 'org.projectlombok:lombok'
-	implementation 'org.springframework.boot:spring-boot-starter-validation'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    annotationProcessor 'org.projectlombok:lombok'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0' //swagger
-	implementation 'com.opencsv:opencsv:5.9'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
+    implementation 'com.opencsv:opencsv:5.9'
 
-	implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
-	implementation 'me.paulschwarz:spring-dotenv:4.0.0'
+    implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
+    implementation 'me.paulschwarz:spring-dotenv:4.0.0'
+    implementation 'io.github.cdimascio:dotenv-java:2.2.4'
 
-	implementation 'io.github.cdimascio:dotenv-java:2.2.4'  // ✅ 추가
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation 'org.postgresql:postgresql:42.7.3'   // ✅ PostgreSQL JDBC Driver 추가
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
-
     implementation 'org.apache.poi:poi:5.2.3'
     implementation 'org.apache.poi:poi-ooxml:5.2.3'
-
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
 }
 
 tasks.named('test') {
-	useJUnitPlatform()
+    useJUnitPlatform()
 }
 
 bootBuildImage {
-	imageName = 'build/myapp'
+    imageName = 'build/myapp'
 }
 
 jar {
-	enabled = false
+    enabled = false
 }

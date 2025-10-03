@@ -35,7 +35,7 @@ public class WebSecurityConfig {
                                 "/api/review/kyongsul-food/one/*", "/api/review/kyongsul-food/paged/*",
                                 "/api/review/kyongsul-food/average-rating/*", "/api/review/favorite/kyongsul-food/*",
                                 "/api/review/favorite/kyongsul-food/count/*", "/api/review/diet-food/rating-count/*",
-                                "/api/review/kyongsul-food/rating-count/*").permitAll().anyRequest().authenticated())
+                                "/api/review/kyongsul-food/rating-count/*", "/actuator/health").permitAll().anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class)
                 .httpBasic(Customizer.withDefaults())

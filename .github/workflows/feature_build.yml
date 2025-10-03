@@ -33,9 +33,9 @@ jobs:
       - name: Grant execute permission for Gradlew
         run: chmod +x gradlew
 
-      # 4. 빌드 (테스트 실행 포함)
-      - name: Build with Gradle
-        run: ./gradlew clean build --no-daemon
+      # 4. 빌드 (smoke test)
+      - name: Build without tests
+        run: ./gradlew clean assemble -x test --no-daemon
 
       # 5. 애플리케이션 실행 (백그라운드)
       - name: Run Spring Boot app

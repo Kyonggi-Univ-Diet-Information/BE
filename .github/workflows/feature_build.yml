@@ -12,7 +12,7 @@ on:
       - 'develop'
       - 'hotfix'
       - 'feat/**'
-      -
+
 jobs:
   build:
     runs-on: ubuntu-latest

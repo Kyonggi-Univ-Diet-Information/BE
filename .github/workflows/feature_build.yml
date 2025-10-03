@@ -1,0 +1,48 @@
+# .github/workflows/build.yml
+name: Build Test
+
+on:
+  push:
+    branches:
+      - 'develop'
+      - 'hotfix'
+      - 'feat/**'
+  pull_request:
+    branches:
+      - 'develop'
+      - 'hotfix'
+      - 'feat/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Grant execute permission for Gradlew
+        run: chmod +x gradlew
+
+      # 1. 빌드 & 패키징
+      - name: Build jar
+        run: ./gradlew clean build -x test --no-daemon
+
+      # 2. 애플리케이션 실행 (백그라운드)
+      - name: Run application
+        run: nohup java -jar build/libs/*.jar &
+
+      # 3. 서버 기동 대기
+      - name: Wait for server
+        run: sleep 20
+
+      # 4. 헬스체크 (Actuator 사용 권장)
+      - name: Smoke test
+        run: curl -f http://localhost:8080/health
+

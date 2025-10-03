@@ -39,8 +39,18 @@ jobs:
         run: nohup java -jar build/libs/*.jar &
 
       # 3. 서버 기동 대기
-      - name: Wait for server
-        run: sleep 20
+      - name: Wait for server (with custom healthcheck)
+        run: |
+          for i in {1..30}; do
+            if curl -s http://localhost:8080/health > /dev/null; then
+              echo "✅ Server is up!"
+              exit 0
+            fi
+            echo "⏳ Waiting for server..."
+            sleep 5
+          done
+          echo "❌ Server failed to start"
+          exit 1
 
       # 4. 헬스체크 (Actuator 사용 권장)
       - name: Smoke test

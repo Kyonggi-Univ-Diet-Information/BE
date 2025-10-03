@@ -58,3 +58,5 @@ jobs:
           done
           echo "❌ Server failed to start in time"
           exit 1
+
+      - run: cat app.log

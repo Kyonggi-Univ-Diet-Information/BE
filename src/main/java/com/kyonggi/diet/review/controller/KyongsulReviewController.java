@@ -7,8 +7,11 @@ import com.kyonggi.diet.review.DTO.RatingCountResponse;
 import com.kyonggi.diet.review.DTO.ReviewDTO;
 import com.kyonggi.diet.review.service.KyongsulFoodReviewService;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -77,7 +80,7 @@ public class KyongsulReviewController implements KyongsulReviewControllerDocs {
         try {
             return ResponseEntity.ok(kyongsulFoodReviewService.findReviewDTOById(reviewId));
         } catch (NoSuchElementException e) {
-            return  ResponseEntity.status(HttpStatus.NOT_FOUND).body("해당 id에 대한 리뷰 없음");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("해당 id에 대한 리뷰 없음");
         }
     }
 
@@ -91,8 +94,8 @@ public class KyongsulReviewController implements KyongsulReviewControllerDocs {
                                      @RequestParam(required = false, defaultValue = "0", value = "pageNo") int pageNo) {
         try {
             return ResponseEntity.ok(kyongsulFoodReviewService.getAllReviewsByFoodIdPaged(foodId, pageNo));
-        } catch (NoSuchElementException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("해당 음식 id에 대한 리뷰들 없음");
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.ok(null);
         }
     }
 

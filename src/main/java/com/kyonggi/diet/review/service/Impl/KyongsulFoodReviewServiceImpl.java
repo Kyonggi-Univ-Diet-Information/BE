@@ -110,7 +110,7 @@ public class KyongsulFoodReviewServiceImpl implements KyongsulFoodReviewService 
         Pageable pageable = PageRequest.of(pageNo, 10, Sort.by(Sort.Direction.DESC, "id"));
         Page<KyongsulFoodReview> all = kyongsulFoodReviewRepository.findAllByKyongsulFoodId(foodId, pageable);
         if (all.isEmpty()) {
-            throw new EntityNotFoundException("Can't find Paged DietFood reviews");
+            throw new EntityNotFoundException("Can't find Paged Kyongsul Food reviews");
         }
         return  all.map(this::mapToReviewDTO);
     }

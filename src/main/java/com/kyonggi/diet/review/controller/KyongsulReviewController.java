@@ -90,12 +90,12 @@ public class KyongsulReviewController implements KyongsulReviewControllerDocs {
      * @param pageNo (int)
      */
     @GetMapping("/paged/{foodId}")
-    public ResponseEntity<?> getPage(@PathVariable("foodId") Long foodId,
+    public Page<ReviewDTO> getPage(@PathVariable("foodId") Long foodId,
                                      @RequestParam(required = false, defaultValue = "0", value = "pageNo") int pageNo) {
         try {
-            return ResponseEntity.ok(kyongsulFoodReviewService.getAllReviewsByFoodIdPaged(foodId, pageNo));
+            return kyongsulFoodReviewService.getAllReviewsByFoodIdPaged(foodId, pageNo);
         } catch (EntityNotFoundException e) {
-            return ResponseEntity.ok(null);
+            return null;
         }
     }
 

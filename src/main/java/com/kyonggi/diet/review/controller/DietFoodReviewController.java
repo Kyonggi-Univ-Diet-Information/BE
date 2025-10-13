@@ -3,8 +3,6 @@ package com.kyonggi.diet.review.controller;
 import com.kyonggi.diet.auth.util.JwtTokenUtil;
 import com.kyonggi.diet.controllerDocs.DietFoodReviewControllerDocs;
 import com.kyonggi.diet.member.service.CustomMembersDetailService;
-import com.kyonggi.diet.member.service.MemberService;
-import com.kyonggi.diet.restaurant.RestaurantType;
 import com.kyonggi.diet.review.DTO.CreateReviewDTO;
 import com.kyonggi.diet.review.DTO.RatingCountResponse;
 import com.kyonggi.diet.review.DTO.ReviewDTO;
@@ -14,12 +12,8 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -76,12 +70,15 @@ public class DietFoodReviewController implements DietFoodReviewControllerDocs {
      * @return Page<ReviewDTO>
      */
     @GetMapping("/all/paged/{dietFoodId}")
-    public Page<ReviewDTO> getPagedDietFoodReviews(@PathVariable("dietFoodId") Long dietFoodId,
+    public ResponseEntity<?> getPagedDietFoodReviews(@PathVariable("dietFoodId") Long dietFoodId,
                                                     @RequestParam(required = false, defaultValue = "0", value = "pageNo") int pageNo) {
         try {
-            return dietFoodReviewService.getAllReviewsByFoodIdPaged(dietFoodId, pageNo);
+            Page<ReviewDTO> reviewDTOS = dietFoodReviewService.getAllReviewsByFoodIdPaged(dietFoodId, pageNo);
+            if (reviewDTOS.getContent().isEmpty())
+                return ResponseEntity.ok(Page.empty().getContent());
+            return ResponseEntity.ok(dietFoodReviewService.getAllReviewsByFoodIdPaged(dietFoodId, pageNo));
         } catch (EntityNotFoundException e) {
-            return null;
+            return ResponseEntity.ok(Page.empty().getContent());
         }
     }
 

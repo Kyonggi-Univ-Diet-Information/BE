@@ -48,7 +48,7 @@ public interface KyongsulReviewControllerDocs {
         summary = "경슐랭 음식 리뷰 페이징 조회",
         description = "특정 음식에 대한 리뷰들을 페이징 처리하여 조회합니다. 기본 페이지 번호는 0입니다."
     )
-    Page<ReviewDTO> getPage(
+    ResponseEntity<?> getPage(
         @Parameter(description = "리뷰를 조회할 음식 ID", example = "1")
         @PathVariable("foodId") Long foodId,
 

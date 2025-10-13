@@ -9,9 +9,9 @@ spring:
     # driver-class-name: org.postgresql.Driver   # (선택) 명시하고 싶으면 이렇게
 
   #datasource:
-   # url: jdbc:postgresql://localhost:5432/postgres
-   # username: postgres
-   # password: 5432
+    #url: jdbc:postgresql://localhost:5432/postgres
+    #username: postgres
+    #password: 5432
 
   jpa:
     hibernate:

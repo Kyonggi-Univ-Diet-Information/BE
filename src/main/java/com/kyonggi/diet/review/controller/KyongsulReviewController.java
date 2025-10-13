@@ -12,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -94,11 +96,15 @@ public class KyongsulReviewController implements KyongsulReviewControllerDocs {
                                      @RequestParam(required = false, defaultValue = "0", value = "pageNo") int pageNo) {
         try {
             Page<ReviewDTO> reviewDTOS = kyongsulFoodReviewService.getAllReviewsByFoodIdPaged(foodId, pageNo);
-            if (reviewDTOS.getContent().isEmpty())
-                return ResponseEntity.ok(Page.empty().getContent());
-            return ResponseEntity.ok(kyongsulFoodReviewService.getAllReviewsByFoodIdPaged(foodId, pageNo));
+            if (reviewDTOS.isEmpty()) {
+                Pageable pageable = PageRequest.of(pageNo, 10);
+                return ResponseEntity.ok(Page.empty(pageable));
+            }
+
+            return ResponseEntity.ok(reviewDTOS);
         } catch (EntityNotFoundException e) {
-            return ResponseEntity.ok(Page.empty().getContent());
+            Pageable pageable = PageRequest.of(pageNo, 10);
+            return ResponseEntity.ok(Page.empty(pageable));
         }
     }
 

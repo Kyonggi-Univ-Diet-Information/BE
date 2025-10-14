@@ -3,6 +3,7 @@ package com.kyonggi.diet.dietFood.service;
 import com.kyonggi.diet.dietFood.DietFood;
 import com.kyonggi.diet.dietFood.DietFoodDTO;
 import com.kyonggi.diet.dietFood.DietFoodType;
+import com.kyonggi.diet.review.DTO.FoodNamesDTO;
 
 import java.util.List;
 
@@ -70,4 +71,9 @@ public interface DietFoodService {
      * @return Boolean
      */
     boolean checkExistByName(String name);
+
+    /**
+     * 음식 id로 음식 이름 반환
+     */
+    FoodNamesDTO findNamesByFoodId(Long foodId);
 }

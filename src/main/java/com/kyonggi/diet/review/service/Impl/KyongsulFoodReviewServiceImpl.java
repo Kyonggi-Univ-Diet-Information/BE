@@ -164,6 +164,19 @@ public class KyongsulFoodReviewServiceImpl implements KyongsulFoodReviewService 
     }
 
     /**
+     * 경슐랭 음식 각 음식에 대한 리뷰 카운팅
+     * @param id (Long)
+     */
+    @Override
+    public int findKyongsulFoodReviewCount(Long id) {
+        try {
+            return kyongsulFoodReviewRepository.getKyongsulReviewCount(id);
+        }  catch (NullPointerException e) {
+            return 0;
+        }
+    }
+
+    /**
      * 경슐랭 음식 엔티티 조회
      * @param reviewId (Long)
      * @return kyongsulFoodReview

@@ -64,4 +64,10 @@ public interface KyongsulFoodReviewService {
      * @return Map<Integer, Long>
      */
     Map<Integer, Long> getCountEachRating(Long foodId);
+
+    /**
+     * 경슐랭 음식 각 음식에 대한 리뷰 카운팅
+     * @param id (Long)
+     */
+    int findKyongsulFoodReviewCount(Long id);
 }

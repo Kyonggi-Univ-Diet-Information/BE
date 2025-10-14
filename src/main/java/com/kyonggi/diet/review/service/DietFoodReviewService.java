@@ -107,4 +107,10 @@ public interface DietFoodReviewService {
      * @return Double
      */
     Double findAverageRatingByDietFoodId(Long dietFoodId);
+
+    /**
+     * 기숙사 음식 각 음식에 대한 리뷰 카운팅
+     * @param id (Long)
+     */
+    int findDietFoodReviewCount(Long id);
 }

@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface KyongsulFoodReviewRepository extends JpaRepository<KyongsulFoodReview, Long> {
     @Query("select avg(r.rating) from KyongsulFoodReview r where r.kyongsulFood.id = :id")
@@ -19,4 +20,10 @@ public interface KyongsulFoodReviewRepository extends JpaRepository<KyongsulFood
 
     @Query("select r.rating, count(r) from KyongsulFoodReview r where r.kyongsulFood.id = :id group by r.rating")
     List<Object[]> findRatingCountByKyongsulFoodId(@Param("id") Long id);
+
+    @Query("select count(r) from KyongsulFoodReview r where r.kyongsulFood.id = :id")
+    int getKyongsulReviewCount(@Param("id") Long id);
+
+    @Query("select r.kyongsulFood.id, r.kyongsulFood.name, r.kyongsulFood.nameEn from KyongsulFoodReview r where r.kyongsulFood.id = :id")
+    Optional<Object[]> findNameByKyongsulFoodId(@Param("id") Long id);
 }

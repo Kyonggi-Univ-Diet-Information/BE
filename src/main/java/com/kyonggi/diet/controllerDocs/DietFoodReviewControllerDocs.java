@@ -65,4 +65,15 @@ public interface DietFoodReviewControllerDocs {
     @Parameter(name = "dietFoodId", description = "일반 음식 ID")
     @GetMapping("/rating-count/{dietFoodId}")
     ResponseEntity<RatingCountResponse> getRatingCount(@PathVariable("dietFoodId") Long dietFoodId);
+
+    /**
+     * 기숙사 음식 메뉴에 해당하는 리뷰 카운트 반환
+     */
+    @Operation(
+            summary = "기숙사 음식별 리뷰 개수 조회",
+            description = "기숙사 음식별 리뷰 개수 조회"
+    )
+    @Parameter(name = "foodId", description = "기숙사 음식 ID")
+    @GetMapping("/count/{foodId}")
+    ResponseEntity<?> getDietFoodReviewCount(@PathVariable("foodId") Long dietFoodId);
 }

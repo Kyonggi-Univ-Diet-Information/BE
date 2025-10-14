@@ -8,6 +8,7 @@ import com.kyonggi.diet.member.MemberRepository;
 import com.kyonggi.diet.member.service.MemberService;
 import com.kyonggi.diet.restaurant.Restaurant;
 import com.kyonggi.diet.restaurant.RestaurantType;
+import com.kyonggi.diet.review.DTO.FoodNamesDTO;
 import com.kyonggi.diet.review.DTO.ReviewDTO;
 import com.kyonggi.diet.review.domain.DietFoodReview;
 import com.kyonggi.diet.review.domain.RestaurantReview;
@@ -220,7 +221,19 @@ public class DietFoodReviewServiceImpl implements DietFoodReviewService {
         } catch (NullPointerException e) {
             return null;
         }
+    }
 
+    /**
+     * 기숙사 음식 각 음식에 대한 리뷰 카운팅
+     * @param id (Long)
+     */
+    @Override
+    public int findDietFoodReviewCount(Long id) {
+        try {
+            return dietFoodReviewRepository.getDietFoodReviewCount(id);
+        }  catch (NullPointerException e) {
+            return 0;
+        }
     }
 
     /**

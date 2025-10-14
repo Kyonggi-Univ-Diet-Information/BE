@@ -1,6 +1,7 @@
 package com.kyonggi.diet.kyongsul;
 
 import com.amazonaws.services.kms.model.NotFoundException;
+import com.kyonggi.diet.review.DTO.FoodNamesDTO;
 import com.kyonggi.diet.translation.service.TranslationService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -67,6 +68,15 @@ public class KyongsulFoodService {
         }
         return foods.stream().map(this::mapToKyongsulFoodDTO).collect(Collectors.toList());
     }
+
+    /**
+     * 음식 id로 음식 이름 반환
+     */
+    public FoodNamesDTO findNamesByFoodId(Long foodId) {
+        return kyongsulFoodRepository.findNameByKyongsulFoodId(foodId)
+            .orElseThrow(() -> new NoSuchElementException("음식(id=" + foodId + ")을 찾을 수 없습니다."));
+    }
+
 
     /**
      * KyongsulFood -> KyongsulFoodDTO 변환기

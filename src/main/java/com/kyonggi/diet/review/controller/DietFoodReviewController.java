@@ -212,4 +212,12 @@ public class DietFoodReviewController implements DietFoodReviewControllerDocs {
         RatingCountResponse ratingCountResponse = new RatingCountResponse(ratingCounts);
         return ResponseEntity.ok(ratingCountResponse);
     }
+
+    /**
+     * 기숙사 음식 메뉴에 해당하는 리뷰 카운트 반환
+     */
+    @GetMapping("/count/{foodId}")
+    public ResponseEntity<?> getDietFoodReviewCount(@PathVariable("foodId") Long dietFoodId) {
+        return ResponseEntity.ok(dietFoodReviewService.findDietFoodReviewCount(dietFoodId));
+    }
 }

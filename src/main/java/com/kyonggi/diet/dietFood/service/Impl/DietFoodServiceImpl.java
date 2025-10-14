@@ -5,6 +5,7 @@ import com.kyonggi.diet.dietFood.DietFoodDTO;
 import com.kyonggi.diet.dietFood.DietFoodRepository;
 import com.kyonggi.diet.dietFood.DietFoodType;
 import com.kyonggi.diet.dietFood.service.DietFoodService;
+import com.kyonggi.diet.review.DTO.FoodNamesDTO;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -160,6 +161,15 @@ public class DietFoodServiceImpl implements DietFoodService {
     public boolean checkExistByName(String name) {
         return dietFoodRepository.findDietFoodByName(name) != null;
     }
+
+    /**
+     * 음식 id로 음식 이름 반환(한국어, 영어)
+     */
+    public FoodNamesDTO findNamesByFoodId(Long foodId) {
+        return dietFoodRepository.findNameByDietFoodId(foodId)
+            .orElseThrow(() -> new NoSuchElementException("음식(id=" + foodId + ")을 찾을 수 없습니다."));
+    }
+
 
     /**
      * DietFood-> DietFoodDTO

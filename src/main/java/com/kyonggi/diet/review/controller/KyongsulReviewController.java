@@ -170,4 +170,12 @@ public class KyongsulReviewController implements KyongsulReviewControllerDocs {
         RatingCountResponse ratingCountResponse = new RatingCountResponse(ratingCounts);
         return ResponseEntity.ok(ratingCountResponse);
     }
+
+    /**
+     * 경슐랭 음식 메뉴에 해당하는 리뷰 카운트 반환
+     */
+    @GetMapping("/count/{foodId}")
+    public ResponseEntity<?> getDietFoodReviewCount(@PathVariable("foodId") Long dietFoodId) {
+        return ResponseEntity.ok(kyongsulFoodReviewService.findKyongsulFoodReviewCount(dietFoodId));
+    }
 }

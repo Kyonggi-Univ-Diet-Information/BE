@@ -2,6 +2,7 @@ package com.kyonggi.diet.kyongsul;
 
 import com.amazonaws.services.kms.model.NotFoundException;
 import com.kyonggi.diet.controllerDocs.KyongsulFoodControllerDocs;
+import com.kyonggi.diet.review.DTO.FoodNamesDTO;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -55,6 +56,20 @@ public class KyongsulFoodController implements KyongsulFoodControllerDocs {
             return ResponseEntity.ok(kyongsulFoodService.findBySubRestaurant(subRestaurant));
         } catch (NotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Not Found KyongsulFood By SubRestaurant");
+        }
+    }
+
+    /**
+     * 음식 id로 한국, 영어 이름 구하기
+     * @param id (Long)
+     */
+    @GetMapping("/get-names/{id}")
+    public ResponseEntity<FoodNamesDTO> getNamesByFoodId(@PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(kyongsulFoodService.findNamesByFoodId(id));
+        } catch (NoSuchElementException e) {
+            FoodNamesDTO foodNamesDTO = new FoodNamesDTO();
+            return ResponseEntity.ok(foodNamesDTO);
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.kyonggi.diet.dietFood;
 
+import com.kyonggi.diet.review.DTO.FoodNamesDTO;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,4 +17,7 @@ public interface DietFoodRepository extends JpaRepository<DietFood, Long> {
     public DietFood findDietFoodByName(@Param("name") String name);
 
     Optional<DietFood> findByName(String name);
+
+    @Query("select new com.kyonggi.diet.review.DTO.FoodNamesDTO(d.id, d.name, d.nameEn) from DietFood d where d.id = :id")
+    Optional<FoodNamesDTO> findNameByDietFoodId(@Param("id") Long id);
 }

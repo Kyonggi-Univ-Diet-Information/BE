@@ -1,6 +1,7 @@
 package com.kyonggi.diet.controllerDocs;
 
 import com.kyonggi.diet.review.DTO.CreateReviewDTO;
+import com.kyonggi.diet.review.DTO.FoodNamesDTO;
 import com.kyonggi.diet.review.DTO.RatingCountResponse;
 import com.kyonggi.diet.review.DTO.ReviewDTO;
 import io.swagger.v3.oas.annotations.Operation;
@@ -108,4 +109,15 @@ public interface KyongsulReviewControllerDocs {
     @Parameter(name = "kyongsulFoodId", description = "경술 음식 ID")
     @GetMapping("/rating-count/{kyongsulFoodId}")
     ResponseEntity<RatingCountResponse> getRatingCount(@PathVariable("kyongsulFoodId") Long kyongsulFoodId);
+
+    /**
+     * 경슐랭 음식 메뉴에 해당하는 리뷰 카운트 반환
+     */
+    @Operation(
+            summary = "경슐 음식별 리뷰 개수 조회",
+            description = "경슐 음식별 리뷰 개수 조회"
+    )
+    @Parameter(name = "foodId", description = "경슐 음식 ID")
+    @GetMapping("/count/{foodId}")
+    ResponseEntity<?> getDietFoodReviewCount(@PathVariable("foodId") Long dietFoodId);
 }

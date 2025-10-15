@@ -1,15 +1,17 @@
 package com.kyonggi.diet.member;
 
+import com.kyonggi.diet.auth.util.JwtTokenUtil;
 import com.kyonggi.diet.controllerDocs.MemberControllerDocs;
+import com.kyonggi.diet.member.DTO.MemberDTO;
 import com.kyonggi.diet.member.io.MemberRequest;
 import com.kyonggi.diet.member.io.MemberResponse;
 import com.kyonggi.diet.member.service.MemberService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -27,6 +29,7 @@ import java.util.stream.Collectors;
 public class MemberController implements MemberControllerDocs {
 
     private final MemberService memberService;
+    private final JwtTokenUtil jwtTokenUtil;
     private final ModelMapper modelMapper;
 
     /**
@@ -47,6 +50,16 @@ public class MemberController implements MemberControllerDocs {
         MemberDTO memberDTO = memberService.getMemberById(id);
         log.info("Member = {}", memberDTO);
         return mapToMemberReponse(memberDTO);
+    }
+
+    @GetMapping("/my-page")
+    public ResponseEntity<?> getMyPage(@RequestHeader("Authorization") String token) {
+        if (token == null || !token.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authorization header is missing or malformed");
+        }
+
+        String email = jwtTokenUtil.getUsernameFromToken(token.substring(7));
+        return ResponseEntity.ok(memberService.getMyPage(email));
     }
 
     /**

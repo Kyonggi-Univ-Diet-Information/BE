@@ -1,5 +1,6 @@
 package com.kyonggi.diet.review.service;
 
+import com.kyonggi.diet.member.MemberEntity;
 import com.kyonggi.diet.review.DTO.CreateReviewDTO;
 import com.kyonggi.diet.review.DTO.ForTopReviewDTO;
 import com.kyonggi.diet.review.DTO.ReviewDTO;
@@ -77,4 +78,9 @@ public interface KyongsulFoodReviewService {
      * 경술음식 리뷰 중 최신순 TOP 5 조회
      */
     List<ForTopReviewDTO> find5KyongsulFoodReviewsRecent();
+
+    /**
+     * 멤버별 리뷰들 조회
+     */
+    List<ReviewDTO> findAllByMember(MemberEntity member);
 }

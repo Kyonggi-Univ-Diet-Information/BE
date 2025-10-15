@@ -19,6 +19,7 @@ public class CorsConfig {
         config.setAllowedOriginPatterns(List.of(
                 "http://localhost:5173",
                 "https://kiryong.kr",
+                "http://localhost:3000",
                 "https://www.kiryong.kr",
                 "https://api.kiryong.kr"
         ));

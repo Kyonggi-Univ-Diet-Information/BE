@@ -1,5 +1,6 @@
 package com.kyonggi.diet.review.repository;
 
+import com.kyonggi.diet.member.MemberEntity;
 import com.kyonggi.diet.restaurant.Restaurant;
 import com.kyonggi.diet.restaurant.RestaurantType;
 import com.kyonggi.diet.review.DTO.FoodNamesDTO;
@@ -37,4 +38,6 @@ public interface DietFoodReviewRepository extends JpaRepository<DietFoodReview, 
         ORDER BY r.createdAt DESC
     """)
     List<Object[]> find5DietFoodReviewsRecent(Pageable pageable);
+
+    List<DietFoodReview> findAllByMember(MemberEntity member);
 }

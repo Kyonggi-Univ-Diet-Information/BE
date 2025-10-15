@@ -1,11 +1,9 @@
 package com.kyonggi.diet.review.favoriteReview.service.impl;
 
-import com.kyonggi.diet.member.MemberDTO;
+import com.kyonggi.diet.member.DTO.MemberDTO;
 import com.kyonggi.diet.member.MemberEntity;
 import com.kyonggi.diet.member.service.MemberService;
-import com.kyonggi.diet.review.favoriteReview.DTO.FavoriteDietFoodReviewDTO;
 import com.kyonggi.diet.review.favoriteReview.DTO.FavoriteRestaurantReviewDTO;
-import com.kyonggi.diet.review.favoriteReview.domain.FavoriteDietFoodReview;
 import com.kyonggi.diet.review.favoriteReview.domain.FavoriteRestaurantReview;
 import com.kyonggi.diet.review.favoriteReview.repository.FavoriteRestaurantReviewRepository;
 import com.kyonggi.diet.review.favoriteReview.service.FavoriteRestaurantReviewService;

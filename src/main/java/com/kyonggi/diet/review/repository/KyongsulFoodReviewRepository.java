@@ -1,5 +1,6 @@
 package com.kyonggi.diet.review.repository;
 
+import com.kyonggi.diet.member.MemberEntity;
 import com.kyonggi.diet.review.domain.DietFoodReview;
 import com.kyonggi.diet.review.domain.KyongsulFoodReview;
 import org.springframework.data.domain.Page;
@@ -34,4 +35,6 @@ public interface KyongsulFoodReviewRepository extends JpaRepository<KyongsulFood
         ORDER BY r.createdAt DESC
     """)
     List<Object[]> find5DKyongsulFoodReviewsRecent(Pageable pageable);
+
+    List<KyongsulFoodReview> findAllByMember(MemberEntity member);
 }

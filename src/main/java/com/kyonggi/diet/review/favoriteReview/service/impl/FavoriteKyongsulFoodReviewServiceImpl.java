@@ -1,6 +1,6 @@
 package com.kyonggi.diet.review.favoriteReview.service.impl;
 
-import com.kyonggi.diet.member.MemberDTO;
+import com.kyonggi.diet.member.DTO.MemberDTO;
 import com.kyonggi.diet.member.MemberEntity;
 import com.kyonggi.diet.member.service.MemberService;
 import com.kyonggi.diet.review.DTO.ForTopReviewDTO;

@@ -13,6 +13,8 @@ import com.kyonggi.diet.review.DTO.ForTopReviewDTO;
 import com.kyonggi.diet.review.DTO.ReviewDTO;
 import com.kyonggi.diet.review.domain.DietFoodReview;
 import com.kyonggi.diet.review.domain.RestaurantReview;
+import com.kyonggi.diet.review.favoriteReview.domain.FavoriteDietFoodReview;
+import com.kyonggi.diet.review.favoriteReview.repository.FavoriteDietFoodReviewRepository;
 import com.kyonggi.diet.review.repository.DietFoodReviewRepository;
 import com.kyonggi.diet.review.service.DietFoodReviewService;
 import jakarta.persistence.EntityNotFoundException;
@@ -37,6 +39,7 @@ import java.util.stream.Collectors;
 public class DietFoodReviewServiceImpl implements DietFoodReviewService {
 
     private final DietFoodReviewRepository dietFoodReviewRepository;
+    private final FavoriteDietFoodReviewRepository favoriteDietFoodReviewRepository;
     private final MemberRepository memberRepository;
     private final MemberService memberService;
     private final DietFoodRepository dietFoodRepository;
@@ -260,6 +263,33 @@ public class DietFoodReviewServiceImpl implements DietFoodReviewService {
                 })
                 .toList();
     }
+
+    /**
+     * 멤버별 리뷰들 조회
+     */
+    @Override
+    public List<ReviewDTO> findAllByMember(MemberEntity member) {
+        List<DietFoodReview> all = dietFoodReviewRepository.findAllByMember(member);
+        List<ReviewDTO> reviewDTOList = new ArrayList<>();
+        if (all.isEmpty()) {
+            return reviewDTOList;
+        }
+        return all.stream().map(this::mapToReviewDTO).collect(Collectors.toList());
+    }
+
+ //   public List<ReviewDTO> findAllByMemberFavorited(MemberEntity member) {
+ //       List<FavoriteDietFoodReview> all = favoriteDietFoodReviewRepository.findAllByMember(member);
+  //      List<ReviewDTO> reviewDTOList = new ArrayList<>();
+   //     if (all.isEmpty()) {
+    //        return reviewDTOList;
+    //    }
+     //   all.forEach(favorite -> {
+      //      find
+       //     ReviewDTO.builder()
+        //            .id(favorite.getId())
+         //           .title().build();
+      //  })
+   // }
 
     /**
      * Review -> ReviewDTO

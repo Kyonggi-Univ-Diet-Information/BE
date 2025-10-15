@@ -1,8 +1,6 @@
 package com.kyonggi.diet.review.favoriteReview.DTO;
 
-import com.kyonggi.diet.member.MemberDTO;
-import com.kyonggi.diet.member.MemberEntity;
-import com.kyonggi.diet.review.domain.DietFoodReview;
+import com.kyonggi.diet.member.DTO.MemberDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

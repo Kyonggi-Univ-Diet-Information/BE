@@ -119,4 +119,9 @@ public interface DietFoodReviewService {
      * 기숙사 음식 리뷰 중 최신순 TOP 5 조회
      */
     List<ForTopReviewDTO> find5DietFoodReviewsRecent();
+
+    /**
+     * 멤버별 리뷰들 조회
+     */
+    List<ReviewDTO> findAllByMember(MemberEntity member);
 }

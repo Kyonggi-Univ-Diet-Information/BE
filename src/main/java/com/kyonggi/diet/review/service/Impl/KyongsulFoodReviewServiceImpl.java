@@ -7,6 +7,7 @@ import com.kyonggi.diet.member.service.MemberService;
 import com.kyonggi.diet.review.DTO.CreateReviewDTO;
 import com.kyonggi.diet.review.DTO.ForTopReviewDTO;
 import com.kyonggi.diet.review.DTO.ReviewDTO;
+import com.kyonggi.diet.review.domain.DietFoodReview;
 import com.kyonggi.diet.review.domain.KyongsulFoodReview;
 import com.kyonggi.diet.review.repository.KyongsulFoodReviewRepository;
 import com.kyonggi.diet.review.service.KyongsulFoodReviewService;
@@ -22,10 +23,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional(readOnly=true)
@@ -198,6 +197,19 @@ public class KyongsulFoodReviewServiceImpl implements KyongsulFoodReviewService 
                             .build();
                 })
                 .toList();
+    }
+
+    /**
+     * 멤버별 리뷰들 조회
+     */
+    @Override
+    public List<ReviewDTO> findAllByMember(MemberEntity member) {
+        List<KyongsulFoodReview> all = kyongsulFoodReviewRepository.findAllByMember(member);
+        List<ReviewDTO> reviewDTOList = new ArrayList<>();
+        if (all.isEmpty()) {
+            return reviewDTOList;
+        }
+        return all.stream().map(this::mapToReviewDTO).collect(Collectors.toList());
     }
 
 

@@ -1,6 +1,7 @@
 package com.kyonggi.diet.member.service;
 
-import com.kyonggi.diet.member.MemberDTO;
+import com.kyonggi.diet.member.DTO.MemberDTO;
+import com.kyonggi.diet.member.DTO.MyPageDTO;
 import com.kyonggi.diet.member.MemberEntity;
 
 import java.util.List;
@@ -37,4 +38,6 @@ public interface MemberService {
     MemberEntity getMemberByEmail(String email);
 
     String getNameById(Long id);
+
+    MyPageDTO getMyPage(String email);
 }

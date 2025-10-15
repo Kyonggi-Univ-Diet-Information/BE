@@ -4,7 +4,7 @@ import com.kyonggi.diet.auth.io.AuthRequest;
 import com.kyonggi.diet.auth.io.AuthResponse;
 import com.kyonggi.diet.auth.util.JwtTokenUtil;
 import com.kyonggi.diet.controllerDocs.AuthControllerDocs;
-import com.kyonggi.diet.member.MemberDTO;
+import com.kyonggi.diet.member.DTO.MemberDTO;
 import com.kyonggi.diet.member.io.MemberRequest;
 import com.kyonggi.diet.member.io.MemberResponse;
 import com.kyonggi.diet.member.service.CustomMembersDetailService;
@@ -18,8 +18,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.UUID;
 
 @RestController
 @Slf4j

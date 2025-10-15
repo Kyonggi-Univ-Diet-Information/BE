@@ -39,7 +39,7 @@ public interface KyongsulFoodControllerDocs {
         description = "서브 식당 구분(SubRestaurant)에 따라 해당 식당에서 제공되는 음식 리스트를 조회합니다."
     )
     ResponseEntity<?> getDietFoodBySubRestaurant(
-        @Parameter(description = "식당 분류 (예: MANKWON, SYONG, BURGER_TACO, WIDELGA, SINMEOI", example = "STUDENT")
+        @Parameter(description = "식당 분류 (예: MANKWON, SYONG, BURGER_TACO, WIDELGA, SINMEOI")
         @PathVariable SubRestaurant subRestaurant
     );
 

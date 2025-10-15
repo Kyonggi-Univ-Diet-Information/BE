@@ -3,6 +3,7 @@ package com.kyonggi.diet.review.favoriteReview.controller;
 import com.kyonggi.diet.auth.util.JwtTokenUtil;
 import com.kyonggi.diet.controllerDocs.FavoriteDietFoodReviewControllerDocs;
 import com.kyonggi.diet.member.service.MemberService;
+import com.kyonggi.diet.review.DTO.ForTopReviewDTO;
 import com.kyonggi.diet.review.favoriteReview.DTO.FavoriteDietFoodReviewDTO;
 import com.kyonggi.diet.review.favoriteReview.domain.FavoriteDietFoodReview;
 import com.kyonggi.diet.review.favoriteReview.domain.FavoriteRestaurantReview;
@@ -135,5 +136,14 @@ public class FavoriteDietFoodReviewController implements FavoriteDietFoodReviewC
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("An unexpected error occurred now: " + e.getMessage());
         }
+    }
+
+    /**
+     * 기숙사 식당 베스트(인기) TOP 리뷰 조회
+     */
+    @GetMapping("/reviews/best5")
+    public ResponseEntity<List<ForTopReviewDTO>> getBestDietFoodReviews() {
+        List<ForTopReviewDTO> reviews = favoriteDietFoodReviewService.find5DietFoodReviewsBest();
+        return ResponseEntity.ok(reviews);
     }
 }

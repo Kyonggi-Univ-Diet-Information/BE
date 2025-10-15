@@ -5,6 +5,7 @@ import com.kyonggi.diet.kyongsul.KyongsulFoodRepository;
 import com.kyonggi.diet.member.MemberEntity;
 import com.kyonggi.diet.member.service.MemberService;
 import com.kyonggi.diet.review.DTO.CreateReviewDTO;
+import com.kyonggi.diet.review.DTO.ForTopReviewDTO;
 import com.kyonggi.diet.review.DTO.ReviewDTO;
 import com.kyonggi.diet.review.domain.KyongsulFoodReview;
 import com.kyonggi.diet.review.repository.KyongsulFoodReviewRepository;
@@ -175,6 +176,30 @@ public class KyongsulFoodReviewServiceImpl implements KyongsulFoodReviewService 
             return 0;
         }
     }
+
+    /**
+     * 경술음식 리뷰 중 최신순 TOP 5 조회
+     */
+    public List<ForTopReviewDTO> find5KyongsulFoodReviewsRecent() {
+        List<Object[]> results = kyongsulFoodReviewRepository.find5DKyongsulFoodReviewsRecent(PageRequest.of(0, 5));
+
+        return results.stream()
+                .map(row -> {
+                    Long memberId = ((Number) row[5]).longValue();
+                    String memberName = memberService.getNameById(memberId);
+
+                    return ForTopReviewDTO.builder()
+                            .foodId(((Number) row[0]).longValue())
+                            .reviewId(((Number) row[1]).longValue())
+                            .rating(((Number) row[2]).doubleValue())
+                            .title((String) row[3])
+                            .content((String) row[4])
+                            .memberName(memberName)
+                            .build();
+                })
+                .toList();
+    }
+
 
     /**
      * 경슐랭 음식 엔티티 조회

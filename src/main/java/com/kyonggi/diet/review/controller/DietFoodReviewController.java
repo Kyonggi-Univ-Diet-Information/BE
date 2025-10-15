@@ -4,9 +4,11 @@ import com.kyonggi.diet.auth.util.JwtTokenUtil;
 import com.kyonggi.diet.controllerDocs.DietFoodReviewControllerDocs;
 import com.kyonggi.diet.member.service.CustomMembersDetailService;
 import com.kyonggi.diet.review.DTO.CreateReviewDTO;
+import com.kyonggi.diet.review.DTO.ForTopReviewDTO;
 import com.kyonggi.diet.review.DTO.RatingCountResponse;
 import com.kyonggi.diet.review.DTO.ReviewDTO;
 import com.kyonggi.diet.review.service.DietFoodReviewService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -219,5 +221,14 @@ public class DietFoodReviewController implements DietFoodReviewControllerDocs {
     @GetMapping("/count/{foodId}")
     public ResponseEntity<?> getDietFoodReviewCount(@PathVariable("foodId") Long dietFoodId) {
         return ResponseEntity.ok(dietFoodReviewService.findDietFoodReviewCount(dietFoodId));
+    }
+
+    /**
+     * 기숙사 음식 최신 탑5 리뷰 조회
+     */
+    @GetMapping("/reviews/recent")
+    public ResponseEntity<List<ForTopReviewDTO>> getRecentDietFoodReviews() {
+        List<ForTopReviewDTO> reviews = dietFoodReviewService.find5DietFoodReviewsRecent();
+        return ResponseEntity.ok(reviews);
     }
 }

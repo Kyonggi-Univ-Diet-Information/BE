@@ -3,6 +3,7 @@ package com.kyonggi.diet.review.service;
 import com.kyonggi.diet.dietFood.DietFood;
 import com.kyonggi.diet.member.MemberEntity;
 import com.kyonggi.diet.restaurant.RestaurantType;
+import com.kyonggi.diet.review.DTO.ForTopReviewDTO;
 import com.kyonggi.diet.review.DTO.ReviewDTO;
 import com.kyonggi.diet.review.domain.DietFoodReview;
 import jakarta.persistence.EntityNotFoundException;
@@ -113,4 +114,9 @@ public interface DietFoodReviewService {
      * @param id (Long)
      */
     int findDietFoodReviewCount(Long id);
+
+    /**
+     * 기숙사 음식 리뷰 중 최신순 TOP 5 조회
+     */
+    List<ForTopReviewDTO> find5DietFoodReviewsRecent();
 }

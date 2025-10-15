@@ -1,9 +1,11 @@
 package com.kyonggi.diet.review.service;
 
 import com.kyonggi.diet.review.DTO.CreateReviewDTO;
+import com.kyonggi.diet.review.DTO.ForTopReviewDTO;
 import com.kyonggi.diet.review.DTO.ReviewDTO;
 import org.springframework.data.domain.Page;
 
+import java.util.List;
 import java.util.Map;
 
 public interface KyongsulFoodReviewService {
@@ -70,4 +72,9 @@ public interface KyongsulFoodReviewService {
      * @param id (Long)
      */
     int findKyongsulFoodReviewCount(Long id);
+
+    /**
+     * 경술음식 리뷰 중 최신순 TOP 5 조회
+     */
+    List<ForTopReviewDTO> find5KyongsulFoodReviewsRecent();
 }

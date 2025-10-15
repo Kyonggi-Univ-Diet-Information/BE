@@ -3,6 +3,7 @@ package com.kyonggi.diet.review.favoriteReview.service.impl;
 import com.kyonggi.diet.member.MemberDTO;
 import com.kyonggi.diet.member.MemberEntity;
 import com.kyonggi.diet.member.service.MemberService;
+import com.kyonggi.diet.review.DTO.ForTopReviewDTO;
 import com.kyonggi.diet.review.domain.KyongsulFoodReview;
 import com.kyonggi.diet.review.favoriteReview.DTO.FavoriteKyongsulFoodReviewDTO;
 import com.kyonggi.diet.review.favoriteReview.domain.FavoriteKyongsulFoodReview;
@@ -13,6 +14,7 @@ import com.kyonggi.diet.review.service.KyongsulFoodReviewService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -189,6 +191,33 @@ public class FavoriteKyongsulFoodReviewServiceImpl implements FavoriteKyongsulFo
             throw new RuntimeException("리뷰 좋아요 수 가져오기 실패", e);
         }
     }
+
+    /**
+     * 인기 TOP 5 리뷰 DTO 조회
+     * @return List<ForTopReviewDTO>
+     */
+    @Override
+    public List<ForTopReviewDTO> find5KyongsulFoodReviewsBest() {
+        List<Object[]> results = favoriteKyongsulFoodReviewRepository.findTop5KyongsulByMostFavorited(PageRequest.of(0, 5));
+
+        return results.stream()
+                .map(row -> {
+                    Long memberId = ((Number) row[5]).longValue();
+                    String memberName = memberService.getNameById(memberId);
+
+                    return ForTopReviewDTO.builder()
+                            .foodId(((Number) row[0]).longValue())
+                            .reviewId(((Number) row[1]).longValue())
+                            .rating(((Number) row[2]).doubleValue())
+                            .title((String) row[3])
+                            .content((String) row[4])
+                            .memberName(memberName)
+                            .favoriteCount(((Number) row[6]).longValue())  // 좋아요 개수 세팅
+                            .build();
+                })
+                .toList();
+    }
+
 
     /**
      * 관심 음식 리뷰 엔티티 조회 메서드

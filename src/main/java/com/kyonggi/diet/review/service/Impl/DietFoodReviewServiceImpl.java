@@ -9,6 +9,7 @@ import com.kyonggi.diet.member.service.MemberService;
 import com.kyonggi.diet.restaurant.Restaurant;
 import com.kyonggi.diet.restaurant.RestaurantType;
 import com.kyonggi.diet.review.DTO.FoodNamesDTO;
+import com.kyonggi.diet.review.DTO.ForTopReviewDTO;
 import com.kyonggi.diet.review.DTO.ReviewDTO;
 import com.kyonggi.diet.review.domain.DietFoodReview;
 import com.kyonggi.diet.review.domain.RestaurantReview;
@@ -234,6 +235,30 @@ public class DietFoodReviewServiceImpl implements DietFoodReviewService {
         }  catch (NullPointerException e) {
             return 0;
         }
+    }
+
+    /**
+     * 기숙사 음식 리뷰 중 최신순 TOP 5 조회
+     */
+    @Override
+    public List<ForTopReviewDTO> find5DietFoodReviewsRecent() {
+        List<Object[]> results = dietFoodReviewRepository.find5DietFoodReviewsRecent(PageRequest.of(0, 5));
+
+        return results.stream()
+                .map(row -> {
+                    Long memberId = ((Number) row[5]).longValue();
+                    String memberName = memberService.getNameById(memberId);
+
+                    return ForTopReviewDTO.builder()
+                            .foodId(((Number) row[0]).longValue())
+                            .reviewId(((Number) row[1]).longValue())
+                            .rating(((Number) row[2]).doubleValue())
+                            .title((String) row[3])
+                            .content((String) row[4])
+                            .memberName(memberName)
+                            .build();
+                })
+                .toList();
     }
 
     /**

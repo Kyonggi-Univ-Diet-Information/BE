@@ -79,7 +79,7 @@ public interface DietFoodReviewControllerDocs {
     ResponseEntity<?> getDietFoodReviewCount(@PathVariable("foodId") Long dietFoodId);
 
     @Operation(
-        summary = "경슐랭 음식 최신 리뷰 TOP 5 조회",
+        summary = "기숙사 식당 음식 최신 리뷰 TOP 5 조회",
         description = """
         등록일(createdAt) 기준으로 최신순 정렬된 리뷰 중 상위 5개를 조회합니다.
         각 리뷰에는 음식 ID, 리뷰 ID, 별점, 제목, 내용, 작성자 정보가 포함됩니다.

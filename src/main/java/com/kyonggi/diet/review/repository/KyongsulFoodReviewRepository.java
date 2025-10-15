@@ -26,4 +26,12 @@ public interface KyongsulFoodReviewRepository extends JpaRepository<KyongsulFood
 
     @Query("select r.kyongsulFood.id, r.kyongsulFood.name, r.kyongsulFood.nameEn from KyongsulFoodReview r where r.kyongsulFood.id = :id")
     Optional<Object[]> findNameByKyongsulFoodId(@Param("id") Long id);
+
+    @Query("""
+        SELECT f.id, r.id, r.rating, r.title, r.content, r.member.id
+        FROM KyongsulFoodReview r
+        JOIN r.kyongsulFood f
+        ORDER BY r.createdAt DESC
+    """)
+    List<Object[]> find5DKyongsulFoodReviewsRecent(Pageable pageable);
 }

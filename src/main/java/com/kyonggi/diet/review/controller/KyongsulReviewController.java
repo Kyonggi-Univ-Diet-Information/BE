@@ -3,6 +3,7 @@ package com.kyonggi.diet.review.controller;
 import com.kyonggi.diet.auth.util.JwtTokenUtil;
 import com.kyonggi.diet.controllerDocs.KyongsulReviewControllerDocs;
 import com.kyonggi.diet.review.DTO.CreateReviewDTO;
+import com.kyonggi.diet.review.DTO.ForTopReviewDTO;
 import com.kyonggi.diet.review.DTO.RatingCountResponse;
 import com.kyonggi.diet.review.DTO.ReviewDTO;
 import com.kyonggi.diet.review.service.KyongsulFoodReviewService;
@@ -18,6 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
@@ -177,5 +179,14 @@ public class KyongsulReviewController implements KyongsulReviewControllerDocs {
     @GetMapping("/count/{foodId}")
     public ResponseEntity<?> getDietFoodReviewCount(@PathVariable("foodId") Long dietFoodId) {
         return ResponseEntity.ok(kyongsulFoodReviewService.findKyongsulFoodReviewCount(dietFoodId));
+    }
+
+    /**
+     * 경슐랭 음식 최신 탑5 리뷰 조회
+     */
+    @GetMapping("/reviews/recent")
+    public ResponseEntity<List<ForTopReviewDTO>> getRecentKyongsulFoodReviews() {
+        List<ForTopReviewDTO> reviews = kyongsulFoodReviewService.find5KyongsulFoodReviewsRecent();
+        return ResponseEntity.ok(reviews);
     }
 }

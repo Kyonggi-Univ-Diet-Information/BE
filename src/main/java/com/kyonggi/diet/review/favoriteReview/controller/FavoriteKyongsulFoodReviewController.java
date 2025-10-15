@@ -2,6 +2,7 @@ package com.kyonggi.diet.review.favoriteReview.controller;
 
 import com.kyonggi.diet.auth.util.JwtTokenUtil;
 import com.kyonggi.diet.controllerDocs.FavoriteKyongsulFoodReviewControllerDocs;
+import com.kyonggi.diet.review.DTO.ForTopReviewDTO;
 import com.kyonggi.diet.review.favoriteReview.service.FavoriteKyongsulFoodReviewService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.NoSuchElementException;
 
 @RestController
@@ -129,5 +131,14 @@ public class FavoriteKyongsulFoodReviewController implements FavoriteKyongsulFoo
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("An unexpected error occurred now: " + e.getMessage());
         }
+    }
+
+    /**
+     * 경슐랭 베스트(인기) TOP 리뷰 조회
+     */
+    @GetMapping("/reviews/best5")
+    public ResponseEntity<List<ForTopReviewDTO>> getBestKyongsulFoodReviews() {
+        List<ForTopReviewDTO> reviews = favoriteKyongsulFoodReviewService.find5KyongsulFoodReviewsBest();
+        return ResponseEntity.ok(reviews);
     }
 }

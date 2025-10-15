@@ -1,9 +1,11 @@
 package com.kyonggi.diet.controllerDocs;
 
+import com.kyonggi.diet.review.DTO.ForTopReviewDTO;
 import com.kyonggi.diet.review.favoriteReview.DTO.FavoriteDietFoodReviewDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -36,4 +38,10 @@ public interface FavoriteDietFoodReviewControllerDocs {
     @Parameter(name = "reviewId", description = "리뷰 ID")
     ResponseEntity<?> getFavoriteCount(@PathVariable("reviewId") Long reviewId);
 
+    @GetMapping("/reviews/best5")
+    @Operation(
+        summary = "긱식 음식 인기 리뷰 TOP 5 조회",
+        description = "추천(좋아요) 수 기준으로 상위 5개의 리뷰를 반환합니다."
+    )
+    ResponseEntity<List<ForTopReviewDTO>> getBestDietFoodReviews();
 }

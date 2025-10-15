@@ -86,6 +86,11 @@ public class MemberServiceImpl implements MemberService {
                 .orElseThrow(()-> new NoSuchElementException("EMAIL 에 해당하는 멤버를 찾을 수 없습니다."));
     }
 
+    @Override
+    public String getNameById(Long id) {
+        return memberRepository.findNameById(id);
+    }
+
     /**
      * MemberEntity 에서 MemberDTO 으로 변환하는 Mapper Method 입니다.
      * @param memberEntity (member entity)

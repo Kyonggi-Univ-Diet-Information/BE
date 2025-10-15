@@ -35,4 +35,6 @@ public interface MemberService {
      * @return MemberEntity
      */
     MemberEntity getMemberByEmail(String email);
+
+    String getNameById(Long id);
 }

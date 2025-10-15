@@ -1,5 +1,6 @@
 package com.kyonggi.diet.review.favoriteReview.service;
 
+import com.kyonggi.diet.review.DTO.ForTopReviewDTO;
 import com.kyonggi.diet.review.favoriteReview.DTO.FavoriteKyongsulFoodReviewDTO;
 
 import java.util.List;
@@ -46,4 +47,10 @@ public interface FavoriteKyongsulFoodReviewService {
      * @return Long
      */
     Long getFavoriteReviewCountByReviewId(Long reviewId);
+
+    /**
+     * 인기 TOP 5 리뷰 DTO 조회
+     * @return List<ForTopReviewDTO>
+     */
+    List<ForTopReviewDTO> find5KyongsulFoodReviewsBest();
 }

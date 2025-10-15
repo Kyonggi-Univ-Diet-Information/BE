@@ -2,6 +2,7 @@ package com.kyonggi.diet.controllerDocs;
 
 import com.kyonggi.diet.restaurant.RestaurantType;
 import com.kyonggi.diet.review.DTO.CreateReviewDTO;
+import com.kyonggi.diet.review.DTO.ForTopReviewDTO;
 import com.kyonggi.diet.review.DTO.RatingCountResponse;
 import com.kyonggi.diet.review.DTO.ReviewDTO;
 import io.swagger.v3.oas.annotations.Operation;
@@ -76,4 +77,15 @@ public interface DietFoodReviewControllerDocs {
     @Parameter(name = "foodId", description = "기숙사 음식 ID")
     @GetMapping("/count/{foodId}")
     ResponseEntity<?> getDietFoodReviewCount(@PathVariable("foodId") Long dietFoodId);
+
+    @Operation(
+        summary = "기숙사 식당 음식 최신 리뷰 TOP 5 조회",
+        description = """
+        등록일(createdAt) 기준으로 최신순 정렬된 리뷰 중 상위 5개를 조회합니다.
+        각 리뷰에는 음식 ID, 리뷰 ID, 별점, 제목, 내용, 작성자 정보가 포함됩니다.
+        리뷰 개수가 5개 미만일 경우 존재하는 리뷰만 반환됩니다.
+        """
+    )
+    @GetMapping("/reviews/recent")
+    ResponseEntity<List<ForTopReviewDTO>> getRecentDietFoodReviews();
 }

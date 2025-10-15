@@ -6,6 +6,7 @@ import com.kyonggi.diet.member.DTO.MemberDTO;
 import com.kyonggi.diet.member.io.MemberRequest;
 import com.kyonggi.diet.member.io.MemberResponse;
 import com.kyonggi.diet.member.service.MemberService;
+import com.kyonggi.diet.member.service.MyPageService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +30,7 @@ import java.util.stream.Collectors;
 public class MemberController implements MemberControllerDocs {
 
     private final MemberService memberService;
+    private final MyPageService myPageService;
     private final JwtTokenUtil jwtTokenUtil;
     private final ModelMapper modelMapper;
 
@@ -59,7 +61,7 @@ public class MemberController implements MemberControllerDocs {
         }
 
         String email = jwtTokenUtil.getUsernameFromToken(token.substring(7));
-        return ResponseEntity.ok(memberService.getMyPage(email));
+        return ResponseEntity.ok(myPageService.getMyPage(email));
     }
 
     /**

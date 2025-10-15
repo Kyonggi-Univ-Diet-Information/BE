@@ -8,6 +8,8 @@ import com.kyonggi.diet.member.service.MemberService;
 import com.kyonggi.diet.review.DTO.ReviewDTO;
 import com.kyonggi.diet.review.favoriteReview.repository.FavoriteDietFoodReviewRepository;
 import com.kyonggi.diet.review.favoriteReview.repository.FavoriteKyongsulFoodReviewRepository;
+import com.kyonggi.diet.review.service.DietFoodReviewService;
+import com.kyonggi.diet.review.service.KyongsulFoodReviewService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,10 +34,6 @@ import java.util.stream.Collectors;
 public class MemberServiceImpl implements MemberService {
 
     private final MemberRepository memberRepository;
-    //private final DietFoodReviewService dietFoodReviewService;
-    //private final KyongsulFoodReviewService kyongsulFoodReviewService;
-    private final FavoriteDietFoodReviewRepository favoriteDietFoodReviewRepository;
-    private final FavoriteKyongsulFoodReviewRepository favoriteKyongsulFoodReviewRepository;
     private final ModelMapper modelMapper;
     private final PasswordEncoder encoder;
 
@@ -96,24 +94,6 @@ public class MemberServiceImpl implements MemberService {
     @Override
     public String getNameById(Long id) {
         return memberRepository.findNameById(id);
-    }
-
-    @Override
-    public MyPageDTO getMyPage(String email) {
-        MemberEntity member = getMemberByEmail(email);
-        //List<ReviewDTO> dr = dietFoodReviewService.findAllByMember(member);
-        //List<ReviewDTO> kr = kyongsulFoodReviewService.findAllByMember(member);
-        List<ReviewDTO> fdr;
-        List<ReviewDTO> fkr;
-
-        return MyPageDTO.builder()
-                .name(member.getName())
-                .email(email)
-                //.dietFoodReviews(dr)
-                //.kyongsulReviews(kr)
-                //.favoriteDietFoodReviews(fdr)
-                //.favoriteKyongsulReviews(fkr)
-                .build();
     }
 
     /**

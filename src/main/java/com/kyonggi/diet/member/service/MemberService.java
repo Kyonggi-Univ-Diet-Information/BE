@@ -38,6 +38,4 @@ public interface MemberService {
     MemberEntity getMemberByEmail(String email);
 
     String getNameById(Long id);
-
-    MyPageDTO getMyPage(String email);
 }

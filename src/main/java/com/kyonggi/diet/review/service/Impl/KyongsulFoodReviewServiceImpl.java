@@ -9,6 +9,10 @@ import com.kyonggi.diet.review.DTO.ForTopReviewDTO;
 import com.kyonggi.diet.review.DTO.ReviewDTO;
 import com.kyonggi.diet.review.domain.DietFoodReview;
 import com.kyonggi.diet.review.domain.KyongsulFoodReview;
+import com.kyonggi.diet.review.favoriteReview.domain.FavoriteDietFoodReview;
+import com.kyonggi.diet.review.favoriteReview.domain.FavoriteKyongsulFoodReview;
+import com.kyonggi.diet.review.favoriteReview.repository.FavoriteKyongsulFoodReviewRepository;
+import com.kyonggi.diet.review.favoriteReview.service.FavoriteKyongsulFoodReviewService;
 import com.kyonggi.diet.review.repository.KyongsulFoodReviewRepository;
 import com.kyonggi.diet.review.service.KyongsulFoodReviewService;
 import jakarta.persistence.EntityNotFoundException;
@@ -34,6 +38,7 @@ public class KyongsulFoodReviewServiceImpl implements KyongsulFoodReviewService 
 
     private final KyongsulFoodReviewRepository kyongsulFoodReviewRepository;
     private final KyongsulFoodRepository kyongsulFoodRepository;
+    private final FavoriteKyongsulFoodReviewRepository favoriteKyongsulFoodReviewRepository;
     private final MemberService memberService;
     private final ModelMapper modelMapper;
 
@@ -210,6 +215,40 @@ public class KyongsulFoodReviewServiceImpl implements KyongsulFoodReviewService 
             return reviewDTOList;
         }
         return all.stream().map(this::mapToReviewDTO).collect(Collectors.toList());
+    }
+
+    /**
+     * 멤버별 좋아요 누른 리뷰 목록 조회
+     */
+    @Override
+    public List<ReviewDTO> findAllByMemberFavorited(MemberEntity member) {
+        List<FavoriteKyongsulFoodReview> all = favoriteKyongsulFoodReviewRepository.findAllByMember(member);
+        List<ReviewDTO> reviewDTOList = new ArrayList<>();
+
+        if (all.isEmpty()) {
+            return reviewDTOList;
+        }
+
+        for (FavoriteKyongsulFoodReview favorite : all) {
+
+            KyongsulFoodReview review = favorite.getKyongsulFoodReview();
+
+            if (review != null) {
+                ReviewDTO dto = ReviewDTO.builder()
+                        .id(review.getId())
+                        .title(review.getTitle())
+                        .content(review.getContent())
+                        .rating(review.getRating())
+                        .memberName(member.getName())
+                        .createdAt(String.valueOf(review.getCreatedAt()))
+                        .updatedAt(String.valueOf(review.getUpdatedAt()))
+                        .build();
+
+                reviewDTOList.add(dto);
+            }
+        }
+
+        return reviewDTOList;
     }
 
 

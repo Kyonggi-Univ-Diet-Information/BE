@@ -124,4 +124,9 @@ public interface DietFoodReviewService {
      * 멤버별 리뷰들 조회
      */
     List<ReviewDTO> findAllByMember(MemberEntity member);
+
+    /**
+     * 멤버별 좋아요 누른 리뷰 목록 조회
+     */
+    List<ReviewDTO> findAllByMemberFavorited(MemberEntity member);
 }

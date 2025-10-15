@@ -277,19 +277,39 @@ public class DietFoodReviewServiceImpl implements DietFoodReviewService {
         return all.stream().map(this::mapToReviewDTO).collect(Collectors.toList());
     }
 
- //   public List<ReviewDTO> findAllByMemberFavorited(MemberEntity member) {
- //       List<FavoriteDietFoodReview> all = favoriteDietFoodReviewRepository.findAllByMember(member);
-  //      List<ReviewDTO> reviewDTOList = new ArrayList<>();
-   //     if (all.isEmpty()) {
-    //        return reviewDTOList;
-    //    }
-     //   all.forEach(favorite -> {
-      //      find
-       //     ReviewDTO.builder()
-        //            .id(favorite.getId())
-         //           .title().build();
-      //  })
-   // }
+    /**
+     * 멤버별 좋아요 누른 리뷰 목록 조회
+     */
+    @Override
+    public List<ReviewDTO> findAllByMemberFavorited(MemberEntity member) {
+        List<FavoriteDietFoodReview> all = favoriteDietFoodReviewRepository.findAllByMember(member);
+        List<ReviewDTO> reviewDTOList = new ArrayList<>();
+
+        if (all.isEmpty()) {
+            return reviewDTOList;
+        }
+
+        for (FavoriteDietFoodReview favorite : all) {
+
+            DietFoodReview review = favorite.getDietFoodReview();
+
+            if (review != null) {
+                ReviewDTO dto = ReviewDTO.builder()
+                        .id(review.getId())
+                        .title(review.getTitle())
+                        .content(review.getContent())
+                        .rating(review.getRating())
+                        .memberName(member.getName())
+                        .createdAt(String.valueOf(review.getCreatedAt()))
+                        .updatedAt(String.valueOf(review.getUpdatedAt()))
+                        .build();
+
+                reviewDTOList.add(dto);
+            }
+        }
+
+        return reviewDTOList;
+    }
 
     /**
      * Review -> ReviewDTO

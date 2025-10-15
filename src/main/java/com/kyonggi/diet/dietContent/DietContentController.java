@@ -3,6 +3,7 @@ package com.kyonggi.diet.dietContent;
 import com.kyonggi.diet.controllerDocs.DietContentControllerDocs;
 import com.kyonggi.diet.dietContent.DTO.CreateNewDietForm;
 import com.kyonggi.diet.dietContent.DTO.DietContentDTO;
+import com.kyonggi.diet.dietContent.DTO.SingleDayDietResponse;
 import com.kyonggi.diet.dietContent.service.DietContentService;
 import com.kyonggi.diet.diet.DietDTO;
 import com.kyonggi.diet.dietFood.DietFoodDTO;
@@ -32,6 +33,31 @@ import java.util.Map;
 public class DietContentController implements DietContentControllerDocs {
 
     private final DietContentService dietContentService;
+
+    @GetMapping("/dormitory/dow/{dow}")
+    public ResponseEntity<?> dormitoryDow(@PathVariable("dow") DayOfWeek dow) {
+        LocalDate today = LocalDate.now();
+        LocalDate startOfWeek = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        LocalDate endOfWeek = today.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
+
+        Map<String, Object> result = new HashMap<>();
+        try {
+            List<DietContentDTO> diets = dietContentService.findDietContentsAtDay(dow, startOfWeek, endOfWeek);
+
+            Map<DietTime, DietContentDTO> dietMap = new HashMap<>();
+            for (DietContentDTO diet : diets) {
+                dietMap.put(diet.getTime(), diet);
+            }
+
+            SingleDayDietResponse response = new SingleDayDietResponse(dow, dietMap);
+            result.put("result", response);
+            return ResponseEntity.ok(result);
+        } catch (EntityNotFoundException e) {
+            SingleDayDietResponse emptyResponse = new SingleDayDietResponse(dow, new HashMap<>());
+            result.put("result", emptyResponse);
+            return ResponseEntity.ok(result);
+        }
+    }
 
     @GetMapping("/dormitory")
     public Map<String, Map<DayOfWeek, Map<DietTime, DietContentDTO>>> dormitoryHome() {

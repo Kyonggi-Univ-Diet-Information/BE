@@ -38,6 +38,7 @@ public class WebSecurityConfig {
                                 "/api/dietFood/get-names/*", "/api/dietFood/kyongsul/get-names/*",
                                 "/api/review/diet-food/count/*", "/api/review/kyongsul-food/count/*",
                                 "/api/review/*/reviews/recent", "/api/review/favorite/*/reviews/best5",
+                                "/api/diet-content/dormitory/dow/*",
                                 "/api/review/kyongsul-food/rating-count/*", "/actuator/health").permitAll().anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class)

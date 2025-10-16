@@ -128,7 +128,8 @@ public class KyongsulFoodReviewServiceImpl implements KyongsulFoodReviewService 
     @Override
     public Double getAverageRatingForReview(Long foodId) {
         try {
-            return kyongsulFoodReviewRepository.findAverageRatingByKyongsulFoodId(foodId);
+            Double average = kyongsulFoodReviewRepository.findAverageRatingByKyongsulFoodId(foodId);
+            return Math.floor(average * 10) / 10.0;
         } catch (NullPointerException e) {
             return 0.0;
         }

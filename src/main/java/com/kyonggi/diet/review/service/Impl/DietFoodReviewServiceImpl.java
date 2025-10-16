@@ -221,9 +221,10 @@ public class DietFoodReviewServiceImpl implements DietFoodReviewService {
     @Override
     public Double findAverageRatingByDietFoodId(Long dietFoodId) {
         try {
-            return dietFoodReviewRepository.findAverageRatingByDietFoodId(dietFoodId);
+            Double average = dietFoodReviewRepository.findAverageRatingByDietFoodId(dietFoodId);
+            return Math.floor(average * 10) / 10.0;
         } catch (NullPointerException e) {
-            return null;
+            return 0.0;
         }
     }
 

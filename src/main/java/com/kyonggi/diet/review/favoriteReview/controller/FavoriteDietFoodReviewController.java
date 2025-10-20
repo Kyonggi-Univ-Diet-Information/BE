@@ -74,7 +74,7 @@ public class FavoriteDietFoodReviewController implements FavoriteDietFoodReviewC
             return ResponseEntity.ok(favoriteDietFoodReviewService.findFavoriteDietFoodReviewListByMember(email));
         } catch (Exception e) {
             log.error("Error processing token: ", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error fetching member reviews: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error fetching member reviews: " + e.getMessage());
         }
     }
 

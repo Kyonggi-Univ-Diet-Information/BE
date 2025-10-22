@@ -41,7 +41,7 @@ public class WebSecurityConfig {
                                 "swagger-ui/**", "/v3/api-docs/**",
 
                                 // Food API
-                                "/api/food/*/*", "/api/food/kyongsul/restaurant/*", "api/food/*/get-names/*",
+                                "/api/food/*/*", "/api/food/KYONGSUL/restaurant/*", "api/food/*/get-names/*",
                                 "/api/read-csv/*",
 
                                 // Review API

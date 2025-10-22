@@ -1,5 +1,6 @@
 package com.kyonggi.diet.dietContent.service.Impl;
 
+import com.kyonggi.diet.Food.service.DietFoodService;
 import com.kyonggi.diet.diet.DietRepository;
 import com.kyonggi.diet.dietContent.DTO.DietContentDTO;
 import com.kyonggi.diet.dietContent.DietContent;
@@ -7,10 +8,8 @@ import com.kyonggi.diet.dietContent.DietContentRepository;
 import com.kyonggi.diet.dietContent.service.DietContentService;
 import com.kyonggi.diet.diet.Diet;
 import com.kyonggi.diet.diet.DietDTO;
-import com.kyonggi.diet.dietFood.DietFood;
-import com.kyonggi.diet.dietFood.DietFoodDTO;
-import com.kyonggi.diet.dietFood.service.DietFoodService;
-import com.kyonggi.diet.review.DTO.ReviewDTO;
+import com.kyonggi.diet.Food.domain.DietFood;
+import com.kyonggi.diet.Food.DTO.DietFoodDTO;
 import com.kyonggi.diet.review.service.DietFoodReviewService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -21,9 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 @Service

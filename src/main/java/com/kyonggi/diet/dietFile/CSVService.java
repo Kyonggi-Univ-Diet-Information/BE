@@ -2,16 +2,17 @@ package com.kyonggi.diet.dietFile;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.S3Object;
+import com.kyonggi.diet.Food.eumer.KyongsulCategory;
+import com.kyonggi.diet.Food.service.DietFoodService;
 import com.kyonggi.diet.diet.DietDTO;
 import com.kyonggi.diet.dietContent.DTO.DietContentDTO;
 import com.kyonggi.diet.dietContent.DietTime;
 import com.kyonggi.diet.dietContent.service.DietContentService;
-import com.kyonggi.diet.dietFood.DietFood;
-import com.kyonggi.diet.dietFood.DietFoodDTO;
-import com.kyonggi.diet.dietFood.service.DietFoodService;
-import com.kyonggi.diet.kyongsul.KyongsulFood;
-import com.kyonggi.diet.kyongsul.KyongsulFoodRepository;
-import com.kyonggi.diet.kyongsul.SubRestaurant;
+import com.kyonggi.diet.Food.domain.DietFood;
+import com.kyonggi.diet.Food.DTO.DietFoodDTO;
+import com.kyonggi.diet.Food.domain.KyongsulFood;
+import com.kyonggi.diet.Food.repository.KyongsulFoodRepository;
+import com.kyonggi.diet.Food.eumer.SubRestaurant;
 import com.kyonggi.diet.translation.service.TranslationService;
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvValidationException;
@@ -46,6 +47,7 @@ public class CSVService {
     private final KyongsulFoodRepository kyongsulFoodRepository;
     private final TranslationService translationService;
 
+    //-------------------------------기숙사------------------------------------------
     @Transactional
     public void readAndSave(String key) throws IOException, CsvValidationException {
 
@@ -71,9 +73,7 @@ public class CSVService {
                     while (st.hasMoreTokens()) {
                         foods.add(st.nextToken());
                     }
-/*
-* save 하고 다시 find 하는 부분 수정
-* */
+
                     for (String food : foods) {
                         // 기존 엔티티 조회
                         DietFood existing = dietFoodService.findDietFoodByName(food);
@@ -141,6 +141,7 @@ public class CSVService {
         };
     }
 
+    //-----------------------------경슐랭-------------------------------
     @Transactional
     public void readerKyongsulExcelFile(String key) throws IOException {
 
@@ -153,18 +154,20 @@ public class CSVService {
         for (Row row : sheet) {
             if (row.getRowNum() == 0) continue;
 
-            parseAndSave(row, 0, 1, 2, SubRestaurant.MANKWON);
-            parseAndSave(row, 3, 4, 5, SubRestaurant.SYONG);
-            parseAndSave(row, 6, 7, 8, SubRestaurant.BURGER_TACO);
-            parseAndSave(row, 9, 10,11, SubRestaurant.WIDELGA);
-            parseAndSave(row, 12, 13,14, SubRestaurant.SINMEOI);
+            parseAndSave(row, 0, 1, 2, SubRestaurant.MANKWON, 3);
+            parseAndSave(row, 4, 5, 6, SubRestaurant.SYONG, 7);
+            parseAndSave(row, 8, 9, 10, SubRestaurant.BURGER_TACO, 11);
+            parseAndSave(row, 12, 13,14, SubRestaurant.WIDELGA, 15);
+            parseAndSave(row, 16, 17,18, SubRestaurant.SINMEOI, 19);
         }
     }
 
-    private void parseAndSave(Row row, int nameCol, int priceCol, int englishNameCol,SubRestaurant subRestaurant) {
+    private void parseAndSave(Row row, int nameCol, int priceCol, int englishNameCol,
+                              SubRestaurant subRestaurant, int categoryCol) {
         Cell nameCell = row.getCell(nameCol);
         Cell priceCell = row.getCell(priceCol);
         Cell englishNameCell = row.getCell(englishNameCol);
+        Cell categoryCell = row.getCell(categoryCol);
 
         if (nameCell == null || priceCell == null) return;
         if (nameCell.getCellType() == CellType.BLANK) return;
@@ -172,15 +175,25 @@ public class CSVService {
         String name = nameCell.getStringCellValue();
         Long price = parsePrice(priceCell);
         String englishName = englishNameCell.getStringCellValue();
+        String categoryName = categoryCell.getStringCellValue();
+
+        KyongsulCategory category = KyongsulCategory.fromKorean(categoryName);
 
         Optional<KyongsulFood> exist = kyongsulFoodRepository.findByNameAndSubRestaurant(name, subRestaurant);
-        if (exist.isPresent()) return;
+
+        if (exist.isPresent()) {
+            KyongsulFood existingFood = exist.get();
+            existingFood.updateCategory(category, category.getKoreanName());
+            return;
+        }
 
         KyongsulFood food = KyongsulFood.builder()
                 .name(name)
                 .nameEn(englishName)
                 .price(price)
                 .subRestaurant(subRestaurant)
+                .category(category)
+                .categoryKorean(category.getKoreanName())
                 .build();
 
         kyongsulFoodRepository.save(food);

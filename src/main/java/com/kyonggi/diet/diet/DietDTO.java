@@ -1,6 +1,6 @@
 package com.kyonggi.diet.diet;
 
-import com.kyonggi.diet.dietFood.DietFoodDTO;
+import com.kyonggi.diet.Food.DTO.DietFoodDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

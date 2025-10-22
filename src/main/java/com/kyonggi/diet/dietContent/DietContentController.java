@@ -1,14 +1,9 @@
 package com.kyonggi.diet.dietContent;
 
 import com.kyonggi.diet.controllerDocs.DietContentControllerDocs;
-import com.kyonggi.diet.dietContent.DTO.CreateNewDietForm;
 import com.kyonggi.diet.dietContent.DTO.DietContentDTO;
 import com.kyonggi.diet.dietContent.DTO.SingleDayDietResponse;
 import com.kyonggi.diet.dietContent.service.DietContentService;
-import com.kyonggi.diet.diet.DietDTO;
-import com.kyonggi.diet.dietFood.DietFoodDTO;
-import com.kyonggi.diet.dietFood.service.DietFoodService;
-import com.kyonggi.diet.dietFood.DietFoodType;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.temporal.TemporalAdjusters;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

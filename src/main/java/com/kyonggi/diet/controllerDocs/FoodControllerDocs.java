@@ -1,0 +1,58 @@
+package com.kyonggi.diet.controllerDocs;
+
+import com.kyonggi.diet.Food.eumer.RestaurantType;
+import com.kyonggi.diet.Food.eumer.SubRestaurant;
+import com.kyonggi.diet.review.DTO.FoodNamesDTO;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.ResponseEntity;
+
+@Tag(name = "음식 API", description = "경슐랭 / 기숙사 식당 음식 통합 API (조회, 생성, 삭제, 수정)")
+public interface FoodControllerDocs {
+
+    // ---------------------- 전체 음식 조회 ----------------------
+    @Operation(
+            summary = "전체 음식 조회",
+            description = "RestaurantType 파라미터에 따라 해당 식당의 전체 음식을 조회합니다."
+    )
+    ResponseEntity<?> findAll(
+            @Parameter(name = "type", description = "식당 종류", in = ParameterIn.PATH)
+            RestaurantType type
+    );
+
+    // ---------------------- 특정 ID 음식 조회 ----------------------
+    @Operation(
+            summary = "특정 ID 음식 조회",
+            description = "RestaurantType 파라미터에 따라 해당 식당의 특정 음식 ID를 조회합니다."
+    )
+    ResponseEntity<?> findById(
+            @Parameter(name = "type", description = "식당 종류", in = ParameterIn.PATH)
+            RestaurantType type,
+            @Parameter(name = "id", description = "음식 ID", in = ParameterIn.PATH)
+            Long id
+    );
+
+    // ---------------------- 서브 식당별 경슐랭 음식 조회 ----------------------
+    @Operation(
+            summary = "서브 식당별 경슐랭 음식 조회(경슐랭)",
+            description = "SubRestaurant 값으로 해당 경슐랭 식당 음식 목록을 조회합니다."
+    )
+    ResponseEntity<?> findBySubRestaurant(
+            @Parameter(name = "subRestaurant", description = "서브 식당 이름", in = ParameterIn.PATH)
+            SubRestaurant subRestaurant
+    );
+
+    // ---------------------- 음식 이름 조회 ----------------------
+    @Operation(
+            summary = "음식 이름 조회(한국어 / 영어)",
+            description = "음식 ID를 통해 한국어 / 영어 이름을 조회합니다."
+    )
+    ResponseEntity<?> getNamesByFoodId(
+            @Parameter(name = "type", description = "식당 종류", in = ParameterIn.PATH)
+            RestaurantType type,
+            @Parameter(name = "id", description = "음식 ID", in = ParameterIn.PATH)
+            Long id
+    );
+}

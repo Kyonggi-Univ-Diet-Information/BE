@@ -1,15 +1,9 @@
 package com.kyonggi.diet.member.service.impl;
 
 import com.kyonggi.diet.member.DTO.MemberDTO;
-import com.kyonggi.diet.member.DTO.MyPageDTO;
 import com.kyonggi.diet.member.MemberEntity;
 import com.kyonggi.diet.member.MemberRepository;
 import com.kyonggi.diet.member.service.MemberService;
-import com.kyonggi.diet.review.DTO.ReviewDTO;
-import com.kyonggi.diet.review.favoriteReview.repository.FavoriteDietFoodReviewRepository;
-import com.kyonggi.diet.review.favoriteReview.repository.FavoriteKyongsulFoodReviewRepository;
-import com.kyonggi.diet.review.service.DietFoodReviewService;
-import com.kyonggi.diet.review.service.KyongsulFoodReviewService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

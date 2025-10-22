@@ -59,8 +59,10 @@ kakao:
 
 springdoc:
   swagger-ui:
+    doc-expansion: none
     try-it-out-enabled: true
     disable-swagger-default-url: true
+    filter: true
     urls:
       #- url : http://localhost:8080/v3/api-docs # dev
       - url: https://api.kiryong.kr/v3/api-docs   # ✅ HTTPS 강제

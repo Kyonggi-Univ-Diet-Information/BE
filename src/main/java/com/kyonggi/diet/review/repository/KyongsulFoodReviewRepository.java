@@ -1,7 +1,6 @@
 package com.kyonggi.diet.review.repository;
 
 import com.kyonggi.diet.member.MemberEntity;
-import com.kyonggi.diet.review.domain.DietFoodReview;
 import com.kyonggi.diet.review.domain.KyongsulFoodReview;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -13,6 +12,9 @@ import java.util.List;
 import java.util.Optional;
 
 public interface KyongsulFoodReviewRepository extends JpaRepository<KyongsulFoodReview, Long> {
+    @Query("select r from KyongsulFoodReview r where r.kyongsulFood.id = :id")
+    List<KyongsulFoodReview> findListById(@Param("id") Long foodId);
+
     @Query("select avg(r.rating) from KyongsulFoodReview r where r.kyongsulFood.id = :id")
     Double findAverageRatingByKyongsulFoodId(@Param("id") Long id);
 
@@ -34,7 +36,7 @@ public interface KyongsulFoodReviewRepository extends JpaRepository<KyongsulFood
         JOIN r.kyongsulFood f
         ORDER BY r.createdAt DESC
     """)
-    List<Object[]> find5DKyongsulFoodReviewsRecent(Pageable pageable);
+    List<Object[]> find5KyongsulFoodReviewsRecent(Pageable pageable);
 
     List<KyongsulFoodReview> findAllByMember(MemberEntity member);
 }

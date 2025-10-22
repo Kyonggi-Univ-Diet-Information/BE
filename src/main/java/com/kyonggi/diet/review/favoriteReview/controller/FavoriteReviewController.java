@@ -96,7 +96,7 @@ public class FavoriteReviewController implements FavoriteReviewControllerDocs {
         } catch (Exception e) {
             log.error("Error creating favorite", e);
             return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
-                    .body("요청은 유효하지만 처리 중 문제가 발생했습니다.");
+                    .body("요청은 유효하지만 처리 중 문제가 발생했습니다." + e.getMessage());
         }
     }
 

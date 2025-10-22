@@ -60,7 +60,7 @@ public class FavoriteDietFoodReviewService
                         .build();
                 favoriteDietFoodReviewRepository.save(review);
             } catch (Exception e) {
-                throw new RuntimeException("관심 음식 리뷰 생성 실패", e);
+                throw new RuntimeException("관심 음식 리뷰 생성 실패. " + e.getMessage(), e);
             }
         } else {
             throw new IllegalStateException("이미 좋아요를 한 상태입니다");
@@ -112,22 +112,19 @@ public class FavoriteDietFoodReviewService
      */
     @Override
     public List<FavoriteDietFoodReviewDTO> findFavoriteReviewListByMember(String email) {
-        try {
-            MemberEntity member = Objects.requireNonNull(memberService).getMemberByEmail(email);
-            List<FavoriteDietFoodReview> reviews = favoriteDietFoodReviewRepository.findFavoriteDietFoodReviewListByMember(member);
-            if (reviews.isEmpty()) throw new NoSuchElementException("No Favorite DietFood Reviews found for member with email: " + email);
 
-            return reviews.stream()
-                    .map(review -> {
-                        FavoriteDietFoodReviewDTO dto = Objects.requireNonNull(modelMapper).map(review, FavoriteDietFoodReviewDTO.class);
-                        dto.setMemberDTO(mapToMemberDTO(member));
-                        dto.setDietFoodReviewId(review.getDietFoodReview().getId());
-                        return dto;
-                    }).collect(Collectors.toList());
-        } catch (Exception e) {
-            log.error("Failed to find favorite diet food reviews by member. Email: {}", email, e);
-            throw new RuntimeException("Failed to find favorite diet food reviews by member.", e);
-        }
+        MemberEntity member = Objects.requireNonNull(memberService).getMemberByEmail(email);
+        List<FavoriteDietFoodReview> reviews = favoriteDietFoodReviewRepository.findFavoriteDietFoodReviewListByMember(member);
+        if (reviews.isEmpty())
+            return new ArrayList<>();
+
+        return reviews.stream()
+                .map(review -> {
+                    FavoriteDietFoodReviewDTO dto = Objects.requireNonNull(modelMapper).map(review, FavoriteDietFoodReviewDTO.class);
+                    dto.setMemberDTO(mapToMemberDTO(member));
+                    dto.setDietFoodReviewId(review.getDietFoodReview().getId());
+                    return dto;
+                }).collect(Collectors.toList());
     }
 
     /** 멤버가 해당 리뷰에 이미 좋아요 눌렀는지 확인 */

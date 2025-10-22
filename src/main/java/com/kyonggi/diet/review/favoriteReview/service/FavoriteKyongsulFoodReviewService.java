@@ -95,22 +95,18 @@ public class FavoriteKyongsulFoodReviewService
     /** 멤버별 관심 리뷰 리스트 조회 */
     @Override
     public List<FavoriteKyongsulFoodReviewDTO> findFavoriteReviewListByMember(String email) {
-        try {
-            MemberEntity member = Objects.requireNonNull(memberService).getMemberByEmail(email);
-            List<FavoriteKyongsulFoodReview> reviews = favoriteKyongsulFoodReviewRepository.findFavoriteKyongsulFoodReviewListByMember(member);
-            if (reviews.isEmpty()) throw new NoSuchElementException("No Favorite Kyongsul Reviews found for member: " + email);
+        MemberEntity member = Objects.requireNonNull(memberService).getMemberByEmail(email);
+        List<FavoriteKyongsulFoodReview> reviews = favoriteKyongsulFoodReviewRepository.findFavoriteKyongsulFoodReviewListByMember(member);
+        if (reviews.isEmpty())
+            return new ArrayList<>();
 
-            return reviews.stream()
-                    .map(review -> {
-                        FavoriteKyongsulFoodReviewDTO dto = Objects.requireNonNull(modelMapper).map(review, FavoriteKyongsulFoodReviewDTO.class);
-                        dto.setMemberDTO(mapToMemberDTO(member));
-                        dto.setKyongsulFoodReviewId(review.getKyongsulFoodReview().getId());
-                        return dto;
-                    }).collect(Collectors.toList());
-        } catch (Exception e) {
-            log.error("Failed to find favorite Kyongsul reviews by member. Email: {}", email, e);
-            throw new RuntimeException("Failed to find favorite Kyongsul reviews by member.", e);
-        }
+        return reviews.stream()
+                .map(review -> {
+                    FavoriteKyongsulFoodReviewDTO dto = Objects.requireNonNull(modelMapper).map(review, FavoriteKyongsulFoodReviewDTO.class);
+                    dto.setMemberDTO(mapToMemberDTO(member));
+                    dto.setKyongsulFoodReviewId(review.getKyongsulFoodReview().getId());
+                    return dto;
+                }).collect(Collectors.toList());
     }
 
     /** 좋아요 유효성 검사 */

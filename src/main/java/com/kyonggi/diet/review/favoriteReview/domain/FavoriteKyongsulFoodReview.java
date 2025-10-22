@@ -19,6 +19,6 @@ public class FavoriteKyongsulFoodReview extends FavoriteReview{
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnore
-    @JoinColumn(name = "diet_food_review_id")
+    @JoinColumn(name = "kyongsul_food_review_id")
     private KyongsulFoodReview kyongsulFoodReview;
 }

@@ -1,11 +1,7 @@
 package com.kyonggi.diet.review.repository;
 
 import com.kyonggi.diet.member.MemberEntity;
-import com.kyonggi.diet.restaurant.Restaurant;
-import com.kyonggi.diet.restaurant.RestaurantType;
-import com.kyonggi.diet.review.DTO.FoodNamesDTO;
 import com.kyonggi.diet.review.domain.DietFoodReview;
-import com.kyonggi.diet.review.domain.RestaurantReview;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,7 +9,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface DietFoodReviewRepository extends JpaRepository<DietFoodReview, Long> {
     @Query("select r from DietFoodReview r where r.dietFood.id = :id")

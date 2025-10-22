@@ -14,6 +14,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.servlet.util.matcher.MvcRequestMatcher;
+import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 
 @Configuration
 public class WebSecurityConfig {
@@ -22,24 +24,37 @@ public class WebSecurityConfig {
     private CustomMembersDetailService customMembersDetailService;
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity httpSecurity, HandlerMappingIntrospector introspector) throws Exception {
         return httpSecurity.csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(new MvcRequestMatcher(introspector, "/api/review/favorite/{type}/{id}")).permitAll()
                         //.requestMatchers("swagger-ui/**", "/v3/api-docs/**").denyAll()
-                        .requestMatchers("api/login", "api/register", "api/diet-content/dormitory", "/api/kakao-form",
-                                "/api/kakao-login/**" , "/health", "/", "/api/read-csv/*", "/api/review/diet-food/*",
-                                "/api/review/restaurant/*", "/api/review/diet-food/all/*", "/api/review/diet-food/average/*",
-                                "/api/review/favorite/diet-food/count/*","swagger-ui/**", "/v3/api-docs/**",
-                                "/api/review/diet-food", "/api/review/diet-food/all/paged/**",
-                                "/api/dietFood/kyongsul/*","/api/dietFood/kyongsul/restaurant/*",
-                                "/api/review/kyongsul-food/one/*", "/api/review/kyongsul-food/paged/*",
-                                "/api/review/kyongsul-food/average-rating/*", "/api/review/favorite/kyongsul-food/*",
-                                "/api/review/favorite/kyongsul-food/count/*", "/api/review/diet-food/rating-count/*",
-                                "/api/dietFood/get-names/*", "/api/dietFood/kyongsul/get-names/*",
-                                "/api/review/diet-food/count/*", "/api/review/kyongsul-food/count/*",
-                                "/api/review/*/reviews/recent", "/api/review/favorite/*/reviews/best5",
-                                "/api/diet-content/dormitory/dow/*",
-                                "/api/review/kyongsul-food/rating-count/*", "/actuator/health").permitAll().anyRequest().authenticated())
+                        .requestMatchers(
+                                // Basic API
+                                "/health", "/", "/actuator/health",
+
+                                // Auth API
+                                "/api/login", "api/register", "/api/kakao-form",
+                                "/api/kakao-login/**",
+
+                                // Swagger API
+                                "swagger-ui/**", "/v3/api-docs/**",
+
+                                // Food API
+                                "/api/food/*/*", "/api/food/kyongsul/restaurant/*", "api/food/*/get-names/*",
+                                "/api/read-csv/*",
+
+                                // Review API
+                                "/api/review/*/reviews/top5-rating","/api/review/*/reviews/top5-recent",
+                                "/api/review/*/count/*","/api/review/*/rating-count/*",
+                                "/api/review/*/average/*","/api/review/*/one/*", "/api/review/*/paged/*",
+                                "/api/review/*/all/*",
+                                "/api/review/favorite/*/count/*",
+
+                                // Diet Content API
+                                "/api/diet-content/dormitory/dow/*", "api/diet-content/dormitory"
+
+                                 ).permitAll().anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class)
                 .httpBasic(Customizer.withDefaults())

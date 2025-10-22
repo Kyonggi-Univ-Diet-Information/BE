@@ -1,132 +1,159 @@
 package com.kyonggi.diet.review.service;
 
-import com.kyonggi.diet.dietFood.DietFood;
+import com.kyonggi.diet.Food.domain.DietFood;
+import com.kyonggi.diet.Food.eumer.RestaurantType;
+import com.kyonggi.diet.Food.repository.DietFoodRepository;
 import com.kyonggi.diet.member.MemberEntity;
-import com.kyonggi.diet.restaurant.RestaurantType;
+import com.kyonggi.diet.member.service.MemberService;
+import com.kyonggi.diet.review.DTO.CreateReviewDTO;
 import com.kyonggi.diet.review.DTO.ForTopReviewDTO;
 import com.kyonggi.diet.review.DTO.ReviewDTO;
 import com.kyonggi.diet.review.domain.DietFoodReview;
-import jakarta.persistence.EntityNotFoundException;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import com.kyonggi.diet.review.domain.KyongsulFoodReview;
+import com.kyonggi.diet.review.favoriteReview.domain.FavoriteDietFoodReview;
+import com.kyonggi.diet.review.favoriteReview.repository.FavoriteDietFoodReviewRepository;
+import com.kyonggi.diet.review.repository.DietFoodReviewRepository;
+import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.*;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
+import java.util.*;
 
-public interface DietFoodReviewService {
+@Service
+@Transactional(readOnly = true)
+public class DietFoodReviewService extends AbstractReviewService<DietFoodReview, Long> implements ReviewService {
 
-    /**
-     * 음식 리뷰 생성 메서드
-     *
-     * @param reviewDTO  (ReviewDTO)
-     * @param dietFoodId (Long)
-     * @param email      (String)
-     */
-    public void createDietFoodReview(ReviewDTO reviewDTO, Long dietFoodId, String email);
+    private final DietFoodReviewRepository dietFoodReviewRepository;
+    private final FavoriteDietFoodReviewRepository favoriteDietFoodReviewRepository;
+    private final DietFoodRepository dietFoodRepository;
 
-    /**
-     * 음식 Review 엔티티 조회
-     *
-     * @param id (Long)
-     * @return DietFoodReview
-     */
-    public DietFoodReview findOne(Long id);
+    public DietFoodReviewService(
+            MemberService memberService,
+            ModelMapper modelMapper,
+            DietFoodReviewRepository dietFoodReviewRepository,
+            FavoriteDietFoodReviewRepository favoriteDietFoodReviewRepository,
+            DietFoodRepository dietFoodRepository
+    ) {
+        super(memberService, modelMapper); // 상위 클래스 주입
+        this.dietFoodReviewRepository = dietFoodReviewRepository;
+        this.favoriteDietFoodReviewRepository = favoriteDietFoodReviewRepository;
+        this.dietFoodRepository = dietFoodRepository;
+    }
 
-    /**
-     * 음식 저장 메서드
-     *
-     * @param dietFoodReview (DietFoodReview)
-     * @return id (Long)
-     */
-    public Long saveReview(DietFoodReview dietFoodReview);
+    @Override
+    public RestaurantType getRestaurantType() {
+        return RestaurantType.DORMITORY;
+    }
 
-    /**
-     * 음식 Review DTO 조회
-     *
-     * @param id (Long)
-     * @return ReviewDTO
-     */
-    public ReviewDTO findReview(Long id);
+    @Override
+    protected JpaRepository<DietFoodReview, Long> getRepository() {
+        return dietFoodReviewRepository;
+    }
 
-    /**
-     * 음식 Review DTO 리스트 조회
-     *
-     * @return List<ReviewDTO>
-     */
-    public List<ReviewDTO> findAllReview();
+    @Override
+    protected List<DietFoodReview> findAllReviewsByMember(MemberEntity member) {
+        return dietFoodReviewRepository.findAllByMember(member);
+    }
 
-    /**
-     * 페이징된 ReviewDTO 조회
-     * @param pageNo (int)
-     * @return Page<ReviewDTO>
-     */
-    public Page<ReviewDTO> getAllReviewsByFoodIdPaged(Long foodId, int pageNo);
+    /** 즐겨찾기 리뷰 추출 (상위에서 자동 DTO 변환 처리됨) */
+    @Override
+    protected List<DietFoodReview> extractFavoritedReviews(MemberEntity member) {
+        return favoriteDietFoodReviewRepository.findAllByMember(member).stream()
+                .map(FavoriteDietFoodReview::getDietFoodReview)
+                .filter(Objects::nonNull)
+                .toList();
+    }
 
-    /**
-     * 해당 음식에 대한 각 리뷰 rating 카운팅 개수 리턴  메서드
-     * @param foodId (Long)
-     * @return Map<Integer, Long>
-     */
-    public Map<Integer, Long> getCountEachRating(Long foodId);
+    @Override
+    @Transactional
+    public void createReview(ReviewDTO dto, Long foodId, String email) {
+        DietFood dietFood = dietFoodRepository.findById(foodId)
+                .orElseThrow(() -> new NoSuchElementException("No found Diet food"));
+        MemberEntity member = Objects.requireNonNull(memberService).getMemberByEmail(email);
 
-    /**
-     * 음식 리뷰 수정 메서드
-     *
-     * @param reviewId  (Long)
-     * @param reviewDTO (ReviewDTO)
-     */
-    public void modifyReview(Long reviewId, ReviewDTO reviewDTO);
+        DietFoodReview review = DietFoodReview.builder()
+                .title(dto.getTitle())
+                .content(dto.getContent())
+                .rating(dto.getRating())
+                .dietFood(dietFood)
+                .member(member)
+                .build();
 
-    /**
-     * 음식 리뷰 삭제 메서드
-     *
-     * @param id (Long)
-     */
-    public void deleteReview(Long id);
+        dietFoodReviewRepository.save(review);
+        dietFood.getDietFoodReviews().add(review);
+    }
 
-    /**
-     * 리뷰 작성자가 멤버가 맞는 지 확인
-     *
-     * @param reviewId (Long)
-     * @param email    (String)
-     * @return boolean
-     */
-    boolean verifyMember(Long reviewId, String email);
+    @Override
+    public ReviewDTO findReviewDTO(Long id) {
+        DietFoodReview review = dietFoodReviewRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Review not found: " + id));
+        return super.mapToReviewDTO(review);
+    }
 
-    /**
-     * 음식 id를 통해 리뷰 리스트 구하기
-     * @param dietFoodId (Long)
-     * @return List<ReviewDTO>
-     */
-    public List<ReviewDTO> findListById(Long dietFoodId);
+    @Override
+    public Page<ReviewDTO> getAllReviewsByFoodIdPaged(Long foodId, int pageNo) {
+        Pageable pageable = PageRequest.of(pageNo, 10, Sort.by(Sort.Direction.DESC, "id"));
+        Page<DietFoodReview> reviews = dietFoodReviewRepository.findAllByDietFoodId(foodId, pageable);
+        return super.toPagedDTO(reviews, pageNo);
+    }
 
-    /**
-     * 해당 음식 리뷰에 대한 평점 구하기
-     * @param dietFoodId (Long)
-     * @return Double
-     */
-    Double findAverageRatingByDietFoodId(Long dietFoodId);
+    @Override
+    @Transactional
+    public void modifyReview(Long reviewId, CreateReviewDTO dto) {
+        DietFoodReview review = dietFoodReviewRepository.findById(reviewId)
+                .orElseThrow(() -> new NoSuchElementException("No review found"));
+        review.updateReview(dto.getRating(), dto.getTitle(), dto.getContent());
+    }
 
-    /**
-     * 기숙사 음식 각 음식에 대한 리뷰 카운팅
-     * @param id (Long)
-     */
-    int findDietFoodReviewCount(Long id);
+    @Override
+    @Transactional
+    public void deleteReview(Long reviewId) {
+        dietFoodReviewRepository.deleteById(reviewId);
+    }
 
-    /**
-     * 기숙사 음식 리뷰 중 최신순 TOP 5 조회
-     */
-    List<ForTopReviewDTO> find5DietFoodReviewsRecent();
+    @Override
+    public boolean verifyMember(Long reviewId, String email) {
+        MemberEntity member = Objects.requireNonNull(memberService).getMemberByEmail(email);
+        DietFoodReview review = dietFoodReviewRepository.findById(reviewId)
+                .orElseThrow(() -> new NoSuchElementException("No review found"));
+        return member.getId().equals(review.getMember().getId());
+    }
 
-    /**
-     * 멤버별 리뷰들 조회
-     */
-    List<ReviewDTO> findAllByMember(MemberEntity member);
+    @Override
+    public Double getAverageRating(Long foodId) {
+        return super.calculateAverage(dietFoodReviewRepository.findAverageRatingByDietFoodId(foodId));
+    }
 
-    /**
-     * 멤버별 좋아요 누른 리뷰 목록 조회
-     */
-    List<ReviewDTO> findAllByMemberFavorited(MemberEntity member);
+    @Override
+    public Map<Integer, Long> getCountEachRating(Long foodId) {
+        return super.mergeRatingCounts(dietFoodReviewRepository.findRatingCountByDietFoodId(foodId));
+    }
+
+    @Override
+    public int getReviewCount(Long foodId) {
+        return dietFoodReviewRepository.getDietFoodReviewCount(foodId);
+    }
+
+    @Override
+    public List<ForTopReviewDTO> getRecentTop5() {
+        return super.mapTopReviewResults(dietFoodReviewRepository.find5DietFoodReviewsRecent(PageRequest.of(0, 5)));
+    }
+
+    @Override
+    public List<ForTopReviewDTO> getTop5ByRating() {
+        return super.mapTopReviewResults(favoriteDietFoodReviewRepository.findTop5DietByMostFavorited(PageRequest.of(0, 5)));
+    }
+
+    @Override
+    public Long extractId(DietFoodReview review) {
+        return review.getId();
+    }
+
+    @Override
+    public List<ReviewDTO> getAllReviews(Long id) {
+        List<DietFoodReview> all = dietFoodReviewRepository.findListById(id);
+        return all.stream().map(super::mapToReviewDTO).toList();
+    }
 }

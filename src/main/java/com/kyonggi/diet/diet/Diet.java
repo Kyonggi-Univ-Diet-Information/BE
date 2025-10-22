@@ -2,7 +2,7 @@ package com.kyonggi.diet.diet;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.kyonggi.diet.dietContent.DietContent;
-import com.kyonggi.diet.dietFood.DietFood;
+import com.kyonggi.diet.Food.domain.DietFood;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

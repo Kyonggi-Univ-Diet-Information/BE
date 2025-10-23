@@ -1,8 +1,12 @@
 package com.kyonggi.diet.Food.service;
 
 import com.amazonaws.services.kms.model.NotFoundException;
+import com.kyonggi.diet.Food.DTO.ESquareFoodDTO;
+import com.kyonggi.diet.Food.domain.ESquareFood;
 import com.kyonggi.diet.Food.domain.KyongsulFood;
 import com.kyonggi.diet.Food.DTO.KyongsulFoodDTO;
+import com.kyonggi.diet.Food.eumer.ESquareCategory;
+import com.kyonggi.diet.Food.eumer.KyongsulCategory;
 import com.kyonggi.diet.Food.repository.KyongsulFoodRepository;
 import com.kyonggi.diet.Food.eumer.SubRestaurant;
 import com.kyonggi.diet.review.DTO.FoodNamesDTO;
@@ -11,7 +15,9 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
@@ -107,5 +113,44 @@ public class KyongsulFoodService extends AbstractFoodService<KyongsulFood, Kyong
     @Override
     public boolean existsByName(String name) {
         return kyongsulFoodRepository.findByName(name).isPresent();
+    }
+
+    /**
+     * 경슐랭 카테고리별 음식 출력
+     */
+    public Map<SubRestaurant, Map<KyongsulCategory, List<KyongsulFoodDTO>>> findFoodByCategory() {
+        List<KyongsulFood> foods = kyongsulFoodRepository.findAll();
+        if (foods.isEmpty()) {
+            throw new NotFoundException("경슐랭 음식 목록이 비어있습니다.");
+        }
+
+        Map<SubRestaurant, List<KyongsulFood>> bySubRestaurant =
+                foods.stream().collect(Collectors.groupingBy(KyongsulFood::getSubRestaurant));
+
+        Map<SubRestaurant, Map<KyongsulCategory, List<KyongsulFoodDTO>>> result = new LinkedHashMap<>();
+
+        for (SubRestaurant sub : SubRestaurant.values()) {
+            List<KyongsulFood> restaurantFoods = bySubRestaurant.getOrDefault(sub, List.of());
+
+            Map<KyongsulCategory, List<KyongsulFoodDTO>> byCategory = restaurantFoods.stream()
+                    .collect(Collectors.groupingBy(
+                            KyongsulFood::getCategory,
+                            Collectors.mapping(food -> super.mapToDto(food, KyongsulFoodDTO.class), Collectors.toList())
+                    ));
+
+            Map<KyongsulCategory, List<KyongsulFoodDTO>> filteredCategoryMap = byCategory.entrySet().stream()
+                    .filter(entry -> !entry.getValue().isEmpty())
+                    .collect(Collectors.toMap(
+                            Map.Entry::getKey,
+                            Map.Entry::getValue,
+                            (a, b) -> a,
+                            LinkedHashMap::new
+                    ));
+
+            if (!filteredCategoryMap.isEmpty()) {
+                result.put(sub, filteredCategoryMap);
+            }
+        }
+        return result;
     }
 }

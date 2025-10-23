@@ -4,6 +4,7 @@ import com.amazonaws.services.kms.model.NotFoundException;
 import com.kyonggi.diet.Food.eumer.RestaurantType;
 import com.kyonggi.diet.Food.eumer.SubRestaurant;
 import com.kyonggi.diet.Food.service.DietFoodService;
+import com.kyonggi.diet.Food.service.ESquareFoodService;
 import com.kyonggi.diet.Food.service.KyongsulFoodService;
 import com.kyonggi.diet.controllerDocs.FoodControllerDocs;
 import com.kyonggi.diet.review.DTO.FoodNamesDTO;
@@ -13,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
 import java.util.NoSuchElementException;
 
 @RestController
@@ -23,6 +25,7 @@ public class FoodController implements FoodControllerDocs {
 
     private final KyongsulFoodService kyongsulFoodService;
     private final DietFoodService dietFoodService;
+    private final ESquareFoodService esquareFoodService;
 
     /**
      * 전체 음식 조회
@@ -34,6 +37,7 @@ public class FoodController implements FoodControllerDocs {
             return switch (type) {
                 case KYONGSUL -> ResponseEntity.ok(kyongsulFoodService.findAll());
                 case DORMITORY -> ResponseEntity.ok(dietFoodService.findAll());
+                case E_SQUARE -> ResponseEntity.ok(esquareFoodService.findAll());
                 default -> ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body("Invalid restaurant type: " + type);
             };
@@ -54,6 +58,7 @@ public class FoodController implements FoodControllerDocs {
             return switch (type) {
                 case KYONGSUL -> ResponseEntity.ok(kyongsulFoodService.findById(id));
                 case DORMITORY -> ResponseEntity.ok(dietFoodService.findById(id));
+                case E_SQUARE -> ResponseEntity.ok(esquareFoodService.findById(id));
                 default -> ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body("Invalid restaurant type: " + type);
             };
@@ -91,11 +96,37 @@ public class FoodController implements FoodControllerDocs {
             return switch (type) {
                 case KYONGSUL -> ResponseEntity.ok(kyongsulFoodService.findNamesByFoodId(id));
                 case DORMITORY -> ResponseEntity.ok(dietFoodService.findNamesByFoodId(id));
+                case E_SQUARE -> ResponseEntity.ok(esquareFoodService.findNamesByFoodId(id));
                 default -> ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body("Invalid restaurant type: " + type);
             };
         } catch (NoSuchElementException e) {
             return ResponseEntity.ok(e.getMessage());
+        }
+    }
+
+    /**
+     * 카테고리별 음식 조회 (경슐, 이퀘)
+     */
+    @GetMapping("/{type}/each-category")
+    public ResponseEntity<?> getFoodByCategory(@PathVariable RestaurantType type) {
+        try {
+            Object result = switch (type) {
+                case KYONGSUL -> kyongsulFoodService.findFoodByCategory();
+                case E_SQUARE -> esquareFoodService.findFoodByCategory();
+                default -> null;
+            };
+
+            if (result == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                                        .body("Invalid restaurant type: " + type);
+            }
+
+            Map<String, Object> response = Map.of("result", result);
+            return ResponseEntity.ok(response);
+        } catch (NotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(e.getMessage());
         }
     }
 }

@@ -156,4 +156,22 @@ public class DietFoodReviewService extends AbstractReviewService<DietFoodReview,
         List<DietFoodReview> all = dietFoodReviewRepository.findListById(id);
         return all.stream().map(super::mapToReviewDTO).toList();
     }
+
+    @Override
+    public Page<ReviewDTO> findAllByMemberPaged(MemberEntity member, int pageNo) {
+        Pageable pageable = PageRequest.of(pageNo, 10, Sort.by(Sort.Direction.DESC, "id"));
+        Page<DietFoodReview> reviews = dietFoodReviewRepository.findAllByMember(member, pageable);
+        return super.toPagedDTO(reviews, pageNo);
+    }
+
+    @Override
+    public Page<ReviewDTO> findAllByMemberFavoritedPaged(MemberEntity member, int pageNo) {
+        Pageable pageable = PageRequest.of(pageNo, 10, Sort.by(Sort.Direction.DESC, "id"));
+        Page<FavoriteDietFoodReview> favorites =
+                favoriteDietFoodReviewRepository.findAllByMember(member, pageable);
+
+        Page<DietFoodReview> reviews = favorites.map(FavoriteDietFoodReview::getDietFoodReview);
+        return super.toPagedDTO(reviews, pageNo);
+    }
+
 }

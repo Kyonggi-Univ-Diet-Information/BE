@@ -47,6 +47,7 @@ cloud:
       bucketName:
         diet: ${BUCKET_NAME}
         kyongsul: ${KYONGSUL_BUCKET_NAME}
+        eSquare: ${E_SQUARE_BUCKET_NAME}
     credentials:
       accessKey: ${ACCESS_KEY}
       secretKey: ${SECRET_KEY}

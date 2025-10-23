@@ -8,8 +8,10 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 
-@Tag(name = "음식 API", description = "경슐랭 / 기숙사 식당 음식 통합 API (조회, 생성, 삭제, 수정)")
+@Tag(name = "음식 API", description = "경슐랭 / 기숙사 식당 / E-스퀘어 음식 통합 API (조회, 생성, 삭제, 수정)")
 public interface FoodControllerDocs {
 
     // ---------------------- 전체 음식 조회 ----------------------
@@ -55,4 +57,24 @@ public interface FoodControllerDocs {
             @Parameter(name = "id", description = "음식 ID", in = ParameterIn.PATH)
             Long id
     );
+
+    //----------------------- 카테코리별 조회----------------------
+    /**
+     * 카테고리별 음식 조회 (경슐, 이퀘)
+     */
+    @Operation(
+        summary = "카테고리별 음식 조회(경슐, 이퀘)",
+        description = """
+            경슐랭(KYONGSUL) 또는 이스퀘어(E_SQUARE)의 전체 음식 목록을
+            카테고리별로 묶어서 반환합니다.<br>
+            - KYONGSUL: SubRestaurant → KyongsulCategory → 음식 리스트<br>
+            - E_SQUARE: ESquareCategory → 음식 리스트<br><br>
+            """
+    )
+    ResponseEntity<?> getFoodByCategory(@Parameter(
+            name = "type",
+            description = "식당 타입 (KYONGSUL: 경슐랭 / E_SQUARE: 이스퀘어)",
+            required = true ,in = ParameterIn.PATH
+        ) RestaurantType type);
+
 }

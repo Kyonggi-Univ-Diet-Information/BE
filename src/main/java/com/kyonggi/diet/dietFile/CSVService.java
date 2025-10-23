@@ -2,7 +2,10 @@ package com.kyonggi.diet.dietFile;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.S3Object;
+import com.kyonggi.diet.Food.domain.ESquareFood;
+import com.kyonggi.diet.Food.eumer.ESquareCategory;
 import com.kyonggi.diet.Food.eumer.KyongsulCategory;
+import com.kyonggi.diet.Food.repository.ESquareFoodRepository;
 import com.kyonggi.diet.Food.service.DietFoodService;
 import com.kyonggi.diet.diet.DietDTO;
 import com.kyonggi.diet.dietContent.DTO.DietContentDTO;
@@ -41,11 +44,15 @@ public class CSVService {
     @Value("${cloud.aws.s3.bucketName.kyongsul}")
     private String bucketNameKyongsul;
 
+    @Value("${cloud.aws.s3.bucketName.eSquare}")
+    private String bucketNameESquare;
+
     private final AmazonS3 amazonS3;
     private final DietContentService dietContentService;
     private final DietFoodService dietFoodService;
     private final KyongsulFoodRepository kyongsulFoodRepository;
     private final TranslationService translationService;
+    private final ESquareFoodRepository esquareFoodRepository;
 
     //-------------------------------기숙사------------------------------------------
     @Transactional
@@ -208,4 +215,58 @@ public class CSVService {
         }
         return 0L;
     }
+
+    //--------------------이스퀘어-----------------------
+    @Transactional
+    public void readESquareCSVFile(String key) throws IOException, CsvValidationException {
+        S3Object s3Object = amazonS3.getObject(bucketNameESquare, key);
+        InputStream inputStream = s3Object.getObjectContent();
+
+        try (CSVReader reader = new CSVReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
+            String[] nextLine;
+            reader.readNext(); // 첫 줄(헤더) 건너뛰기
+
+            while ((nextLine = reader.readNext()) != null) {
+                // 빈 행 혹은 메뉴 이름 없는 행은 스킵
+                if (nextLine.length < 4 || nextLine[0].isEmpty()) continue;
+
+                String name = nextLine[0].trim();
+                Long price = parsePrice(nextLine[1]);
+                String nameEn = nextLine[2] == null || nextLine[2].isBlank()
+                        ? translationService.translateToEnglish(name)
+                        : nextLine[2].trim();
+                String categoryStr = nextLine[3].trim().toUpperCase();
+
+                ESquareCategory category;
+                try {
+                    category = ESquareCategory.valueOf(categoryStr);
+                } catch (IllegalArgumentException e) {
+                    System.out.println("[경고] 알 수 없는 카테고리: " + categoryStr + " → 기본값 STREET로 처리");
+                    category = ESquareCategory.STREET;
+                }
+
+                // 중복 검사
+                Optional<ESquareFood> exist = esquareFoodRepository.findByName(name);
+                if (exist.isPresent()) continue;
+
+                ESquareFood food = ESquareFood.builder()
+                        .name(name)
+                        .nameEn(nameEn)
+                        .price(price)
+                        .category(category)
+                        .categoryKorean(category.getKoreanName())
+                        .build();
+
+                esquareFoodRepository.save(food);
+            }
+        }
+    }
+
+    private Long parsePrice(String priceStr) {
+        if (priceStr == null || priceStr.isBlank()) return 0L;
+        String digits = priceStr.replaceAll("[^0-9]", "");
+        if (digits.isEmpty()) return 0L;
+        return Long.parseLong(digits);
+    }
+
 }

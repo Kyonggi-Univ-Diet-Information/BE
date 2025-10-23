@@ -1,8 +1,8 @@
 package com.kyonggi.diet.review.favoriteReview.repository;
 
 import com.kyonggi.diet.member.MemberEntity;
-import com.kyonggi.diet.review.domain.DietFoodReview;
 import com.kyonggi.diet.review.favoriteReview.domain.FavoriteDietFoodReview;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -34,4 +34,6 @@ public interface FavoriteDietFoodReviewRepository extends JpaRepository<Favorite
     List<Object[]> findTop5DietByMostFavorited(Pageable pageable);
 
     List<FavoriteDietFoodReview> findAllByMember(MemberEntity member);
+
+    Page<FavoriteDietFoodReview> findAllByMember(MemberEntity member, Pageable pageable);
 }

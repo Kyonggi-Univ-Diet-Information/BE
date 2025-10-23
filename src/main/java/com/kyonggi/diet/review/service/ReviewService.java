@@ -47,4 +47,8 @@ public interface ReviewService {
     List<ReviewDTO> findAllByMemberFavorited(MemberEntity member);
 
     List<ReviewDTO> getAllReviews(Long id);
+
+    Page<ReviewDTO> findAllByMemberPaged(MemberEntity member, int pageNo);
+
+    Page<ReviewDTO> findAllByMemberFavoritedPaged(MemberEntity member, int pageNo);
 }

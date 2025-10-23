@@ -35,4 +35,6 @@ public interface DietFoodReviewRepository extends JpaRepository<DietFoodReview, 
     List<Object[]> find5DietFoodReviewsRecent(Pageable pageable);
 
     List<DietFoodReview> findAllByMember(MemberEntity member);
+
+    Page<DietFoodReview> findAllByMember(MemberEntity member, Pageable pageable);
 }

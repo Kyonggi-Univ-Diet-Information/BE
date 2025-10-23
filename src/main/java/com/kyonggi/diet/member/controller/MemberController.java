@@ -1,4 +1,4 @@
-package com.kyonggi.diet.member;
+package com.kyonggi.diet.member.controller;
 
 import com.kyonggi.diet.auth.util.JwtTokenUtil;
 import com.kyonggi.diet.controllerDocs.MemberControllerDocs;
@@ -30,8 +30,6 @@ import java.util.stream.Collectors;
 public class MemberController implements MemberControllerDocs {
 
     private final MemberService memberService;
-    private final MyPageService myPageService;
-    private final JwtTokenUtil jwtTokenUtil;
     private final ModelMapper modelMapper;
 
     /**
@@ -43,7 +41,7 @@ public class MemberController implements MemberControllerDocs {
         log.info("API GET /members called");
         List<MemberDTO> list = memberService.getAllMembers();
         log.info("List of members = {}", list);
-        return list.stream().map(this::mapToMemberReponse).collect(Collectors.toList());
+        return list.stream().map(this::mapToMemberResponse).collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
@@ -51,17 +49,7 @@ public class MemberController implements MemberControllerDocs {
         log.info("API GET /members/{} called", id);
         MemberDTO memberDTO = memberService.getMemberById(id);
         log.info("Member = {}", memberDTO);
-        return mapToMemberReponse(memberDTO);
-    }
-
-    @GetMapping("/my-page")
-    public ResponseEntity<?> getMyPage(@RequestHeader("Authorization") String token) {
-        if (token == null || !token.startsWith("Bearer ")) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authorization header is missing or malformed");
-        }
-
-        String email = jwtTokenUtil.getUsernameFromToken(token.substring(7));
-        return ResponseEntity.ok(myPageService.getMyPage(email));
+        return mapToMemberResponse(memberDTO);
     }
 
     /**
@@ -69,7 +57,7 @@ public class MemberController implements MemberControllerDocs {
      * @param memberDTO (member DTO)
      * @return MemberResponse
      */
-    private MemberResponse mapToMemberReponse(MemberDTO memberDTO) {
+    private MemberResponse mapToMemberResponse(MemberDTO memberDTO) {
         return modelMapper.map(memberDTO, MemberResponse.class);
     }
 

@@ -39,4 +39,6 @@ public interface KyongsulFoodReviewRepository extends JpaRepository<KyongsulFood
     List<Object[]> find5KyongsulFoodReviewsRecent(Pageable pageable);
 
     List<KyongsulFoodReview> findAllByMember(MemberEntity member);
+
+    Page<KyongsulFoodReview> findAllByMember(MemberEntity member, Pageable pageable);
 }

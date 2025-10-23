@@ -53,9 +53,6 @@ public class KyongsulFoodReviewService extends AbstractReviewService<KyongsulFoo
         return kyongsulFoodReviewRepository.findAllByMember(member);
     }
 
-    /**
-     * 즐겨찾기 리뷰 추출 (상위에서 자동 DTO 변환 처리됨)
-     */
     @Override
     protected List<KyongsulFoodReview> extractFavoritedReviews(MemberEntity member) {
         return favoriteKyongsulFoodReviewRepository.findAllByMember(member).stream()
@@ -159,4 +156,22 @@ public class KyongsulFoodReviewService extends AbstractReviewService<KyongsulFoo
         List<KyongsulFoodReview> all = kyongsulFoodReviewRepository.findListById(id);
         return all.stream().map(super::mapToReviewDTO).toList();
     }
+
+    @Override
+    public Page<ReviewDTO> findAllByMemberPaged(MemberEntity member, int pageNo) {
+        Pageable pageable = PageRequest.of(pageNo, 10, Sort.by(Sort.Direction.DESC, "id"));
+        Page<KyongsulFoodReview> reviews = kyongsulFoodReviewRepository.findAllByMember(member, pageable);
+        return super.toPagedDTO(reviews, pageNo);
+    }
+
+    @Override
+    public Page<ReviewDTO> findAllByMemberFavoritedPaged(MemberEntity member, int pageNo) {
+        Pageable pageable = PageRequest.of(pageNo, 10, Sort.by(Sort.Direction.DESC, "id"));
+        Page<FavoriteKyongsulFoodReview> favorites =
+                favoriteKyongsulFoodReviewRepository.findAllByMember(member, pageable);
+
+        Page<KyongsulFoodReview> reviews = favorites.map(FavoriteKyongsulFoodReview::getKyongsulFoodReview);
+        return super.toPagedDTO(reviews, pageNo);
+    }
+
 }

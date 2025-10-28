@@ -1,38 +1,29 @@
 package com.kyonggi.diet.review.favoriteReview.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.kyonggi.diet.member.MemberEntity;
+import com.kyonggi.diet.review.domain.SallyBoxFoodReview;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
-import java.sql.Timestamp;
-
-@MappedSuperclass
+@Entity
 @Getter
 @SuperBuilder
-@NoArgsConstructor
+@Table
+@NoArgsConstructor(access = AccessLevel.PROTECTED, force = true)
 @AllArgsConstructor
-public abstract class FavoriteReview {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
+public class FavoriteSallyBoxFoodReview extends FavoriteReview {
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnore
     @JoinColumn(
-            name = "member_id",
-            foreignKey = @ForeignKey(name = "fk_favorite_review_member")
+            name = "sally_box_food_review_id",
+            foreignKey = @ForeignKey(name = "fk_favorite_sally_box_food_review")
     )
     @OnDelete(action = OnDeleteAction.CASCADE)
-    private MemberEntity member;
-
-    @CreationTimestamp
-    private Timestamp createdAt;
+    private SallyBoxFoodReview sallyBoxFoodReview;
 }

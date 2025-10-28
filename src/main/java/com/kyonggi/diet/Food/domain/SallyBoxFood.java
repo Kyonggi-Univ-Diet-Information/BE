@@ -1,10 +1,7 @@
 package com.kyonggi.diet.Food.domain;
 
-import com.kyonggi.diet.Food.eumer.ESquareCategory;
-import com.kyonggi.diet.Food.eumer.KyongsulCategory;
-import com.kyonggi.diet.Food.eumer.SubRestaurant;
-import com.kyonggi.diet.review.domain.ESquareFoodReview;
-import com.kyonggi.diet.review.domain.KyongsulFoodReview;
+import com.kyonggi.diet.Food.eumer.SallyBoxCategory;
+import com.kyonggi.diet.review.domain.SallyBoxFoodReview;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,25 +13,25 @@ import java.util.List;
 @Getter
 @Entity
 @SuperBuilder
-public class ESquareFood extends Food{
+public class SallyBoxFood extends Food {
 
     @Id
     @GeneratedValue
-    @Column(name = "e_square_food_id")
+    @Column(name = "sally_box_food_id")
     private Long id;
 
     private Long price;
 
     @Enumerated(EnumType.STRING)
-    private ESquareCategory category;
+    private SallyBoxCategory category;
 
     @Column(name = "category_kr")
     private String categoryKorean;
 
     @OneToMany(
-            mappedBy = "eSquareFood",
+            mappedBy = "sallyBoxFood",
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
-    private List<ESquareFoodReview> eSquareFoodReviews;
+    private List<SallyBoxFoodReview> sallyBoxFoodReviews;
 }

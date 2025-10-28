@@ -11,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
-@Tag(name = "음식 API", description = "경슐랭 / 기숙사 식당 / E-스퀘어 음식 통합 API (조회, 생성, 삭제, 수정)")
 public interface FoodControllerDocs {
 
     // ---------------------- 전체 음식 조회 ----------------------
@@ -60,20 +59,21 @@ public interface FoodControllerDocs {
 
     //----------------------- 카테코리별 조회----------------------
     /**
-     * 카테고리별 음식 조회 (경슐, 이퀘)
+     * 카테고리별 음식 조회 (경슐, 이퀘, 샐박)
      */
     @Operation(
-        summary = "카테고리별 음식 조회(경슐, 이퀘)",
+        summary = "카테고리별 음식 조회(경슐, 이퀘, 샐박)",
         description = """
-            경슐랭(KYONGSUL) 또는 이스퀘어(E_SQUARE)의 전체 음식 목록을
+            경슐랭(KYONGSUL) 또는 이스퀘어(E_SQUARE) 또는 샐리박스(SALLY_BOX)의 전체 음식 목록을
             카테고리별로 묶어서 반환합니다.<br>
             - KYONGSUL: SubRestaurant → KyongsulCategory → 음식 리스트<br>
             - E_SQUARE: ESquareCategory → 음식 리스트<br><br>
+            - SALLY_BOX: SallyBoxCategory → 음식 리스트<br><br>
             """
     )
     ResponseEntity<?> getFoodByCategory(@Parameter(
             name = "type",
-            description = "식당 타입 (KYONGSUL: 경슐랭 / E_SQUARE: 이스퀘어)",
+            description = "식당 타입 (KYONGSUL: 경슐랭 / E_SQUARE: 이스퀘어 / SALLY_BOX: 샐리박스)",
             required = true ,in = ParameterIn.PATH
         ) RestaurantType type);
 

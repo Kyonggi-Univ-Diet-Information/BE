@@ -10,8 +10,8 @@ public enum RestaurantType {
     @Schema(description = "이스퀘어 식당")
     E_SQUARE("이스퀘어"),
 
-    @Schema(description = "감성코어 식당")
-    EMOTIONAL_CORE("감성코어"),
+    @Schema(description = "샐리박스 식당")
+    SALLY_BOX("샐리박스"),
 
     @Schema(description = "경슐랭 식당")
     KYONGSUL("경슐랭");

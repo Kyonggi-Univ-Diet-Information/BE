@@ -7,14 +7,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.io.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -46,4 +39,10 @@ public class CSVController implements CSVControllerDocs {
         csvReader.readESquareCSVFile(keyDTO.getKey());
     }
 
+    @PostMapping("/sally-box")
+    public void readSallyBox(@RequestBody KeyDTO keyDTO) throws CsvValidationException, IOException {
+        if(keyDTO.getKey() == null)
+            return;
+        csvReader.readSallyBoxCSVFile(keyDTO.getKey());
+    }
 }

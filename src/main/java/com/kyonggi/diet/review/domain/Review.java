@@ -6,6 +6,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.sql.Timestamp;
@@ -18,8 +20,12 @@ import java.sql.Timestamp;
 public abstract class Review {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id")
+    @JoinColumn(
+            name = "member_id",
+            foreignKey = @ForeignKey(name = "fk_review_member")
+    )
     @JsonIgnore
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private MemberEntity member;
 
     private double rating;     // 별점 [1~5]

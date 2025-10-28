@@ -22,7 +22,11 @@ public class DietFood extends Food {
     @Enumerated(value = EnumType.STRING)
     private DietFoodType dietFoodType;
 
-    @OneToMany(mappedBy = "dietFood", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(
+            mappedBy = "dietFood",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
     private List<DietFoodReview> dietFoodReviews;
 
     @OneToMany(mappedBy = "dietFood")

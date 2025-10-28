@@ -3,9 +3,12 @@ package com.kyonggi.diet.dietFile;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.S3Object;
 import com.kyonggi.diet.Food.domain.ESquareFood;
+import com.kyonggi.diet.Food.domain.SallyBoxFood;
 import com.kyonggi.diet.Food.eumer.ESquareCategory;
 import com.kyonggi.diet.Food.eumer.KyongsulCategory;
+import com.kyonggi.diet.Food.eumer.SallyBoxCategory;
 import com.kyonggi.diet.Food.repository.ESquareFoodRepository;
+import com.kyonggi.diet.Food.repository.SallyBoxFoodRepository;
 import com.kyonggi.diet.Food.service.DietFoodService;
 import com.kyonggi.diet.diet.DietDTO;
 import com.kyonggi.diet.dietContent.DTO.DietContentDTO;
@@ -47,12 +50,16 @@ public class CSVService {
     @Value("${cloud.aws.s3.bucketName.eSquare}")
     private String bucketNameESquare;
 
+    @Value("${cloud.aws.s3.bucketName.sallyBox}")
+    private String bucketNameSallyBox;
+
     private final AmazonS3 amazonS3;
     private final DietContentService dietContentService;
     private final DietFoodService dietFoodService;
     private final KyongsulFoodRepository kyongsulFoodRepository;
     private final TranslationService translationService;
     private final ESquareFoodRepository esquareFoodRepository;
+    private final SallyBoxFoodRepository sallyBoxFoodRepository;
 
     //-------------------------------기숙사------------------------------------------
     @Transactional
@@ -117,8 +124,6 @@ public class CSVService {
                     }
 
 
-
-
                     DietContentDTO dietContentDTO = DietContentDTO //최종적으로 Diet, DietContent db 저장 로직
                             .builder()
                             .date(nextLine[0].substring(0, nextLine[0].length() - 4))
@@ -164,8 +169,8 @@ public class CSVService {
             parseAndSave(row, 0, 1, 2, SubRestaurant.MANKWON, 3);
             parseAndSave(row, 4, 5, 6, SubRestaurant.SYONG, 7);
             parseAndSave(row, 8, 9, 10, SubRestaurant.BURGER_TACO, 11);
-            parseAndSave(row, 12, 13,14, SubRestaurant.WIDELGA, 15);
-            parseAndSave(row, 16, 17,18, SubRestaurant.SINMEOI, 19);
+            parseAndSave(row, 12, 13, 14, SubRestaurant.WIDELGA, 15);
+            parseAndSave(row, 16, 17, 18, SubRestaurant.SINMEOI, 19);
         }
     }
 
@@ -208,7 +213,7 @@ public class CSVService {
 
     private Long parsePrice(Cell cell) {
         if (cell.getCellType() == CellType.NUMERIC) {
-            return (long)cell.getNumericCellValue();
+            return (long) cell.getNumericCellValue();
         } else if (cell.getCellType() == CellType.STRING) {
             String raw = cell.getStringCellValue().replace("[^0-9]", "");
             if (!raw.isEmpty()) return Long.parseLong(raw);
@@ -269,4 +274,49 @@ public class CSVService {
         return Long.parseLong(digits);
     }
 
+    //---------------------샐리박스----------------------------------
+    @Transactional
+    public void readSallyBoxCSVFile(String key) throws IOException, CsvValidationException {
+        S3Object s3Object = amazonS3.getObject(bucketNameSallyBox, key);
+        InputStream inputStream = s3Object.getObjectContent();
+
+        try (CSVReader reader = new CSVReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
+            String[] nextLine;
+            reader.readNext(); // 첫 줄(헤더) 건너뛰기
+
+            while ((nextLine = reader.readNext()) != null) {
+                // 빈 행 혹은 메뉴 이름 없는 행은 스킵
+                if (nextLine.length < 4 || nextLine[0].isEmpty()) continue;
+
+                String name = nextLine[0].trim();
+                Long price = parsePrice(nextLine[1]);
+                String nameEn = nextLine[2] == null || nextLine[2].isBlank()
+                        ? translationService.translateToEnglish(name)
+                        : nextLine[2].trim();
+                String categoryStr = nextLine[3].trim().toUpperCase();
+
+                SallyBoxCategory category;
+                try {
+                    category = SallyBoxCategory.valueOf(categoryStr);
+                } catch (IllegalArgumentException e) {
+                    System.out.println("[경고] 알 수 없는 카테고리: " + categoryStr + " → 기본값 RICE로 처리");
+                    category = SallyBoxCategory.RICE;
+                }
+
+                // 중복 검사
+                Optional<SallyBoxFood> exist = sallyBoxFoodRepository.findByName(name);
+                if (exist.isPresent()) continue;
+
+                SallyBoxFood food = SallyBoxFood.builder()
+                        .name(name)
+                        .nameEn(nameEn)
+                        .price(price)
+                        .category(category)
+                        .categoryKorean(category.getKoreanName())
+                        .build();
+
+                sallyBoxFoodRepository.save(food);
+            }
+        }
+    }
 }

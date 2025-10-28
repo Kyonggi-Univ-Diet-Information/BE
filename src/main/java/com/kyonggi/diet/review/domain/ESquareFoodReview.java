@@ -9,6 +9,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
 @Getter
@@ -23,7 +25,11 @@ public class ESquareFoodReview extends Review {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "e_square_food_id")
+    @JoinColumn(
+            name = "e_square_food_id",
+            foreignKey = @ForeignKey(name = "fk_esquare_food_review_food")
+    )
     @JsonIgnore
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private ESquareFood eSquareFood;
 }

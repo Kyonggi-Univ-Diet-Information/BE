@@ -5,6 +5,8 @@ import com.kyonggi.diet.Food.domain.DietFood;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
 @Getter
@@ -19,7 +21,11 @@ public class DietFoodReview extends Review {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "diet_food_id")
+    @JoinColumn(
+            name = "diet_food_id",
+            foreignKey = @ForeignKey(name = "fk_diet_food_review_food")
+    )
+    @OnDelete(action = OnDeleteAction.CASCADE)
     @JsonIgnore
     private DietFood dietFood;
 }

@@ -1,30 +1,33 @@
 package com.kyonggi.diet.review.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.kyonggi.diet.Food.domain.KyongsulFood;
+import com.kyonggi.diet.Food.domain.SallyBoxFood;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED, force = true)
 @SuperBuilder
+@NoArgsConstructor
 @AllArgsConstructor
-public class KyongsulFoodReview extends Review {
+public class SallyBoxFoodReview extends Review {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "kyongsul_food_review_id")
+    @Column(name = "sally_box_food_review_id")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
-            name = "kyongsul_food_id",
-            foreignKey = @ForeignKey(name = "fk_kyongsul_food_review_food")
+            name = "sally_box_food_id",
+            foreignKey = @ForeignKey(name = "fk_sally_box_food_review_food")
     )
-    @OnDelete(action = OnDeleteAction.CASCADE)
     @JsonIgnore
-    private KyongsulFood kyongsulFood;
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private SallyBoxFood sallyBoxFood;
 }

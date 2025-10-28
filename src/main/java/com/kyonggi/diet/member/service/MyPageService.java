@@ -7,6 +7,7 @@ import com.kyonggi.diet.review.DTO.ReviewDTO;
 import com.kyonggi.diet.review.service.DietFoodReviewService;
 import com.kyonggi.diet.review.service.ESquareFoodReviewService;
 import com.kyonggi.diet.review.service.KyongsulFoodReviewService;
+import com.kyonggi.diet.review.service.SallyBoxFoodReviewService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -24,6 +25,7 @@ public class MyPageService {
     private final DietFoodReviewService dietFoodReviewService;
     private final KyongsulFoodReviewService kyongsulFoodReviewService;
     private final ESquareFoodReviewService esquareFoodReviewService;
+    private final SallyBoxFoodReviewService sallyBoxFoodReviewService;
 
     public MyPageDTO getMyPage(String email) {
         MemberEntity member = memberService.getMemberByEmail(email);
@@ -45,6 +47,7 @@ public class MyPageService {
             case DORMITORY -> dietFoodReviewService.findAllByMemberPaged(member, page);
             case KYONGSUL -> kyongsulFoodReviewService.findAllByMemberPaged(member, page);
             case E_SQUARE -> esquareFoodReviewService.findAllByMemberPaged(member, page);
+            case SALLY_BOX -> sallyBoxFoodReviewService.findAllByMemberPaged(member, page);
             default -> Page.empty(pageable);
         };
     }
@@ -59,6 +62,7 @@ public class MyPageService {
             case DORMITORY -> dietFoodReviewService.findAllByMemberFavoritedPaged(member, page);
             case KYONGSUL -> kyongsulFoodReviewService.findAllByMemberFavoritedPaged(member, page);
             case E_SQUARE -> esquareFoodReviewService.findAllByMemberFavoritedPaged(member, page);
+            case SALLY_BOX -> sallyBoxFoodReviewService.findAllByMemberFavoritedPaged(member, page);
             default -> Page.empty(pageable);
         };
     }

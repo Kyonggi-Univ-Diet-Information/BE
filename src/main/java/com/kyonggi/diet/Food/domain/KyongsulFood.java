@@ -31,7 +31,11 @@ public class KyongsulFood extends Food {
     @Column(name = "category_kr")
     private String categoryKorean;
 
-    @OneToMany(mappedBy = "kyongsulFood", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(
+            mappedBy = "kyongsulFood",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
     private List<KyongsulFoodReview> kyongsulFoodReviews;
 
     public void updateCategory(KyongsulCategory category, String categoryKorean) {

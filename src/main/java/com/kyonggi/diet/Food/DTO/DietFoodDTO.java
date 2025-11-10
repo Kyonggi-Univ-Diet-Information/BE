@@ -22,4 +22,7 @@ public class DietFoodDTO {
 
     @Schema(description = "음식 타입")
     private DietFoodType type;
+
+    @Schema(description = "리뷰 수")
+    private Long reviewCount;
 }

@@ -8,6 +8,7 @@ import com.kyonggi.diet.Food.repository.ESquareFoodRepository;
 import com.kyonggi.diet.review.DTO.FoodNamesDTO;
 import com.kyonggi.diet.translation.service.TranslationService;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -113,5 +114,21 @@ public class ESquareFoodService extends AbstractFoodService<ESquareFood, ESquare
                         (a, b) -> a,
                         LinkedHashMap::new
                 ));
+    }
+
+    public List<ESquareFoodDTO> getFavoriteTop5Foods() {
+        List<Object[]> results = esquareFoodRepository.find5FoodFavorite(PageRequest.of(0, 5));
+
+        return results.stream()
+                .map(obj -> new ESquareFoodDTO(
+                        (Long) obj[0],
+                        (String) obj[1],
+                        (String) obj[2],
+                        (Long) obj[3],
+                        (ESquareCategory) obj[4],
+                        (String) obj[5],
+                        (Long) obj[6]   // count(r)
+                ))
+                .collect(Collectors.toList());
     }
 }

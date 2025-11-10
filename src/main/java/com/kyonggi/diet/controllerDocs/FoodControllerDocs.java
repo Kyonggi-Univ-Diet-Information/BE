@@ -77,4 +77,17 @@ public interface FoodControllerDocs {
             required = true ,in = ParameterIn.PATH
         ) RestaurantType type);
 
+    //----------------------- TOP5 관심많은 메뉴 조회 ----------------------
+    @Operation(
+            summary = "리뷰 기준 TOP5 관심 많은 메뉴 조회",
+            description = """
+                    각 식당별 리뷰 수 기준으로 가장 관심이 많은 TOP5 음식을 반환합니다.
+                    """
+    )
+    @GetMapping("/{type}/top5-menu")
+    ResponseEntity<?> getTop5FoodByRestaurantType(@Parameter(
+                name = "type", description = "식당 종류 (DORMITORY, KYONGSUL, E_SQUARE, SALLY_BOX)",
+                required = true, in = ParameterIn.PATH
+            ) RestaurantType type
+    );
 }

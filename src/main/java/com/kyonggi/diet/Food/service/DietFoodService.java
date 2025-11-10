@@ -2,12 +2,13 @@ package com.kyonggi.diet.Food.service;
 
 import com.kyonggi.diet.Food.domain.DietFood;
 import com.kyonggi.diet.Food.DTO.DietFoodDTO;
-import com.kyonggi.diet.Food.repository.DietFoodRepository;
 import com.kyonggi.diet.Food.eumer.DietFoodType;
+import com.kyonggi.diet.Food.repository.DietFoodRepository;
 import com.kyonggi.diet.review.DTO.FoodNamesDTO;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -137,6 +138,20 @@ public class DietFoodService extends AbstractFoodService<DietFood, DietFoodDTO> 
             throw new RuntimeException("DietFood not found with id: " + dto.getId());
         }
         return dietFood;
+    }
+
+    public List<DietFoodDTO> getFavoriteTop5Foods() {
+        List<Object[]> results = dietFoodRepository.find5FoodFavorite(PageRequest.of(0, 5));
+
+        return results.stream()
+                .map(obj -> new DietFoodDTO(
+                        (Long) obj[0],
+                        (String) obj[1],
+                        (String) obj[2],
+                        (DietFoodType) obj[3],
+                        (Long) obj[4]   // count(r)
+                ))
+                .collect(Collectors.toList());
     }
 
     private DietFood findOne(Long id) {

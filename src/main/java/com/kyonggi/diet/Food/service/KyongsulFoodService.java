@@ -1,17 +1,15 @@
 package com.kyonggi.diet.Food.service;
 
 import com.amazonaws.services.kms.model.NotFoundException;
-import com.kyonggi.diet.Food.DTO.ESquareFoodDTO;
-import com.kyonggi.diet.Food.domain.ESquareFood;
 import com.kyonggi.diet.Food.domain.KyongsulFood;
 import com.kyonggi.diet.Food.DTO.KyongsulFoodDTO;
-import com.kyonggi.diet.Food.eumer.ESquareCategory;
 import com.kyonggi.diet.Food.eumer.KyongsulCategory;
 import com.kyonggi.diet.Food.repository.KyongsulFoodRepository;
 import com.kyonggi.diet.Food.eumer.SubRestaurant;
 import com.kyonggi.diet.review.DTO.FoodNamesDTO;
 import com.kyonggi.diet.translation.service.TranslationService;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,6 +33,7 @@ public class KyongsulFoodService extends AbstractFoodService<KyongsulFood, Kyong
         this.kyongsulFoodRepository = kyongsulFoodRepository;
         this.translationService = translationService;
     }
+
     /**
      * 저장 메서드
      *
@@ -152,5 +151,22 @@ public class KyongsulFoodService extends AbstractFoodService<KyongsulFood, Kyong
             }
         }
         return result;
+    }
+
+    public List<KyongsulFoodDTO> getFavoriteTop5Foods() {
+        List<Object[]> results = kyongsulFoodRepository.find5FoodFavorite(PageRequest.of(0, 5));
+
+        return results.stream()
+                .map(obj -> new KyongsulFoodDTO(
+                        (Long) obj[0],
+                        (String) obj[1],
+                        (String) obj[2],
+                        (Long) obj[3],
+                        (KyongsulCategory) obj[4],
+                        (String) obj[5],
+                        (SubRestaurant) obj[6],
+                        (Long) obj[7]   // count(r)
+                ))
+                .collect(Collectors.toList());
     }
 }

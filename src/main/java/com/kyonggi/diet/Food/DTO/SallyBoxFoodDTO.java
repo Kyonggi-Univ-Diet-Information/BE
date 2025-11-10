@@ -1,6 +1,5 @@
 package com.kyonggi.diet.Food.DTO;
 
-import com.kyonggi.diet.Food.eumer.ESquareCategory;
 import com.kyonggi.diet.Food.eumer.SallyBoxCategory;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
@@ -30,4 +29,7 @@ public class SallyBoxFoodDTO {
 
     @Schema(description = "샐리박스 음식 카테고리 한국어")
     private String categoryKorean;
+
+    @Schema(description = "리뷰 수")
+    private Long reviewCount;
 }

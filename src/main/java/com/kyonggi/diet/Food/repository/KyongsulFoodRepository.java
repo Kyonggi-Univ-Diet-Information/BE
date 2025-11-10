@@ -3,6 +3,7 @@ package com.kyonggi.diet.Food.repository;
 import com.kyonggi.diet.Food.eumer.SubRestaurant;
 import com.kyonggi.diet.Food.domain.KyongsulFood;
 import com.kyonggi.diet.review.DTO.FoodNamesDTO;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -20,4 +21,14 @@ public interface KyongsulFoodRepository extends JpaRepository<KyongsulFood, Long
     Optional<FoodNamesDTO> findNameByKyongsulFoodId(@Param("id") Long id);
 
     Optional<KyongsulFood>  findByName(String name);
+
+    @Query("""
+        SELECT f.id, f.name, f.nameEn, f.price, f.category, f.categoryKorean, f.subRestaurant, count(r)
+        FROM KyongsulFoodReview r
+        JOIN r.kyongsulFood f
+        GROUP BY f.id
+        HAVING count(r) > 0
+        ORDER BY count(r) DESC
+    """)
+    List<Object[]> find5FoodFavorite(Pageable pageable);
 }

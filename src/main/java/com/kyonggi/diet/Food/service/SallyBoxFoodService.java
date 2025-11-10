@@ -1,16 +1,19 @@
 package com.kyonggi.diet.Food.service;
 
 import com.amazonaws.services.kms.model.NotFoundException;
+import com.kyonggi.diet.Food.DTO.DietFoodDTO;
 import com.kyonggi.diet.Food.DTO.ESquareFoodDTO;
 import com.kyonggi.diet.Food.DTO.SallyBoxFoodDTO;
 import com.kyonggi.diet.Food.domain.ESquareFood;
 import com.kyonggi.diet.Food.domain.SallyBoxFood;
+import com.kyonggi.diet.Food.eumer.DietFoodType;
 import com.kyonggi.diet.Food.eumer.ESquareCategory;
 import com.kyonggi.diet.Food.eumer.SallyBoxCategory;
 import com.kyonggi.diet.Food.repository.SallyBoxFoodRepository;
 import com.kyonggi.diet.review.DTO.FoodNamesDTO;
 import com.kyonggi.diet.translation.service.TranslationService;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,13 +25,13 @@ import java.util.stream.Collectors;
 
 @Service
 @Transactional(readOnly = true)
-public class SallyBoxFoodService extends AbstractFoodService<SallyBoxFood, SallyBoxFoodDTO>{
+public class SallyBoxFoodService extends AbstractFoodService<SallyBoxFood, SallyBoxFoodDTO> {
 
     private final TranslationService translationService;
     private final SallyBoxFoodRepository sallyBoxFoodRepository;
 
     public SallyBoxFoodService(ModelMapper modelMapper, TranslationService translationService,
-                              SallyBoxFoodRepository sallyBoxFoodRepository) {
+                               SallyBoxFoodRepository sallyBoxFoodRepository) {
         super(modelMapper);
         this.translationService = translationService;
         this.sallyBoxFoodRepository = sallyBoxFoodRepository;
@@ -53,6 +56,7 @@ public class SallyBoxFoodService extends AbstractFoodService<SallyBoxFood, Sally
 
     /**
      * ID 값으로 음식 DTO 찾기
+     *
      * @param id (Long)
      */
     @Override
@@ -115,5 +119,21 @@ public class SallyBoxFoodService extends AbstractFoodService<SallyBoxFood, Sally
                         (a, b) -> a,
                         LinkedHashMap::new
                 ));
+    }
+
+    public List<SallyBoxFoodDTO> getFavoriteTop5Foods() {
+        List<Object[]> results = sallyBoxFoodRepository.find5FoodFavorite(PageRequest.of(0, 5));
+
+        return results.stream()
+                .map(obj -> new SallyBoxFoodDTO(
+                        (Long) obj[0],
+                        (String) obj[1],
+                        (String) obj[2],
+                        (Long) obj[3],
+                        (SallyBoxCategory) obj[4],
+                        (String) obj[5],
+                        (Long) obj[6]
+                ))
+                .collect(Collectors.toList());
     }
 }

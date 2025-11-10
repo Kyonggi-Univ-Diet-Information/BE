@@ -1,7 +1,6 @@
 package com.kyonggi.diet.Food.DTO;
 
 import com.kyonggi.diet.Food.eumer.ESquareCategory;
-import com.kyonggi.diet.review.domain.ESquareFoodReview;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
@@ -29,4 +28,7 @@ public class ESquareFoodDTO {
 
     @Schema(description = "이스퀘어 음식 카테고리 한국어")
     private String categoryKorean;
+
+    @Schema(description = "리뷰 수")
+    private Long reviewCount;
 }

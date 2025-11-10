@@ -135,4 +135,28 @@ public class FoodController implements FoodControllerDocs {
                     .body(e.getMessage());
         }
     }
+
+    @GetMapping("/{type}/top5-menu")
+    public ResponseEntity<?> getTop5FoodByRestaurantType(@PathVariable RestaurantType type) {
+        try {
+            Object result = switch (type) {
+                case DORMITORY -> dietFoodService.getFavoriteTop5Foods();
+                case KYONGSUL -> kyongsulFoodService.getFavoriteTop5Foods();
+                case E_SQUARE -> esquareFoodService.getFavoriteTop5Foods();
+                case SALLY_BOX -> sallyBoxFoodService.getFavoriteTop5Foods();
+                default -> null;
+            };
+
+            if (result == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Invalid restaurant type: " + type);
+            }
+
+            Map<String, Object> response = Map.of("result", result);
+            return ResponseEntity.ok(response);
+        } catch (NotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(e.getMessage());
+        }
+    }
 }

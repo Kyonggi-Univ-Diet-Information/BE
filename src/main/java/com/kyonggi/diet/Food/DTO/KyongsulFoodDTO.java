@@ -33,4 +33,7 @@ public class KyongsulFoodDTO {
 
     @Schema(description = "경슐랭 음식 서브 식당")
     private SubRestaurant subRestaurant;
+
+    @Schema(description = "리뷰 수")
+    private Long reviewCount;
 }

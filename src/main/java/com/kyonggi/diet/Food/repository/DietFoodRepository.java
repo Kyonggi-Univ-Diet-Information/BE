@@ -3,6 +3,7 @@ package com.kyonggi.diet.Food.repository;
 import com.kyonggi.diet.Food.domain.DietFood;
 import com.kyonggi.diet.Food.eumer.DietFoodType;
 import com.kyonggi.diet.review.DTO.FoodNamesDTO;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -22,4 +23,14 @@ public interface DietFoodRepository extends JpaRepository<DietFood, Long> {
 
     @Query("select new com.kyonggi.diet.review.DTO.FoodNamesDTO(d.id, d.name, d.nameEn) from DietFood d where d.id = :id")
     Optional<FoodNamesDTO> findNameByDietFoodId(@Param("id") Long id);
+
+    @Query("""
+        SELECT f.id, f.name, f.nameEn, f.dietFoodType, count(r)
+        FROM DietFoodReview r
+        JOIN r.dietFood f
+        GROUP BY f.id
+        HAVING count(r) > 0
+        ORDER BY count(r) DESC
+    """)
+    List<Object[]> find5FoodFavorite(Pageable pageable);
 }

@@ -23,7 +23,7 @@ public interface KyongsulFoodRepository extends JpaRepository<KyongsulFood, Long
     Optional<KyongsulFood>  findByName(String name);
 
     @Query("""
-        SELECT f.id, f.name, f.nameEn, f.price, f.category, f.categoryKorean, f.subRestaurant, count(r)
+        SELECT f.id, f.name, f.nameEn, f.price, f.cuisine, f.foodType, f.detailedMenu, f.subRestaurant, count(r)
         FROM KyongsulFoodReview r
         JOIN r.kyongsulFood f
         GROUP BY f.id

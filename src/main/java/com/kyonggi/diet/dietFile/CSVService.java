@@ -2,11 +2,8 @@ package com.kyonggi.diet.dietFile;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.S3Object;
-import com.kyonggi.diet.Food.domain.ESquareFood;
-import com.kyonggi.diet.Food.domain.SallyBoxFood;
-import com.kyonggi.diet.Food.eumer.ESquareCategory;
-import com.kyonggi.diet.Food.eumer.KyongsulCategory;
-import com.kyonggi.diet.Food.eumer.SallyBoxCategory;
+import com.kyonggi.diet.Food.domain.*;
+import com.kyonggi.diet.Food.eumer.*;
 import com.kyonggi.diet.Food.repository.ESquareFoodRepository;
 import com.kyonggi.diet.Food.repository.SallyBoxFoodRepository;
 import com.kyonggi.diet.Food.service.DietFoodService;
@@ -14,18 +11,15 @@ import com.kyonggi.diet.diet.DietDTO;
 import com.kyonggi.diet.dietContent.DTO.DietContentDTO;
 import com.kyonggi.diet.dietContent.DietTime;
 import com.kyonggi.diet.dietContent.service.DietContentService;
-import com.kyonggi.diet.Food.domain.DietFood;
 import com.kyonggi.diet.Food.DTO.DietFoodDTO;
-import com.kyonggi.diet.Food.domain.KyongsulFood;
 import com.kyonggi.diet.Food.repository.KyongsulFoodRepository;
-import com.kyonggi.diet.Food.eumer.SubRestaurant;
 import com.kyonggi.diet.translation.service.TranslationService;
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvValidationException;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,6 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.StringTokenizer;
+import java.util.function.Function;
 
 @Service
 @Transactional
@@ -89,21 +84,17 @@ public class CSVService {
                     }
 
                     for (String food : foods) {
-                        // 기존 엔티티 조회
                         DietFood existing = dietFoodService.findDietFoodByName(food);
 
                         String nameEn;
                         if (existing != null) {
-                            // 이미 존재하면 그대로 사용
                             nameEn = (existing.getNameEn() != null)
                                     ? existing.getNameEn()
                                     : translationService.translateToEnglish(food); // nameEn이 NULL일 때만 번역
                         } else {
-                            // 없으면 새로 번역
                             nameEn = translationService.translateToEnglish(food);
                         }
 
-                        // DTO 생성
                         DietFoodDTO dietFoodDTO = DietFoodDTO.builder()
                                 .name(food)
                                 .nameEn(nameEn)
@@ -124,7 +115,7 @@ public class CSVService {
                     }
 
 
-                    DietContentDTO dietContentDTO = DietContentDTO //최종적으로 Diet, DietContent db 저장 로직
+                    DietContentDTO dietContentDTO = DietContentDTO
                             .builder()
                             .date(nextLine[0].substring(0, nextLine[0].length() - 4))
                             .time(sortDietTime(j))
@@ -138,12 +129,6 @@ public class CSVService {
         }
     }
 
-    /**
-     * 인덱스 별 식사 시간 구분
-     *
-     * @param j (int)
-     * @return DietTime
-     */
     public DietTime sortDietTime(int j) {
         return switch (j) {
             case 1 -> DietTime.BREAKFAST;
@@ -153,170 +138,143 @@ public class CSVService {
         };
     }
 
-    //-----------------------------경슐랭-------------------------------
-    @Transactional
-    public void readerKyongsulExcelFile(String key) throws IOException {
+    // ---------------- 공통 CSV 처리 메서드 ----------------
+        private <T> void readAndSaveCSV(
+                String bucketName,
+                String key,
+                Function<String[], T> entityMapper,
+                JpaRepository<T, Long> repository
+        ) throws IOException, CsvValidationException {
 
-        S3Object s3Object = amazonS3.getObject(bucketNameKyongsul, key);
-        InputStream inputStream = s3Object.getObjectContent();
+            S3Object s3Object = amazonS3.getObject(bucketName, key);
+            try (CSVReader reader = new CSVReader(
+                    new InputStreamReader(s3Object.getObjectContent(), StandardCharsets.UTF_8))) {
 
-        Workbook workbook = new XSSFWorkbook(inputStream);
-        Sheet sheet = workbook.getSheetAt(0);
-
-        for (Row row : sheet) {
-            if (row.getRowNum() == 0) continue;
-
-            parseAndSave(row, 0, 1, 2, SubRestaurant.MANKWON, 3);
-            parseAndSave(row, 4, 5, 6, SubRestaurant.SYONG, 7);
-            parseAndSave(row, 8, 9, 10, SubRestaurant.BURGER_TACO, 11);
-            parseAndSave(row, 12, 13, 14, SubRestaurant.WIDELGA, 15);
-            parseAndSave(row, 16, 17, 18, SubRestaurant.SINMEOI, 19);
-        }
-    }
-
-    private void parseAndSave(Row row, int nameCol, int priceCol, int englishNameCol,
-                              SubRestaurant subRestaurant, int categoryCol) {
-        Cell nameCell = row.getCell(nameCol);
-        Cell priceCell = row.getCell(priceCol);
-        Cell englishNameCell = row.getCell(englishNameCol);
-        Cell categoryCell = row.getCell(categoryCol);
-
-        if (nameCell == null || priceCell == null) return;
-        if (nameCell.getCellType() == CellType.BLANK) return;
-
-        String name = nameCell.getStringCellValue();
-        Long price = parsePrice(priceCell);
-        String englishName = englishNameCell.getStringCellValue();
-        String categoryName = categoryCell.getStringCellValue();
-
-        KyongsulCategory category = KyongsulCategory.fromKorean(categoryName);
-
-        Optional<KyongsulFood> exist = kyongsulFoodRepository.findByNameAndSubRestaurant(name, subRestaurant);
-
-        if (exist.isPresent()) {
-            KyongsulFood existingFood = exist.get();
-            existingFood.updateCategory(category, category.getKoreanName());
-            return;
-        }
-
-        KyongsulFood food = KyongsulFood.builder()
-                .name(name)
-                .nameEn(englishName)
-                .price(price)
-                .subRestaurant(subRestaurant)
-                .category(category)
-                .categoryKorean(category.getKoreanName())
-                .build();
-
-        kyongsulFoodRepository.save(food);
-    }
-
-    private Long parsePrice(Cell cell) {
-        if (cell.getCellType() == CellType.NUMERIC) {
-            return (long) cell.getNumericCellValue();
-        } else if (cell.getCellType() == CellType.STRING) {
-            String raw = cell.getStringCellValue().replace("[^0-9]", "");
-            if (!raw.isEmpty()) return Long.parseLong(raw);
-        }
-        return 0L;
-    }
-
-    //--------------------이스퀘어-----------------------
-    @Transactional
-    public void readESquareCSVFile(String key) throws IOException, CsvValidationException {
-        S3Object s3Object = amazonS3.getObject(bucketNameESquare, key);
-        InputStream inputStream = s3Object.getObjectContent();
-
-        try (CSVReader reader = new CSVReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
-            String[] nextLine;
-            reader.readNext(); // 첫 줄(헤더) 건너뛰기
-
-            while ((nextLine = reader.readNext()) != null) {
-                // 빈 행 혹은 메뉴 이름 없는 행은 스킵
-                if (nextLine.length < 4 || nextLine[0].isEmpty()) continue;
-
-                String name = nextLine[0].trim();
-                Long price = parsePrice(nextLine[1]);
-                String nameEn = nextLine[2] == null || nextLine[2].isBlank()
-                        ? translationService.translateToEnglish(name)
-                        : nextLine[2].trim();
-                String categoryStr = nextLine[3].trim().toUpperCase();
-
-                ESquareCategory category;
-                try {
-                    category = ESquareCategory.valueOf(categoryStr);
-                } catch (IllegalArgumentException e) {
-                    System.out.println("[경고] 알 수 없는 카테고리: " + categoryStr + " → 기본값 STREET로 처리");
-                    category = ESquareCategory.STREET;
+                reader.readNext(); // 헤더 스킵
+                String[] nextLine;
+                while ((nextLine = reader.readNext()) != null) {
+                    if (nextLine.length < 3 || nextLine[0].isEmpty()) continue;
+                    T entity = entityMapper.apply(nextLine);
+                    if (entity != null) repository.save(entity);
                 }
-
-                // 중복 검사
-                Optional<ESquareFood> exist = esquareFoodRepository.findByName(name);
-                if (exist.isPresent()) continue;
-
-                ESquareFood food = ESquareFood.builder()
-                        .name(name)
-                        .nameEn(nameEn)
-                        .price(price)
-                        .category(category)
-                        .categoryKorean(category.getKoreanName())
-                        .build();
-
-                esquareFoodRepository.save(food);
             }
         }
-    }
+
+        // ---------------- 경슐랭 ----------------
+        @Transactional
+        public void readKyongsulCSVFile(String key) throws IOException, CsvValidationException {
+            readAndSaveCSV(bucketNameKyongsul, key, this::mapKyongsul, kyongsulFoodRepository);
+        }
+
+        private KyongsulFood mapKyongsul(String[] nextLine) {
+            if (nextLine.length < 7 || nextLine[0].isEmpty()) return null;
+
+            String restaurantStr = nextLine[0];
+            String name = nextLine[1].trim();
+            Long price = parsePrice(nextLine[2]);
+            String nameEn = nextLine[3] == null || nextLine[3].isBlank()
+                    ? translationService.translateToEnglish(name)
+                    : nextLine[3].trim();
+
+            Cuisine cuisine = Cuisine.valueOf(nextLine[4].trim().toUpperCase());
+            FoodType foodType = FoodType.valueOf(nextLine[5].trim().toUpperCase());
+            DetailedMenu detailedMenu = DetailedMenu.valueOf(nextLine[6].trim().toUpperCase());
+            SubRestaurant subRestaurant = SubRestaurant.valueOf(restaurantStr);
+
+            Optional<KyongsulFood> exist = kyongsulFoodRepository.findByName(name);
+            if (exist.isPresent()) {
+                if (exist.get().getCuisine() == null)
+                    exist.get().updateCategory(cuisine, foodType, detailedMenu);
+                return null;
+            }
+
+            return KyongsulFood.builder()
+                    .subRestaurant(subRestaurant)
+                    .name(name)
+                    .nameEn(nameEn)
+                    .price(price)
+                    .cuisine(cuisine)
+                    .foodType(foodType)
+                    .detailedMenu(detailedMenu)
+                    .build();
+        }
+
+        // ---------------- 이스퀘어 ----------------
+        @Transactional
+        public void readESquareCSVFile(String key) throws IOException, CsvValidationException {
+            readAndSaveCSV(bucketNameESquare, key, this::mapESquare, esquareFoodRepository);
+        }
+
+        private ESquareFood mapESquare(String[] nextLine) {
+            if (nextLine.length < 6 || nextLine[0].isEmpty()) return null;
+
+            String name = nextLine[0].trim();
+            Long price = parsePrice(nextLine[1]);
+            String nameEn = nextLine[2] == null || nextLine[2].isBlank()
+                    ? translationService.translateToEnglish(name)
+                    : nextLine[2].trim();
+
+            Cuisine cuisine = Cuisine.valueOf(nextLine[3].trim().toUpperCase());
+            FoodType foodType = FoodType.valueOf(nextLine[4].trim().toUpperCase());
+            DetailedMenu detailedMenu = DetailedMenu.valueOf(nextLine[5].trim().toUpperCase());
+
+            Optional<ESquareFood> exist = esquareFoodRepository.findByName(name);
+            if (exist.isPresent()) {
+                if (exist.get().getCuisine() == null)
+                    exist.get().updateCategory(cuisine, foodType, detailedMenu);
+                return null;
+            }
+
+            return ESquareFood.builder()
+                    .name(name)
+                    .nameEn(nameEn)
+                    .price(price)
+                    .cuisine(cuisine)
+                    .foodType(foodType)
+                    .detailedMenu(detailedMenu)
+                    .build();
+        }
+
+        // ---------------- 샐리박스 ----------------
+        @Transactional
+        public void readSallyBoxCSVFile(String key) throws IOException, CsvValidationException {
+            readAndSaveCSV(bucketNameSallyBox, key, this::mapSallyBox, sallyBoxFoodRepository);
+        }
+
+        private SallyBoxFood mapSallyBox(String[] nextLine) {
+            if (nextLine.length < 6 || nextLine[0].isEmpty()) return null;
+
+            String name = nextLine[0].trim();
+            Long price = parsePrice(nextLine[1]);
+            String nameEn = nextLine[2] == null || nextLine[2].isBlank()
+                    ? translationService.translateToEnglish(name)
+                    : nextLine[2].trim();
+
+            Cuisine cuisine = Cuisine.valueOf(nextLine[3].trim().toUpperCase());
+            FoodType foodType = FoodType.valueOf(nextLine[4].trim().toUpperCase());
+            DetailedMenu detailedMenu = DetailedMenu.valueOf(nextLine[5].trim().toUpperCase());
+
+            Optional<SallyBoxFood> exist = sallyBoxFoodRepository.findByName(name);
+            if (exist.isPresent()) {
+                if (exist.get().getCuisine() == null)
+                    exist.get().updateCategory(cuisine, foodType, detailedMenu);
+                return null;
+            }
+
+            return SallyBoxFood.builder()
+                    .name(name)
+                    .nameEn(nameEn)
+                    .price(price)
+                    .cuisine(cuisine)
+                    .foodType(foodType)
+                    .detailedMenu(detailedMenu)
+                    .build();
+        }
 
     private Long parsePrice(String priceStr) {
         if (priceStr == null || priceStr.isBlank()) return 0L;
         String digits = priceStr.replaceAll("[^0-9]", "");
         if (digits.isEmpty()) return 0L;
         return Long.parseLong(digits);
-    }
-
-    //---------------------샐리박스----------------------------------
-    @Transactional
-    public void readSallyBoxCSVFile(String key) throws IOException, CsvValidationException {
-        S3Object s3Object = amazonS3.getObject(bucketNameSallyBox, key);
-        InputStream inputStream = s3Object.getObjectContent();
-
-        try (CSVReader reader = new CSVReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
-            String[] nextLine;
-            reader.readNext(); // 첫 줄(헤더) 건너뛰기
-
-            while ((nextLine = reader.readNext()) != null) {
-                // 빈 행 혹은 메뉴 이름 없는 행은 스킵
-                if (nextLine.length < 4 || nextLine[0].isEmpty()) continue;
-
-                String name = nextLine[0].trim();
-                Long price = parsePrice(nextLine[1]);
-                String nameEn = nextLine[2] == null || nextLine[2].isBlank()
-                        ? translationService.translateToEnglish(name)
-                        : nextLine[2].trim();
-                String categoryStr = nextLine[3].trim().toUpperCase();
-
-                SallyBoxCategory category;
-                try {
-                    category = SallyBoxCategory.valueOf(categoryStr);
-                } catch (IllegalArgumentException e) {
-                    System.out.println("[경고] 알 수 없는 카테고리: " + categoryStr + " → 기본값 RICE로 처리");
-                    category = SallyBoxCategory.RICE;
-                }
-
-                // 중복 검사
-                Optional<SallyBoxFood> exist = sallyBoxFoodRepository.findByName(name);
-                if (exist.isPresent()) continue;
-
-                SallyBoxFood food = SallyBoxFood.builder()
-                        .name(name)
-                        .nameEn(nameEn)
-                        .price(price)
-                        .category(category)
-                        .categoryKorean(category.getKoreanName())
-                        .build();
-
-                sallyBoxFoodRepository.save(food);
-            }
-        }
     }
 }

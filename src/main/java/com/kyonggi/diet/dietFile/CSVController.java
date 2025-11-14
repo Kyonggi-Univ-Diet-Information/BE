@@ -16,7 +16,6 @@ import java.io.*;
 public class CSVController implements CSVControllerDocs {
 
     private final CSVService csvReader;
-    private final TranslationService translationService;
 
     @PostMapping("/diet")
     public void readDiet(@RequestBody KeyDTO keyDTO) throws CsvValidationException, IOException {
@@ -29,7 +28,7 @@ public class CSVController implements CSVControllerDocs {
     public void readKyongsul(@RequestBody KeyDTO keyDTO) throws CsvValidationException, IOException {
         if(keyDTO.getKey() == null)
             return;
-        csvReader.readerKyongsulExcelFile(keyDTO.getKey());
+        csvReader.readKyongsulCSVFile(keyDTO.getKey());
     }
 
     @PostMapping("/e-square")

@@ -19,7 +19,7 @@ public interface SallyBoxFoodRepository extends JpaRepository<SallyBoxFood, Long
     Optional<FoodNamesDTO> findNameBySallyBoxFoodId(@Param("id") Long id);
 
     @Query("""
-        SELECT f.id, f.name, f.nameEn, f.price, f.category, f.categoryKorean, count(r)
+        SELECT f.id, f.name, f.nameEn, f.price, f.cuisine, f.foodType, f.detailedMenu, count(r)
         FROM SallyBoxFoodReview r
         JOIN r.sallyBoxFood f
         GROUP BY f.id

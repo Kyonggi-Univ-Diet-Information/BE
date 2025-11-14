@@ -1,10 +1,7 @@
 package com.kyonggi.diet.Food.domain;
 
-import com.kyonggi.diet.Food.eumer.ESquareCategory;
-import com.kyonggi.diet.Food.eumer.KyongsulCategory;
-import com.kyonggi.diet.Food.eumer.SubRestaurant;
+import com.kyonggi.diet.Food.eumer.*;
 import com.kyonggi.diet.review.domain.ESquareFoodReview;
-import com.kyonggi.diet.review.domain.KyongsulFoodReview;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,7 +13,7 @@ import java.util.List;
 @Getter
 @Entity
 @SuperBuilder
-public class ESquareFood extends Food{
+public class ESquareFood extends ExtendedFood {
 
     @Id
     @GeneratedValue

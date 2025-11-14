@@ -13,7 +13,7 @@ import java.util.List;
 @Getter
 @SuperBuilder
 @NoArgsConstructor(force = true)
-public class KyongsulFood extends Food {
+public class KyongsulFood extends ExtendedFood {
 
     @Id
     @GeneratedValue
@@ -31,17 +31,11 @@ public class KyongsulFood extends Food {
     @Column(name = "category_kr")
     private String categoryKorean;
 
+
     @OneToMany(
             mappedBy = "kyongsulFood",
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
     private List<KyongsulFoodReview> kyongsulFoodReviews;
-
-    public void updateCategory(KyongsulCategory category, String categoryKorean) {
-        if (this.category == null) {
-            this.category = category;
-            this.categoryKorean = categoryKorean;
-        }
-    }
 }

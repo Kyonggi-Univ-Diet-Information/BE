@@ -3,10 +3,8 @@ package com.kyonggi.diet.review.controller;
 import com.kyonggi.diet.Food.eumer.RestaurantType;
 import com.kyonggi.diet.auth.util.JwtTokenUtil;
 import com.kyonggi.diet.controllerDocs.ReviewControllerDocs;
-import com.kyonggi.diet.review.DTO.CreateReviewDTO;
-import com.kyonggi.diet.review.DTO.ForTopReviewDTO;
-import com.kyonggi.diet.review.DTO.RatingCountResponse;
-import com.kyonggi.diet.review.DTO.ReviewDTO;
+import com.kyonggi.diet.review.DTO.*;
+import com.kyonggi.diet.review.repository.ReviewRepository;
 import com.kyonggi.diet.review.service.ReviewService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -19,12 +17,13 @@ import java.util.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/review/{type}")
+@RequestMapping("/api/review")
 @Slf4j
 @CrossOrigin("*")
 public class ReviewController implements ReviewControllerDocs {
 
     private final JwtTokenUtil jwtTokenUtil;
+    private final ReviewRepository reviewRepository;
     private final List<ReviewService> reviewServices;
     private final Map<RestaurantType, ReviewService> serviceMap = new EnumMap<>(RestaurantType.class);
 
@@ -42,7 +41,7 @@ public class ReviewController implements ReviewControllerDocs {
     }
 
     /** 리뷰 생성 */
-    @PostMapping("/new/{foodId}")
+    @PostMapping("/{type}/new/{foodId}")
     public ResponseEntity<?> createReview(@PathVariable("type") RestaurantType type,
                                           @PathVariable("foodId") Long foodId,
                                           @RequestHeader("Authorization") String token,
@@ -62,7 +61,7 @@ public class ReviewController implements ReviewControllerDocs {
     }
 
     /** 리뷰 한개 조회 */
-    @GetMapping("/one/{reviewId}")
+    @GetMapping("/{type}/one/{reviewId}")
     public ResponseEntity<?> getReview(@PathVariable("type") RestaurantType type,
                                        @PathVariable("reviewId") Long reviewId) {
         try {
@@ -75,7 +74,7 @@ public class ReviewController implements ReviewControllerDocs {
     }
 
     /** 리뷰 페이징 조회 */
-    @GetMapping("/paged/{foodId}")
+    @GetMapping("/{type}/paged/{foodId}")
     public ResponseEntity<?> getPagedReviews(@PathVariable("type") RestaurantType type,
                                              @PathVariable("foodId") Long foodId,
                                              @RequestParam(name = "pageNo", defaultValue = "0") int pageNo) {
@@ -88,7 +87,7 @@ public class ReviewController implements ReviewControllerDocs {
     }
 
     /** 해당 음식에 대한 모든 리뷰 조회 */
-    @GetMapping("/all/{foodId}")
+    @GetMapping("/{type}/all/{foodId}")
     public ResponseEntity<?> getAllReviews(@PathVariable("type") RestaurantType type,
                                            @PathVariable("foodId") Long foodId) {
         try {
@@ -99,7 +98,7 @@ public class ReviewController implements ReviewControllerDocs {
     }
 
     /** 리뷰 수정 */
-    @PutMapping("/modify/{reviewId}")
+    @PutMapping("/{type}/modify/{reviewId}")
     public ResponseEntity<?> modify(@PathVariable("type") RestaurantType type,
                                     @PathVariable("reviewId") Long reviewId,
                                     @RequestHeader("Authorization") String token,
@@ -118,7 +117,7 @@ public class ReviewController implements ReviewControllerDocs {
     }
 
     /** 리뷰 삭제 */
-    @DeleteMapping("/delete/{reviewId}")
+    @DeleteMapping("/{type}/delete/{reviewId}")
     public ResponseEntity<?> delete(@PathVariable("type") RestaurantType type,
                                     @PathVariable("reviewId") Long reviewId,
                                     @RequestHeader("Authorization") String token) {
@@ -136,7 +135,7 @@ public class ReviewController implements ReviewControllerDocs {
     }
 
     /** 리뷰 평점 평균 조회 */
-    @GetMapping("/average/{foodId}")
+    @GetMapping("/{type}/average/{foodId}")
     public ResponseEntity<?> average(@PathVariable("type") RestaurantType type,
                                      @PathVariable("foodId") Long foodId) {
         try {
@@ -147,7 +146,7 @@ public class ReviewController implements ReviewControllerDocs {
     }
 
     /** 리뷰 점수별 개수 카운트 */
-    @GetMapping("/rating-count/{foodId}")
+    @GetMapping("/{type}/rating-count/{foodId}")
     public ResponseEntity<?> ratingCount(@PathVariable("type") RestaurantType type,
                                          @PathVariable("foodId") Long foodId) {
         try {
@@ -159,7 +158,7 @@ public class ReviewController implements ReviewControllerDocs {
     }
 
     /** 리뷰 개수 조회 */
-    @GetMapping("/count/{foodId}")
+    @GetMapping("/{type}/count/{foodId}")
     public ResponseEntity<?> count(@PathVariable("type") RestaurantType type,
                                    @PathVariable("foodId") Long foodId) {
         try {
@@ -169,8 +168,33 @@ public class ReviewController implements ReviewControllerDocs {
         }
     }
 
+    /**
+     * 최신 TOP5 리뷰 Version 2
+     */
+    @GetMapping("/top5-recent")
+    public ResponseEntity<?> getTop5RecentReviews() {
+        try {
+            List<RecentReviewDTO> result = reviewRepository.findRecent5Reviews();
+
+            if (result == null || result.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("message", "리뷰 데이터가 존재하지 않습니다."));
+            }
+
+            return ResponseEntity.ok(Map.of("result", result));
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", "ENUM 매핑 실패", "message", e.getMessage()));
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", "요청 처리 중 오류 발생", "message", e.getMessage()));
+        }
+    }
+
     /** 최신 TOP5 리뷰 */
-    @GetMapping("/reviews/top5-recent")
+    @GetMapping("/{type}/reviews/top5-recent")
     public ResponseEntity<?> recent(@PathVariable("type") RestaurantType type) {
         try {
             return ResponseEntity.ok(resolve(type).getRecentTop5());
@@ -180,7 +204,7 @@ public class ReviewController implements ReviewControllerDocs {
     }
 
     /** 평점 TOP5 리뷰 */
-    @GetMapping("/reviews/top5-rating")
+    @GetMapping("/{type}/reviews/top5-rating")
     public ResponseEntity<?> top5(@PathVariable("type") RestaurantType type) {
         try {
             return ResponseEntity.ok(resolve(type).getTop5ByRating());

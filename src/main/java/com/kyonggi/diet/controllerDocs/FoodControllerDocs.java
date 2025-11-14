@@ -2,14 +2,10 @@ package com.kyonggi.diet.controllerDocs;
 
 import com.kyonggi.diet.Food.eumer.RestaurantType;
 import com.kyonggi.diet.Food.eumer.SubRestaurant;
-import com.kyonggi.diet.review.DTO.FoodNamesDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 
 public interface FoodControllerDocs {
 
@@ -57,37 +53,50 @@ public interface FoodControllerDocs {
             Long id
     );
 
-    //----------------------- 카테코리별 조회----------------------
-    /**
-     * 카테고리별 음식 조회 (경슐, 이퀘, 샐박)
-     */
+    // ---------------------- 카테고리별 음식 조회 ----------------------
     @Operation(
-        summary = "카테고리별 음식 조회(경슐, 이퀘, 샐박)",
-        description = """
-            경슐랭(KYONGSUL) 또는 이스퀘어(E_SQUARE) 또는 샐리박스(SALLY_BOX)의 전체 음식 목록을
-            카테고리별로 묶어서 반환합니다.<br>
-            - KYONGSUL: SubRestaurant → KyongsulCategory → 음식 리스트<br>
-            - E_SQUARE: ESquareCategory → 음식 리스트<br><br>
-            - SALLY_BOX: SallyBoxCategory → 음식 리스트<br><br>
-            """
+            summary = "카테고리별 음식 조회",
+            description = "경슐랭, 이스퀘어, 샐리박스 식당에서 카테고리별로 음식 목록을 조회합니다."
     )
-    ResponseEntity<?> getFoodByCategory(@Parameter(
-            name = "type",
-            description = "식당 타입 (KYONGSUL: 경슐랭 / E_SQUARE: 이스퀘어 / SALLY_BOX: 샐리박스)",
-            required = true ,in = ParameterIn.PATH
-        ) RestaurantType type);
-
-    //----------------------- TOP5 관심많은 메뉴 조회 ----------------------
-    @Operation(
-            summary = "리뷰 기준 TOP5 관심 많은 메뉴 조회",
-            description = """
-                    각 식당별 리뷰 수 기준으로 가장 관심이 많은 TOP5 음식을 반환합니다.
-                    """
-    )
-    @GetMapping("/{type}/top5-menu")
-    ResponseEntity<?> getTop5FoodByRestaurantType(@Parameter(
-                name = "type", description = "식당 종류 (DORMITORY, KYONGSUL, E_SQUARE, SALLY_BOX)",
-                required = true, in = ParameterIn.PATH
-            ) RestaurantType type
+    ResponseEntity<?> getFoodByCategory(
+            @Parameter(name = "type", description = "식당 종류", in = ParameterIn.PATH)
+            RestaurantType type
     );
+
+    // ---------------------- 요리 방식별 음식 조회 ----------------------
+    @Operation(
+            summary = "요리 방식별 음식 조회 (Cuisine)",
+            description = "식당 종류에 따라 요리 방식(Cuisine)별 음식 목록을 조회합니다."
+    )
+    ResponseEntity<?> getFoodByCuisine(
+            @Parameter(name = "type", description = "식당 종류", in = ParameterIn.PATH)
+            RestaurantType type
+    );
+
+    // ---------------------- 음식 종류별 음식 조회 ----------------------
+    @Operation(
+            summary = "음식 종류별 음식 조회 (FoodType)",
+            description = "식당 종류에 따라 음식 종류(FoodType)별 음식 목록을 조회합니다."
+    )
+    ResponseEntity<?> getFoodByFoodType(
+            @Parameter(name = "type", description = "식당 종류", in = ParameterIn.PATH)
+            RestaurantType type
+    );
+
+    // ---------------------- 세부 메뉴별 음식 조회 ----------------------
+    @Operation(
+            summary = "세부 메뉴별 음식 조회 (DetailedMenu)",
+            description = "식당 종류에 따라 세부 메뉴(DetailedMenu)별 음식 목록을 조회합니다."
+    )
+    ResponseEntity<?> getFoodByDetailedMenu(
+            @Parameter(name = "type", description = "식당 종류", in = ParameterIn.PATH)
+            RestaurantType type
+    );
+
+    // ---------------------- 리뷰가 가장 많은 음식 Top5 조회 ----------------------
+    @Operation(
+            summary = "리뷰가 가장 많은 음식 Top5 조회",
+            description = "경슐랭, 이스퀘어, 샐리박스 전체 식당을 통합하여 리뷰 개수가 가장 많은 음식 5개를 반환합니다. 경슐랭 이외의 조회 경우 SubRestaurant는 null값"
+    )
+    ResponseEntity<?> getTop5Food();
 }

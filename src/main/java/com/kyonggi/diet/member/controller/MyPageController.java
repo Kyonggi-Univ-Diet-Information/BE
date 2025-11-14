@@ -6,6 +6,7 @@ import com.kyonggi.diet.controllerDocs.MyPageControllerDocs;
 import com.kyonggi.diet.member.DTO.MyPageDTO;
 import com.kyonggi.diet.member.service.CustomMembersDetailService;
 import com.kyonggi.diet.member.service.MyPageService;
+import com.kyonggi.diet.review.DTO.MyReviewDTO;
 import com.kyonggi.diet.review.DTO.ReviewDTO;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -63,6 +64,33 @@ public class MyPageController implements MyPageControllerDocs {
             return unauthorized();
 
         Page<ReviewDTO> result = myPageService.getMyFavoriteReviews(email, type, page);
+        return ResponseEntity.ok(result);
+    }
+
+    // 내가 쓴 리뷰
+    @GetMapping("/reviews/written")
+    public ResponseEntity<?> getMyWrittenReviews(
+            @RequestHeader("Authorization") String token,
+            @RequestParam(defaultValue = "0") int page
+    ) {
+
+        String email = extractEmail(token);
+        if (email == null)
+            return unauthorized();
+        Page<MyReviewDTO> result = myPageService.getMyWrittenReviews(email, page);
+        return ResponseEntity.ok(result);
+    }
+
+    // 내가 좋아요한 리뷰
+    @GetMapping("/reviews/favorited")
+    public ResponseEntity<?> getMyFavoriteReviewss(
+            @RequestHeader("Authorization") String token,
+            @RequestParam(defaultValue = "0") int page
+    ) {
+        String email = extractEmail(token);
+        if (email == null)
+            return unauthorized();
+        Page<MyReviewDTO> result = myPageService.getMyFavoritedReviews(email, page);
         return ResponseEntity.ok(result);
     }
 

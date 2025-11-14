@@ -13,7 +13,7 @@ import java.util.List;
 @Getter
 @Entity
 @SuperBuilder
-public class SallyBoxFood extends Food {
+public class SallyBoxFood extends ExtendedFood {
 
     @Id
     @GeneratedValue

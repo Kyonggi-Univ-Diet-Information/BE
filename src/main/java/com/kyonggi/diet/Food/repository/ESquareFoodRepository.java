@@ -18,7 +18,7 @@ public interface ESquareFoodRepository extends JpaRepository<ESquareFood, Long> 
     Optional<FoodNamesDTO> findNameByESquareFoodId(@Param("id") Long id);
 
     @Query("""
-        SELECT f.id, f.name, f.nameEn, f.price, f.category, f.categoryKorean, count(r)
+        SELECT f.id, f.name, f.nameEn, f.price, f.cuisine, f.foodType, f.detailedMenu, count(r)
         FROM ESquareFoodReview r
         JOIN r.eSquareFood f
         GROUP BY f.id

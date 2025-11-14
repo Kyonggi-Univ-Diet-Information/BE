@@ -3,13 +3,11 @@ package com.kyonggi.diet.Food.service;
 import com.amazonaws.services.kms.model.NotFoundException;
 import com.kyonggi.diet.Food.domain.KyongsulFood;
 import com.kyonggi.diet.Food.DTO.KyongsulFoodDTO;
-import com.kyonggi.diet.Food.eumer.KyongsulCategory;
+import com.kyonggi.diet.Food.eumer.*;
 import com.kyonggi.diet.Food.repository.KyongsulFoodRepository;
-import com.kyonggi.diet.Food.eumer.SubRestaurant;
 import com.kyonggi.diet.review.DTO.FoodNamesDTO;
 import com.kyonggi.diet.translation.service.TranslationService;
 import org.modelmapper.ModelMapper;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,6 +15,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -46,6 +45,9 @@ public class KyongsulFoodService extends AbstractFoodService<KyongsulFood, Kyong
                 .name(kyongsulFoodDTO.getName())
                 .nameEn(translationService.translateToEnglish(kyongsulFoodDTO.getName()))
                 .subRestaurant(kyongsulFoodDTO.getSubRestaurant())
+                .cuisine(kyongsulFoodDTO.getCuisine())
+                .foodType(kyongsulFoodDTO.getFoodType())
+                .detailedMenu(kyongsulFoodDTO.getDetailedMenu())
                 .build();
 
         return kyongsulFoodRepository.save(kyongsulFood);
@@ -115,6 +117,45 @@ public class KyongsulFoodService extends AbstractFoodService<KyongsulFood, Kyong
     }
 
     /**
+     * 단일 기준(요리방식, 음식종류, 세부메뉴 등) 그룹핑 공통 메서드
+     */
+    private <K> Map<K, List<KyongsulFoodDTO>> groupFoodsBy(Function<KyongsulFood, K> classifier) {
+        List<KyongsulFood> foods = kyongsulFoodRepository.findAll();
+        if (foods.isEmpty()) {
+            throw new NotFoundException("경슐랭 음식 목록이 비어있습니다.");
+        }
+
+        return foods.stream()
+                .collect(Collectors.groupingBy(
+                        classifier,
+                        LinkedHashMap::new,
+                        Collectors.mapping(food -> super.mapToDto(food, KyongsulFoodDTO.class), Collectors.toList())
+                ));
+    }
+
+    /**
+     * 요리 방식별 조회
+     */
+    public Map<Cuisine, List<KyongsulFoodDTO>> findFoodByCuisine() {
+        return groupFoodsBy(KyongsulFood::getCuisine);
+    }
+
+    /**
+     * 음식 종류별 조회
+     */
+    public Map<FoodType, List<KyongsulFoodDTO>> findFoodByFoodType() {
+        return groupFoodsBy(KyongsulFood::getFoodType);
+    }
+
+    /**
+     * 세부 메뉴별 조회
+     */
+    public Map<DetailedMenu, List<KyongsulFoodDTO>> findFoodByDetailedMenu() {
+        return groupFoodsBy(KyongsulFood::getDetailedMenu);
+    }
+
+
+    /**
      * 경슐랭 카테고리별 음식 출력
      */
     public Map<SubRestaurant, Map<KyongsulCategory, List<KyongsulFoodDTO>>> findFoodByCategory() {
@@ -151,22 +192,5 @@ public class KyongsulFoodService extends AbstractFoodService<KyongsulFood, Kyong
             }
         }
         return result;
-    }
-
-    public List<KyongsulFoodDTO> getFavoriteTop5Foods() {
-        List<Object[]> results = kyongsulFoodRepository.find5FoodFavorite(PageRequest.of(0, 5));
-
-        return results.stream()
-                .map(obj -> new KyongsulFoodDTO(
-                        (Long) obj[0],
-                        (String) obj[1],
-                        (String) obj[2],
-                        (Long) obj[3],
-                        (KyongsulCategory) obj[4],
-                        (String) obj[5],
-                        (SubRestaurant) obj[6],
-                        (Long) obj[7]   // count(r)
-                ))
-                .collect(Collectors.toList());
     }
 }

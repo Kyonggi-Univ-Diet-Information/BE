@@ -3,16 +3,19 @@ package com.kyonggi.diet.Food.service;
 import com.amazonaws.services.kms.model.NotFoundException;
 import com.kyonggi.diet.Food.DTO.ESquareFoodDTO;
 import com.kyonggi.diet.Food.domain.ESquareFood;
+import com.kyonggi.diet.Food.eumer.Cuisine;
+import com.kyonggi.diet.Food.eumer.DetailedMenu;
 import com.kyonggi.diet.Food.eumer.ESquareCategory;
+import com.kyonggi.diet.Food.eumer.FoodType;
 import com.kyonggi.diet.Food.repository.ESquareFoodRepository;
 import com.kyonggi.diet.review.DTO.FoodNamesDTO;
 import com.kyonggi.diet.translation.service.TranslationService;
 import org.modelmapper.ModelMapper;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -23,7 +26,7 @@ public class ESquareFoodService extends AbstractFoodService<ESquareFood, ESquare
     private final ESquareFoodRepository esquareFoodRepository;
 
     public ESquareFoodService(ModelMapper modelMapper, TranslationService translationService,
-                       ESquareFoodRepository esquareFoodRepository) {
+                              ESquareFoodRepository esquareFoodRepository) {
         super(modelMapper);
         this.translationService = translationService;
         this.esquareFoodRepository = esquareFoodRepository;
@@ -39,8 +42,9 @@ public class ESquareFoodService extends AbstractFoodService<ESquareFood, ESquare
                 .name(DTO.getName())
                 .nameEn(translationService.translateToEnglish(DTO.getName()))
                 .price(DTO.getPrice())
-                .category(DTO.getCategory())
-                .categoryKorean(DTO.getCategory().getKoreanName())
+                .cuisine(DTO.getCuisine())
+                .foodType(DTO.getFoodType())
+                .detailedMenu(DTO.getDetailedMenu())
                 .build();
 
         return esquareFoodRepository.save(food);
@@ -48,6 +52,7 @@ public class ESquareFoodService extends AbstractFoodService<ESquareFood, ESquare
 
     /**
      * ID 값으로 음식 DTO 찾기
+     *
      * @param id (Long)
      * @return ESquareFoodDTO
      */
@@ -60,6 +65,7 @@ public class ESquareFoodService extends AbstractFoodService<ESquareFood, ESquare
 
     /**
      * 이스퀘어 음식 DTO 전체 찾기
+     *
      * @return List<KyongsulFoodDTO>
      */
     @Override
@@ -82,12 +88,51 @@ public class ESquareFoodService extends AbstractFoodService<ESquareFood, ESquare
 
     /**
      * 음식 이름으로 DB에 존재 여부
+     *
      * @param name (String)
      * @return Boolean
      */
     @Override
     public boolean existsByName(String name) {
         return esquareFoodRepository.findByName(name).isPresent();
+    }
+
+    /**
+     * 요리 방식별 조회
+     */
+    public Map<Cuisine, List<ESquareFoodDTO>> findFoodByCuisine() {
+        return groupFoodsBy(ESquareFood::getCuisine);
+    }
+
+    /**
+     * 음식 종류별 조회
+     */
+    public Map<FoodType, List<ESquareFoodDTO>> findFoodByFoodType() {
+        return groupFoodsBy(ESquareFood::getFoodType);
+    }
+
+    /**
+     * 세부 메뉴별 조회
+     */
+    public Map<DetailedMenu, List<ESquareFoodDTO>> findFoodByDetailedMenu() {
+        return groupFoodsBy(ESquareFood::getDetailedMenu);
+    }
+
+    /**
+     *
+     */
+    private <K> Map<K, List<ESquareFoodDTO>> groupFoodsBy(Function<ESquareFood, K> classifier) {
+        List<ESquareFood> foods = esquareFoodRepository.findAll();
+        if (foods.isEmpty()) {
+            throw new NotFoundException("이스퀘어 음식 목록이 비어있습니다.");
+        }
+
+        return foods.stream()
+                .collect(Collectors.groupingBy(
+                        classifier,
+                        LinkedHashMap::new, // 순서 유지
+                        Collectors.mapping(food -> super.mapToDto(food, ESquareFoodDTO.class), Collectors.toList())
+                ));
     }
 
     /**
@@ -114,21 +159,5 @@ public class ESquareFoodService extends AbstractFoodService<ESquareFood, ESquare
                         (a, b) -> a,
                         LinkedHashMap::new
                 ));
-    }
-
-    public List<ESquareFoodDTO> getFavoriteTop5Foods() {
-        List<Object[]> results = esquareFoodRepository.find5FoodFavorite(PageRequest.of(0, 5));
-
-        return results.stream()
-                .map(obj -> new ESquareFoodDTO(
-                        (Long) obj[0],
-                        (String) obj[1],
-                        (String) obj[2],
-                        (Long) obj[3],
-                        (ESquareCategory) obj[4],
-                        (String) obj[5],
-                        (Long) obj[6]   // count(r)
-                ))
-                .collect(Collectors.toList());
     }
 }

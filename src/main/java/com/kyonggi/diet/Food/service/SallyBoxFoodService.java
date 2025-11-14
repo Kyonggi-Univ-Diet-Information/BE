@@ -1,19 +1,13 @@
 package com.kyonggi.diet.Food.service;
 
 import com.amazonaws.services.kms.model.NotFoundException;
-import com.kyonggi.diet.Food.DTO.DietFoodDTO;
-import com.kyonggi.diet.Food.DTO.ESquareFoodDTO;
 import com.kyonggi.diet.Food.DTO.SallyBoxFoodDTO;
-import com.kyonggi.diet.Food.domain.ESquareFood;
 import com.kyonggi.diet.Food.domain.SallyBoxFood;
-import com.kyonggi.diet.Food.eumer.DietFoodType;
-import com.kyonggi.diet.Food.eumer.ESquareCategory;
-import com.kyonggi.diet.Food.eumer.SallyBoxCategory;
+import com.kyonggi.diet.Food.eumer.*;
 import com.kyonggi.diet.Food.repository.SallyBoxFoodRepository;
 import com.kyonggi.diet.review.DTO.FoodNamesDTO;
 import com.kyonggi.diet.translation.service.TranslationService;
 import org.modelmapper.ModelMapper;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +15,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -47,8 +42,9 @@ public class SallyBoxFoodService extends AbstractFoodService<SallyBoxFood, Sally
                 .name(DTO.getName())
                 .nameEn(translationService.translateToEnglish(DTO.getName()))
                 .price(DTO.getPrice())
-                .category(DTO.getCategory())
-                .categoryKorean(DTO.getCategory().getKoreanName())
+                .cuisine(DTO.getCuisine())
+                .foodType(DTO.getFoodType())
+                .detailedMenu(DTO.getDetailedMenu())
                 .build();
 
         return sallyBoxFoodRepository.save(food);
@@ -96,6 +92,41 @@ public class SallyBoxFoodService extends AbstractFoodService<SallyBoxFood, Sally
     }
 
     /**
+     * 요리 방식별 조회
+     */
+    public Map<Cuisine, List<SallyBoxFoodDTO>> findFoodByCuisine() {
+        return groupFoodsBy(SallyBoxFood::getCuisine);
+    }
+
+    /**
+     * 음식 종류별 조회
+     */
+    public Map<FoodType, List<SallyBoxFoodDTO>> findFoodByFoodType() {
+        return groupFoodsBy(SallyBoxFood::getFoodType);
+    }
+
+    /**
+     * 세부 메뉴별 조회
+     */
+    public Map<DetailedMenu, List<SallyBoxFoodDTO>> findFoodByDetailedMenu() {
+        return groupFoodsBy(SallyBoxFood::getDetailedMenu);
+    }
+
+    private <K> Map<K, List<SallyBoxFoodDTO>> groupFoodsBy(Function<SallyBoxFood, K> classifier) {
+        List<SallyBoxFood> foods = sallyBoxFoodRepository.findAll();
+        if (foods.isEmpty()) {
+            throw new NotFoundException("샐리박스 음식 목록이 비어있습니다.");
+        }
+
+        return foods.stream()
+                .collect(Collectors.groupingBy(
+                        classifier,
+                        LinkedHashMap::new, // 순서 유지
+                        Collectors.mapping(food -> super.mapToDto(food, SallyBoxFoodDTO.class), Collectors.toList())
+                ));
+    }
+
+    /**
      * 샐리박스 카테고리별 음식 출력
      */
     public Map<SallyBoxCategory, List<SallyBoxFoodDTO>> findFoodByCategory() {
@@ -119,21 +150,5 @@ public class SallyBoxFoodService extends AbstractFoodService<SallyBoxFood, Sally
                         (a, b) -> a,
                         LinkedHashMap::new
                 ));
-    }
-
-    public List<SallyBoxFoodDTO> getFavoriteTop5Foods() {
-        List<Object[]> results = sallyBoxFoodRepository.find5FoodFavorite(PageRequest.of(0, 5));
-
-        return results.stream()
-                .map(obj -> new SallyBoxFoodDTO(
-                        (Long) obj[0],
-                        (String) obj[1],
-                        (String) obj[2],
-                        (Long) obj[3],
-                        (SallyBoxCategory) obj[4],
-                        (String) obj[5],
-                        (Long) obj[6]
-                ))
-                .collect(Collectors.toList());
     }
 }

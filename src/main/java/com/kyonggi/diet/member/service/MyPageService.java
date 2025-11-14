@@ -3,6 +3,8 @@ package com.kyonggi.diet.member.service;
 import com.kyonggi.diet.Food.eumer.RestaurantType;
 import com.kyonggi.diet.member.DTO.MyPageDTO;
 import com.kyonggi.diet.member.MemberEntity;
+import com.kyonggi.diet.member.MyPageRepository;
+import com.kyonggi.diet.review.DTO.MyReviewDTO;
 import com.kyonggi.diet.review.DTO.ReviewDTO;
 import com.kyonggi.diet.review.service.DietFoodReviewService;
 import com.kyonggi.diet.review.service.ESquareFoodReviewService;
@@ -26,6 +28,7 @@ public class MyPageService {
     private final KyongsulFoodReviewService kyongsulFoodReviewService;
     private final ESquareFoodReviewService esquareFoodReviewService;
     private final SallyBoxFoodReviewService sallyBoxFoodReviewService;
+    private final MyPageRepository myPageRepository;
 
     public MyPageDTO getMyPage(String email) {
         MemberEntity member = memberService.getMemberByEmail(email);
@@ -65,5 +68,19 @@ public class MyPageService {
             case SALLY_BOX -> sallyBoxFoodReviewService.findAllByMemberFavoritedPaged(member, page);
             default -> Page.empty(pageable);
         };
+    }
+
+    // 내가 쓴 리뷰
+    public Page<MyReviewDTO> getMyWrittenReviews(String email, int page) {
+        MemberEntity member = memberService.getMemberByEmail(email);
+        PageRequest pageable = PageRequest.of(page, 10);
+        return myPageRepository.findMyWrittenReviews(member.getId(), pageable);
+    }
+
+    // 내가 좋아요한 리뷰
+    public Page<MyReviewDTO> getMyFavoritedReviews(String email, int page) {
+        MemberEntity member = memberService.getMemberByEmail(email);
+        PageRequest pageable = PageRequest.of(page, 10);
+        return myPageRepository.findMyFavoritedReviews(member.getId(), pageable);
     }
 }

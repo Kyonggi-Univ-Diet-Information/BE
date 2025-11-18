@@ -5,6 +5,7 @@ import com.amazonaws.services.s3.model.S3Object;
 import com.kyonggi.diet.Food.domain.*;
 import com.kyonggi.diet.Food.eumer.*;
 import com.kyonggi.diet.Food.repository.ESquareFoodRepository;
+import com.kyonggi.diet.Food.repository.KyongsulSetFoodRepository;
 import com.kyonggi.diet.Food.repository.SallyBoxFoodRepository;
 import com.kyonggi.diet.Food.service.DietFoodService;
 import com.kyonggi.diet.diet.DietDTO;
@@ -17,7 +18,6 @@ import com.kyonggi.diet.translation.service.TranslationService;
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvValidationException;
 import lombok.RequiredArgsConstructor;
-import org.apache.poi.ss.usermodel.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
@@ -52,6 +52,7 @@ public class CSVService {
     private final DietContentService dietContentService;
     private final DietFoodService dietFoodService;
     private final KyongsulFoodRepository kyongsulFoodRepository;
+    private final KyongsulSetFoodRepository kyongsulSetFoodRepository;
     private final TranslationService translationService;
     private final ESquareFoodRepository esquareFoodRepository;
     private final SallyBoxFoodRepository sallyBoxFoodRepository;
@@ -139,137 +140,177 @@ public class CSVService {
     }
 
     // ---------------- 공통 CSV 처리 메서드 ----------------
-        private <T> void readAndSaveCSV(
-                String bucketName,
-                String key,
-                Function<String[], T> entityMapper,
-                JpaRepository<T, Long> repository
-        ) throws IOException, CsvValidationException {
+    private <T> void readAndSaveCSV(
+            String bucketName,
+            String key,
+            Function<String[], T> entityMapper,
+            JpaRepository<T, Long> repository
+    ) throws IOException, CsvValidationException {
 
-            S3Object s3Object = amazonS3.getObject(bucketName, key);
-            try (CSVReader reader = new CSVReader(
-                    new InputStreamReader(s3Object.getObjectContent(), StandardCharsets.UTF_8))) {
+        S3Object s3Object = amazonS3.getObject(bucketName, key);
+        try (CSVReader reader = new CSVReader(
+                new InputStreamReader(s3Object.getObjectContent(), StandardCharsets.UTF_8))) {
 
-                reader.readNext(); // 헤더 스킵
-                String[] nextLine;
-                while ((nextLine = reader.readNext()) != null) {
-                    if (nextLine.length < 3 || nextLine[0].isEmpty()) continue;
-                    T entity = entityMapper.apply(nextLine);
-                    if (entity != null) repository.save(entity);
-                }
+            reader.readNext(); // 헤더 스킵
+            String[] nextLine;
+            while ((nextLine = reader.readNext()) != null) {
+                if (nextLine.length < 3 || nextLine[0].isEmpty()) continue;
+                T entity = entityMapper.apply(nextLine);
+                if (entity != null) repository.save(entity);
             }
         }
+    }
 
-        // ---------------- 경슐랭 ----------------
-        @Transactional
-        public void readKyongsulCSVFile(String key) throws IOException, CsvValidationException {
-            readAndSaveCSV(bucketNameKyongsul, key, this::mapKyongsul, kyongsulFoodRepository);
+    // ---------------- 경슐랭 ----------------
+    @Transactional
+    public void readKyongsulCSVFile(String key) throws IOException, CsvValidationException {
+        readAndSaveCSV(bucketNameKyongsul, key, this::mapKyongsul, kyongsulFoodRepository);
+    }
+
+    private KyongsulFood mapKyongsul(String[] nextLine) {
+        if (nextLine.length < 7 || nextLine[0].isEmpty()) return null;
+
+        String restaurantStr = nextLine[0];
+        String name = nextLine[1].trim();
+        Long price = parsePrice(nextLine[2]);
+        String nameEn = nextLine[3] == null || nextLine[3].isBlank()
+                ? translationService.translateToEnglish(name)
+                : nextLine[3].trim();
+
+        Cuisine cuisine = Cuisine.valueOf(nextLine[4].trim().toUpperCase());
+        FoodType foodType = FoodType.valueOf(nextLine[5].trim().toUpperCase());
+        DetailedMenu detailedMenu = DetailedMenu.valueOf(nextLine[6].trim().toUpperCase());
+        SubRestaurant subRestaurant = SubRestaurant.valueOf(restaurantStr);
+
+        Optional<KyongsulFood> exist = kyongsulFoodRepository.findByName(name);
+        if (exist.isPresent()) {
+            if (exist.get().getCuisine() == null)
+                exist.get().updateCategory(cuisine, foodType, detailedMenu);
+            return null;
         }
 
-        private KyongsulFood mapKyongsul(String[] nextLine) {
-            if (nextLine.length < 7 || nextLine[0].isEmpty()) return null;
+        return KyongsulFood.builder()
+                .subRestaurant(subRestaurant)
+                .name(name)
+                .nameEn(nameEn)
+                .price(price)
+                .cuisine(cuisine)
+                .foodType(foodType)
+                .detailedMenu(detailedMenu)
+                .build();
+    }
 
-            String restaurantStr = nextLine[0];
-            String name = nextLine[1].trim();
-            Long price = parsePrice(nextLine[2]);
-            String nameEn = nextLine[3] == null || nextLine[3].isBlank()
-                    ? translationService.translateToEnglish(name)
-                    : nextLine[3].trim();
+    // --------------- 경슈랭 세트 콤보 -----------
+    @Transactional
+    public void readKyongsulSetCSVFile(String key) throws IOException, CsvValidationException {
+        readAndSaveCSV(bucketNameKyongsul, key, this::mapKyongsulSet, kyongsulSetFoodRepository);
+    }
 
-            Cuisine cuisine = Cuisine.valueOf(nextLine[4].trim().toUpperCase());
-            FoodType foodType = FoodType.valueOf(nextLine[5].trim().toUpperCase());
-            DetailedMenu detailedMenu = DetailedMenu.valueOf(nextLine[6].trim().toUpperCase());
-            SubRestaurant subRestaurant = SubRestaurant.valueOf(restaurantStr);
+    private KyongsulSetFood mapKyongsulSet(String[] nextLine) {
+        if (nextLine.length < 6 || nextLine[0].isEmpty()) return null;
 
-            Optional<KyongsulFood> exist = kyongsulFoodRepository.findByName(name);
-            if (exist.isPresent()) {
-                if (exist.get().getCuisine() == null)
-                    exist.get().updateCategory(cuisine, foodType, detailedMenu);
-                return null;
-            }
+        String restaurantStr = nextLine[0];
+        String name = nextLine[1].trim();
+        Long price = parsePrice(nextLine[2]);
+        String nameEn = nextLine[3] == null || nextLine[3].isBlank()
+                ? translationService.translateToEnglish(name)
+                : nextLine[3].trim();
+        SetType setType = SetType.valueOf(nextLine[4].trim().toUpperCase());
+        String baseFoodName = nextLine[5].trim();
+        SubRestaurant subRestaurant = SubRestaurant.valueOf(restaurantStr);
 
-            return KyongsulFood.builder()
-                    .subRestaurant(subRestaurant)
-                    .name(name)
-                    .nameEn(nameEn)
-                    .price(price)
-                    .cuisine(cuisine)
-                    .foodType(foodType)
-                    .detailedMenu(detailedMenu)
-                    .build();
+
+        Optional<KyongsulSetFood> exist = kyongsulSetFoodRepository.findByName(name);
+        if (exist.isPresent()) {
+            return null;
         }
 
-        // ---------------- 이스퀘어 ----------------
-        @Transactional
-        public void readESquareCSVFile(String key) throws IOException, CsvValidationException {
-            readAndSaveCSV(bucketNameESquare, key, this::mapESquare, esquareFoodRepository);
+        Optional<KyongsulFood> baseFood = kyongsulFoodRepository.findByName(baseFoodName);
+
+        return baseFood.map(kyongsulFood -> KyongsulSetFood.builder()
+                .subRestaurant(subRestaurant)
+                .name(name)
+                .nameEn(nameEn)
+                .price(price)
+                .setType(setType)
+                .subRestaurant(subRestaurant)
+                .baseFood(kyongsulFood)
+                .category(baseFood.get().getCategory())
+                .categoryKorean(baseFood.get().getCategoryKorean())
+                .build()).orElse(null);
+    }
+
+    // ---------------- 이스퀘어 ----------------
+    @Transactional
+    public void readESquareCSVFile(String key) throws IOException, CsvValidationException {
+        readAndSaveCSV(bucketNameESquare, key, this::mapESquare, esquareFoodRepository);
+    }
+
+    private ESquareFood mapESquare(String[] nextLine) {
+        if (nextLine.length < 6 || nextLine[0].isEmpty()) return null;
+
+        String name = nextLine[0].trim();
+        Long price = parsePrice(nextLine[1]);
+        String nameEn = nextLine[2] == null || nextLine[2].isBlank()
+                ? translationService.translateToEnglish(name)
+                : nextLine[2].trim();
+
+        Cuisine cuisine = Cuisine.valueOf(nextLine[3].trim().toUpperCase());
+        FoodType foodType = FoodType.valueOf(nextLine[4].trim().toUpperCase());
+        DetailedMenu detailedMenu = DetailedMenu.valueOf(nextLine[5].trim().toUpperCase());
+
+        Optional<ESquareFood> exist = esquareFoodRepository.findByName(name);
+        if (exist.isPresent()) {
+            if (exist.get().getCuisine() == null)
+                exist.get().updateCategory(cuisine, foodType, detailedMenu);
+            return null;
         }
 
-        private ESquareFood mapESquare(String[] nextLine) {
-            if (nextLine.length < 6 || nextLine[0].isEmpty()) return null;
+        return ESquareFood.builder()
+                .name(name)
+                .nameEn(nameEn)
+                .price(price)
+                .cuisine(cuisine)
+                .foodType(foodType)
+                .detailedMenu(detailedMenu)
+                .build();
+    }
 
-            String name = nextLine[0].trim();
-            Long price = parsePrice(nextLine[1]);
-            String nameEn = nextLine[2] == null || nextLine[2].isBlank()
-                    ? translationService.translateToEnglish(name)
-                    : nextLine[2].trim();
+    // ---------------- 샐리박스 ----------------
+    @Transactional
+    public void readSallyBoxCSVFile(String key) throws IOException, CsvValidationException {
+        readAndSaveCSV(bucketNameSallyBox, key, this::mapSallyBox, sallyBoxFoodRepository);
+    }
 
-            Cuisine cuisine = Cuisine.valueOf(nextLine[3].trim().toUpperCase());
-            FoodType foodType = FoodType.valueOf(nextLine[4].trim().toUpperCase());
-            DetailedMenu detailedMenu = DetailedMenu.valueOf(nextLine[5].trim().toUpperCase());
+    private SallyBoxFood mapSallyBox(String[] nextLine) {
+        if (nextLine.length < 6 || nextLine[0].isEmpty()) return null;
 
-            Optional<ESquareFood> exist = esquareFoodRepository.findByName(name);
-            if (exist.isPresent()) {
-                if (exist.get().getCuisine() == null)
-                    exist.get().updateCategory(cuisine, foodType, detailedMenu);
-                return null;
-            }
+        String name = nextLine[0].trim();
+        Long price = parsePrice(nextLine[1]);
+        String nameEn = nextLine[2] == null || nextLine[2].isBlank()
+                ? translationService.translateToEnglish(name)
+                : nextLine[2].trim();
 
-            return ESquareFood.builder()
-                    .name(name)
-                    .nameEn(nameEn)
-                    .price(price)
-                    .cuisine(cuisine)
-                    .foodType(foodType)
-                    .detailedMenu(detailedMenu)
-                    .build();
+        Cuisine cuisine = Cuisine.valueOf(nextLine[3].trim().toUpperCase());
+        FoodType foodType = FoodType.valueOf(nextLine[4].trim().toUpperCase());
+        DetailedMenu detailedMenu = DetailedMenu.valueOf(nextLine[5].trim().toUpperCase());
+
+        Optional<SallyBoxFood> exist = sallyBoxFoodRepository.findByName(name);
+        if (exist.isPresent()) {
+            if (exist.get().getCuisine() == null)
+                exist.get().updateCategory(cuisine, foodType, detailedMenu);
+            return null;
         }
 
-        // ---------------- 샐리박스 ----------------
-        @Transactional
-        public void readSallyBoxCSVFile(String key) throws IOException, CsvValidationException {
-            readAndSaveCSV(bucketNameSallyBox, key, this::mapSallyBox, sallyBoxFoodRepository);
-        }
-
-        private SallyBoxFood mapSallyBox(String[] nextLine) {
-            if (nextLine.length < 6 || nextLine[0].isEmpty()) return null;
-
-            String name = nextLine[0].trim();
-            Long price = parsePrice(nextLine[1]);
-            String nameEn = nextLine[2] == null || nextLine[2].isBlank()
-                    ? translationService.translateToEnglish(name)
-                    : nextLine[2].trim();
-
-            Cuisine cuisine = Cuisine.valueOf(nextLine[3].trim().toUpperCase());
-            FoodType foodType = FoodType.valueOf(nextLine[4].trim().toUpperCase());
-            DetailedMenu detailedMenu = DetailedMenu.valueOf(nextLine[5].trim().toUpperCase());
-
-            Optional<SallyBoxFood> exist = sallyBoxFoodRepository.findByName(name);
-            if (exist.isPresent()) {
-                if (exist.get().getCuisine() == null)
-                    exist.get().updateCategory(cuisine, foodType, detailedMenu);
-                return null;
-            }
-
-            return SallyBoxFood.builder()
-                    .name(name)
-                    .nameEn(nameEn)
-                    .price(price)
-                    .cuisine(cuisine)
-                    .foodType(foodType)
-                    .detailedMenu(detailedMenu)
-                    .build();
-        }
+        return SallyBoxFood.builder()
+                .name(name)
+                .nameEn(nameEn)
+                .price(price)
+                .cuisine(cuisine)
+                .foodType(foodType)
+                .detailedMenu(detailedMenu)
+                .build();
+    }
 
     private Long parsePrice(String priceStr) {
         if (priceStr == null || priceStr.isBlank()) return 0L;

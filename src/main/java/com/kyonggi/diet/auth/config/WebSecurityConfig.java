@@ -43,7 +43,7 @@ public class WebSecurityConfig {
                                 // Food API
                                 "/api/food/*/*", "/api/food/KYONGSUL/restaurant/*", "api/food/*/get-names/*",
                                 "/api/read-csv/*", "/api/food/*/each-category", "/api/food/top5-menu",
-                                "/api/food/*/category/*",
+                                "/api/food/*/category/*", "/api/food/*/get-sets/*", "/api/food/*/sets-one/*",
 
                                 // Review API
                                 "/api/review/*/reviews/top5-rating","/api/review/*/reviews/top5-recent",

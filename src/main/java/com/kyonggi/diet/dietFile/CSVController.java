@@ -31,6 +31,13 @@ public class CSVController implements CSVControllerDocs {
         csvReader.readKyongsulCSVFile(keyDTO.getKey());
     }
 
+    @PostMapping("kyongsul-set")
+    public void readKyongsulSet(@RequestBody KeyDTO keyDTO) throws CsvValidationException, IOException {
+        if(keyDTO.getKey() == null)
+            return;
+        csvReader.readKyongsulSetCSVFile(keyDTO.getKey());
+    }
+
     @PostMapping("/e-square")
     public void readESquare(@RequestBody KeyDTO keyDTO) throws CsvValidationException, IOException {
         if(keyDTO.getKey() == null)

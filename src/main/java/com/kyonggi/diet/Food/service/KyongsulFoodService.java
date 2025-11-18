@@ -1,10 +1,13 @@
 package com.kyonggi.diet.Food.service;
 
 import com.amazonaws.services.kms.model.NotFoundException;
+import com.kyonggi.diet.Food.DTO.KyongsulSetFoodDTO;
 import com.kyonggi.diet.Food.domain.KyongsulFood;
 import com.kyonggi.diet.Food.DTO.KyongsulFoodDTO;
+import com.kyonggi.diet.Food.domain.KyongsulSetFood;
 import com.kyonggi.diet.Food.eumer.*;
 import com.kyonggi.diet.Food.repository.KyongsulFoodRepository;
+import com.kyonggi.diet.Food.repository.KyongsulSetFoodRepository;
 import com.kyonggi.diet.review.DTO.FoodNamesDTO;
 import com.kyonggi.diet.translation.service.TranslationService;
 import org.modelmapper.ModelMapper;
@@ -23,13 +26,16 @@ import java.util.stream.Collectors;
 public class KyongsulFoodService extends AbstractFoodService<KyongsulFood, KyongsulFoodDTO> {
 
     private final KyongsulFoodRepository kyongsulFoodRepository;
+    private final KyongsulSetFoodRepository kyongsulSetFoodRepository;
     private final TranslationService translationService;
 
     public KyongsulFoodService(ModelMapper modelMapper,
                                KyongsulFoodRepository kyongsulFoodRepository,
+                               KyongsulSetFoodRepository kyongsulSetFoodRepository,
                                TranslationService translationService) {
         super(modelMapper);
         this.kyongsulFoodRepository = kyongsulFoodRepository;
+        this.kyongsulSetFoodRepository = kyongsulSetFoodRepository;
         this.translationService = translationService;
     }
 
@@ -114,6 +120,41 @@ public class KyongsulFoodService extends AbstractFoodService<KyongsulFood, Kyong
     @Override
     public boolean existsByName(String name) {
         return kyongsulFoodRepository.findByName(name).isPresent();
+    }
+
+    /**
+     * 세트, 콤보 테이블 내 음식 한개 조회
+     */
+    public KyongsulSetFoodDTO findOneSetDTO(Long id) {
+        return mapToDto(kyongsulSetFoodRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("음식(id=" + id + ")을 찾을 수 없습니다.")));
+    }
+
+    /**
+     * 단품 음식 id로 하위(세트, 콤보) 존재하면 조회
+     */
+    public List<KyongsulSetFoodDTO> findByBaseFood(Long baseFoodId) {
+        List<KyongsulSetFood> all = kyongsulSetFoodRepository.findAllByBaseFoodId(baseFoodId);
+        if (all.isEmpty()) {
+            throw new NotFoundException("해당 단품에는 하위 목록이 없습니다.");
+        }
+        return mapToListDto(all);
+    }
+
+    private KyongsulSetFoodDTO mapToDto(KyongsulSetFood entity) {
+        KyongsulSetFoodDTO dto = modelMapper.map(entity, KyongsulSetFoodDTO.class);
+
+        dto.setBaseFoodId(
+            entity.getBaseFood() != null ? entity.getBaseFood().getId() : null
+        );
+
+        return dto;
+    }
+
+    private List<KyongsulSetFoodDTO> mapToListDto(List<KyongsulSetFood> entities) {
+        return entities.stream()
+                        .map(this::mapToDto)
+                        .collect(Collectors.toList());
     }
 
     /**

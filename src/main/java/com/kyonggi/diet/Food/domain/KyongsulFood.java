@@ -31,6 +31,12 @@ public class KyongsulFood extends ExtendedFood {
     @Column(name = "category_kr")
     private String categoryKorean;
 
+    @OneToMany(
+            mappedBy = "baseFood",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<KyongsulSetFood> foodSets;
 
     @OneToMany(
             mappedBy = "kyongsulFood",

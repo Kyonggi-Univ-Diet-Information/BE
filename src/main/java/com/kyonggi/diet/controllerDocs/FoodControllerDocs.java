@@ -5,7 +5,13 @@ import com.kyonggi.diet.Food.eumer.SubRestaurant;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+
+import java.util.Map;
+import java.util.NoSuchElementException;
 
 public interface FoodControllerDocs {
 
@@ -99,4 +105,54 @@ public interface FoodControllerDocs {
             description = "경슐랭, 이스퀘어, 샐리박스 전체 식당을 통합하여 리뷰 개수가 가장 많은 음식 5개를 반환합니다. 경슐랭 이외의 조회 경우 SubRestaurant는 null값"
     )
     ResponseEntity<?> getTop5Food();
+
+    // ---------------------- 세트/콤보 테이블 내 음식 조회 -------------------------
+    @Operation(
+            summary = "세트/콤보 테이블 내 음식 조회",
+            description = "세트/콤보 테이블 내에 존재하는 음식의 id 값으로 음식에 대한 정보를 조회합니다."
+    )
+    ResponseEntity<?> getSetsFoodById(
+            @Parameter(
+                    name = "type",
+                    description = "식당 종류 (현재: KYONGSUL만 지원)",
+                    in = ParameterIn.PATH,
+                    required = true
+            )
+            @PathVariable RestaurantType type,
+
+            @Parameter(
+                    name = "foodId",
+                    description = "조회할 세트/콤보 음식 ID",
+                    in = ParameterIn.PATH,
+                    required = true
+            )
+            @PathVariable Long foodId
+    );
+
+
+    @Operation(
+            summary = "단품의 하위 메뉴(세트/콤보) 조회",
+            description = """
+                    **🚨 현재 경슐랭 식당만 활성화된 상태입니다.**  
+                    - 해당 음식 id에 대한 하위 메뉴가 없을 경우 빈 리스트 반환  
+                    - 존재할 경우 세트/콤보 정보 목록 반환
+                    """
+    )
+    ResponseEntity<?> findSetsByBaseFoodId(
+            @Parameter(
+                    name = "type",
+                    description = "식당 종류 (현재: KYONGSUL만 지원)",
+                    in = ParameterIn.PATH,
+                    required = true
+            )
+            @PathVariable RestaurantType type,
+
+            @Parameter(
+                    name = "baseFoodId",
+                    description = "단품 음식 ID (이 단품을 기준으로 세트/콤보를 조회)",
+                    in = ParameterIn.PATH,
+                    required = true
+            )
+            @PathVariable Long baseFoodId
+    );
 }

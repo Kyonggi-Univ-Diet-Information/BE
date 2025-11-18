@@ -10,7 +10,6 @@ import com.kyonggi.diet.Food.service.ESquareFoodService;
 import com.kyonggi.diet.Food.service.KyongsulFoodService;
 import com.kyonggi.diet.Food.service.SallyBoxFoodService;
 import com.kyonggi.diet.controllerDocs.FoodControllerDocs;
-import com.kyonggi.diet.review.DTO.FoodNamesDTO;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -239,4 +238,50 @@ public class FoodController implements FoodControllerDocs {
         }
     }
 
+    @GetMapping("/{type}/sets-one/{foodId}")
+    public ResponseEntity<?> getSetsFoodById(
+            @PathVariable RestaurantType type,
+            @PathVariable Long foodId
+    ) {
+        try {
+            Object result = switch (type) {
+                case KYONGSUL -> kyongsulFoodService.findOneSetDTO(foodId);
+
+                default -> null;
+            };
+
+            if (result == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Invalid restaurant type or no data: " + type);
+            }
+            return ResponseEntity.ok(Map.of("result", result));
+
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
+
+
+    @GetMapping("/{type}/get-sets/{baseFoodId}")
+    public ResponseEntity<?> findSetsByBaseFoodId(
+            @PathVariable RestaurantType type,
+            @PathVariable Long baseFoodId
+    ) {
+        try {
+            Object result = switch (type) {
+                case KYONGSUL -> kyongsulFoodService.findByBaseFood(baseFoodId);
+                default -> null;
+            };
+
+            if (result == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid restaurant type: " + type);
+            }
+
+            Map<String, Object> response = Map.of("result", result);
+            return ResponseEntity.ok(response);
+        } catch (NotFoundException e) {
+            return ResponseEntity.ok(Map.of("result", List.of()));
+        }
+    }
 }

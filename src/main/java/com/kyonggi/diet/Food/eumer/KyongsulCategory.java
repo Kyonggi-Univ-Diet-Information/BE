@@ -27,8 +27,6 @@ public enum KyongsulCategory {
     TTEOKBOKKI("떡볶이"), //버거&타코도
 
     // 버거&타코
-    SET("세트"),
-    COMBO("콤보"),
     TACO("타코"),
     BURGER("버거"),
     CHICKEN("치킨"),

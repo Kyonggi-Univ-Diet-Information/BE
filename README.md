@@ -1,3 +1,7 @@
+## 💾 ERD
+<img width="1664" height="1064" alt="image" src="https://github.com/user-attachments/assets/5d9f80c8-a255-4bc7-9772-375834650df4" />
+
+
 
 ## 📠 Convention
 

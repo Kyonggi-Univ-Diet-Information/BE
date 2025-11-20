@@ -34,6 +34,10 @@ jobs:
       AWS_REGION: ${{ secrets.AWS_REGION }}
       REST_API_KEY: ${{ secrets.REST_API_KEY }}
 
+      ELASTICSEARCH_URL: ${{ secrets.ELASTICSEARCH_URL }}
+      ELASTIC_USERNAME: ${{ secrets.ELASTIC_USERNAME }}
+      ELASTIC_PASSWORD: ${{ secrets.ELASTIC_PASSWORD }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4

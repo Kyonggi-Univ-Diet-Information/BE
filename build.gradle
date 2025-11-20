@@ -45,7 +45,7 @@ dependencies {
     compileOnly 'org.projectlombok:lombok'
 
     runtimeOnly 'org.postgresql:postgresql'
-    runtimeOnly 'com.h2database:h2'   // CI/H2 실행용
+//    runtimeOnly 'com.h2database:h2'   // CI/H2 실행용
 
     annotationProcessor 'org.projectlombok:lombok'
     implementation 'org.springframework.boot:spring-boot-starter-validation'

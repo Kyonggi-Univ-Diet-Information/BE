@@ -10,7 +10,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: create-drop   # 테스트마다 스키마 새로 생성
+      ddl-auto: update   # 테스트마다 스키마 새로 생성
     properties:
       hibernate:
         dialect: org.hibernate.dialect.H2Dialect

@@ -53,7 +53,10 @@ public class WebSecurityConfig {
                                 "/api/review/favorite/*/count/*",
 
                                 // Diet Content API
-                                "/api/diet-content/dormitory/dow/*", "api/diet-content/dormitory"
+                                "/api/diet-content/dormitory/dow/*", "api/diet-content/dormitory",
+
+                                // Menu Search API
+                                "/api/menus/search"
 
                                  ).permitAll().anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

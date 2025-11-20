@@ -1,4 +1,4 @@
-package com.kyonggi.diet.elasticsearch.runner;
+package com.kyonggi.diet.runner;
 
 import com.kyonggi.diet.elasticsearch.service.MenuSyncService;
 import org.springframework.boot.CommandLineRunner;

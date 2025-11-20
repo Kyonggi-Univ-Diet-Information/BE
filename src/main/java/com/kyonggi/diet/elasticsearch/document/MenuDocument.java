@@ -1,7 +1,8 @@
 package com.kyonggi.diet.elasticsearch.document;
 
+import com.kyonggi.diet.Food.eumer.FoodType;
 import com.kyonggi.diet.Food.eumer.RestaurantType;
-import com.kyonggi.diet.elasticsearch.dto.MenuDocumentDto;
+import com.kyonggi.diet.Food.eumer.SubRestaurant;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -10,25 +11,61 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
 
 @Document(indexName = "menu_index")
-@Builder
 @Getter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class MenuDocument {
 
     @Id
-    private String id;   // ES에서 유니크 ID ← "diet_12" 같은 문자열
+    private String id;
 
     private RestaurantType restaurantType;
+    private SubRestaurant subRestaurant;
     private String menuName;
-    private Long menuId; // 실제 음식 id
+    private String menuNameEn;
+    private Long menuId;
+    private FoodType category;
 
-    public MenuDocument(String id, RestaurantType restaurantType, String menuName, Long menuId) {
-        this.id = id;
-        this.restaurantType = restaurantType;
-        this.menuName = menuName;
-        this.menuId = menuId;
+    private Long reviewCount;
+    private Double averageRating;
+
+    private String searchText;
+
+    public static MenuDocument createAuto(
+            RestaurantType restaurantType,
+            SubRestaurant subRestaurant,
+            String menuName,
+            String menuNameEn,
+            Long menuId,
+            Long reviewCount,
+            Double averageRating,
+            FoodType category
+    ) {
+
+        String id = restaurantType.toString() + "_" + menuId;
+
+        String search = buildSearchText(menuName, menuNameEn, category.getKoreanName());
+
+        return MenuDocument.builder()
+                .id(id)
+                .restaurantType(restaurantType)
+                .subRestaurant(subRestaurant)
+                .menuName(menuName)
+                .menuNameEn(menuNameEn)
+                .menuId(menuId)
+                .reviewCount(reviewCount)
+                .category(category)
+                .averageRating(averageRating)
+                .searchText(search)
+                .build();
     }
 
-    public MenuDocument() {}
-
+    private static String buildSearchText(String name, String en, String category) {
+        StringBuilder sb = new StringBuilder();
+        if (name != null) sb.append(name).append(" ");
+        if (en != null) sb.append(en).append(" ");
+        if (category != null) sb.append(category);
+        return sb.toString().trim();
+    }
 }
-

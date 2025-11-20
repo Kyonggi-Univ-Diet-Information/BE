@@ -3,6 +3,7 @@ package com.kyonggi.diet.review.service;
 import com.kyonggi.diet.Food.domain.SallyBoxFood;
 import com.kyonggi.diet.Food.eumer.RestaurantType;
 import com.kyonggi.diet.Food.repository.SallyBoxFoodRepository;
+import com.kyonggi.diet.elasticsearch.service.MenuSearchService;
 import com.kyonggi.diet.member.MemberEntity;
 import com.kyonggi.diet.member.service.MemberService;
 import com.kyonggi.diet.review.DTO.CreateReviewDTO;
@@ -34,17 +35,19 @@ public class SallyBoxFoodReviewService
     private final SallyBoxFoodReviewRepository sallyBoxFoodReviewRepository;
     private final SallyBoxFoodRepository sallyBoxFoodRepository;
     private final FavoriteSallyBoxFoodReviewRepository favoriteSallyBoxFoodReviewRepository;
+    private final MenuSearchService menuSearchService;
 
     SallyBoxFoodReviewService(
             ModelMapper modelMapper,
             MemberService memberService,
             SallyBoxFoodReviewRepository sallyBoxFoodReviewRepository,
             SallyBoxFoodRepository sallyBoxFoodRepository,
-            FavoriteSallyBoxFoodReviewRepository favoriteSallyBoxFoodReviewRepository) {
+            FavoriteSallyBoxFoodReviewRepository favoriteSallyBoxFoodReviewRepository, MenuSearchService menuSearchService) {
         super(memberService, modelMapper);
         this.sallyBoxFoodReviewRepository = sallyBoxFoodReviewRepository;
         this.sallyBoxFoodRepository = sallyBoxFoodRepository;
         this.favoriteSallyBoxFoodReviewRepository = favoriteSallyBoxFoodReviewRepository;
+        this.menuSearchService = menuSearchService;
     }
 
 
@@ -87,6 +90,7 @@ public class SallyBoxFoodReviewService
                 .build();
 
         sallyBoxFoodReviewRepository.save(review);
+        menuSearchService.updateRating(foodId, (long) this.getReviewCount(foodId), this.getAverageRating(foodId));
         food.getSallyBoxFoodReviews().add(review);
     }
 
@@ -110,12 +114,16 @@ public class SallyBoxFoodReviewService
         SallyBoxFoodReview review = sallyBoxFoodReviewRepository.findById(reviewId)
                 .orElseThrow(() -> new NoSuchElementException("No review found"));
         review.updateReview(dto.getRating(), dto.getTitle(), dto.getContent());
+        menuSearchService.updateRating(review.getSallyBoxFood().getId(), (long) this.getReviewCount(review.getSallyBoxFood().getId()), this.getAverageRating(review.getSallyBoxFood().getId()));
     }
 
     @Override
     @Transactional
     public void deleteReview(Long reviewId) {
         sallyBoxFoodReviewRepository.deleteById(reviewId);
+        SallyBoxFoodReview review = sallyBoxFoodReviewRepository.findById(reviewId)
+                .orElseThrow(() -> new NoSuchElementException("No review found"));
+        menuSearchService.updateRating(review.getSallyBoxFood().getId(), (long) this.getReviewCount(review.getSallyBoxFood().getId()), this.getAverageRating(review.getSallyBoxFood().getId()));
     }
 
     @Override

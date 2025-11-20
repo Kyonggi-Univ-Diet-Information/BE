@@ -3,6 +3,7 @@ package com.kyonggi.diet.review.service;
 import com.kyonggi.diet.Food.domain.ESquareFood;
 import com.kyonggi.diet.Food.eumer.RestaurantType;
 import com.kyonggi.diet.Food.repository.ESquareFoodRepository;
+import com.kyonggi.diet.elasticsearch.service.MenuSearchService;
 import com.kyonggi.diet.member.MemberEntity;
 import com.kyonggi.diet.member.service.MemberService;
 import com.kyonggi.diet.review.DTO.CreateReviewDTO;
@@ -36,6 +37,7 @@ public class ESquareFoodReviewService
     private final ESquareFoodReviewRepository esquareFoodReviewRepository;
     private final ESquareFoodRepository esquareFoodRepository;
     private final FavoriteESquareFoodReviewRepository favoriteESquareFoodReviewRepository;
+    private final MenuSearchService menuSearchService;
 
     ESquareFoodReviewService(
             ModelMapper modelMapper,
@@ -43,11 +45,12 @@ public class ESquareFoodReviewService
             ESquareFoodReviewRepository esquareFoodReviewRepository,
             ESquareFoodRepository eSquareFoodRepository,
             FavoriteESquareFoodReviewService favoriteESquareFoodReviewService,
-            FavoriteESquareFoodReviewRepository favoriteESquareFoodReviewRepository) {
+            FavoriteESquareFoodReviewRepository favoriteESquareFoodReviewRepository, MenuSearchService menuSearchService) {
         super(memberService, modelMapper);
         this.esquareFoodReviewRepository = esquareFoodReviewRepository;
         this.esquareFoodRepository = eSquareFoodRepository;
         this.favoriteESquareFoodReviewRepository = favoriteESquareFoodReviewRepository;
+        this.menuSearchService = menuSearchService;
     }
 
 
@@ -90,6 +93,7 @@ public class ESquareFoodReviewService
                 .build();
 
         esquareFoodReviewRepository.save(review);
+        menuSearchService.updateRating(foodId, (long) this.getReviewCount(foodId), this.getAverageRating(foodId));
         food.getESquareFoodReviews().add(review);
     }
 
@@ -113,12 +117,16 @@ public class ESquareFoodReviewService
         ESquareFoodReview review = esquareFoodReviewRepository.findById(reviewId)
                 .orElseThrow(() -> new NoSuchElementException("No review found"));
         review.updateReview(dto.getRating(), dto.getTitle(), dto.getContent());
+        menuSearchService.updateRating(review.getESquareFood().getId(), (long) this.getReviewCount(review.getESquareFood().getId()), this.getAverageRating(review.getESquareFood().getId()));
     }
 
     @Override
     @Transactional
     public void deleteReview(Long reviewId) {
         esquareFoodReviewRepository.deleteById(reviewId);
+        ESquareFoodReview review = esquareFoodReviewRepository.findById(reviewId)
+                .orElseThrow(() -> new NoSuchElementException("No review found"));
+        menuSearchService.updateRating(review.getESquareFood().getId(), (long) this.getReviewCount(review.getESquareFood().getId()), this.getAverageRating(review.getESquareFood().getId()));
     }
 
     @Override

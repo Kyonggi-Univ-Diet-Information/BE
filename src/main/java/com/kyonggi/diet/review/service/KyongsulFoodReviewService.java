@@ -4,6 +4,7 @@ import com.kyonggi.diet.Food.domain.KyongsulFood;
 import com.kyonggi.diet.Food.eumer.RestaurantType;
 import com.kyonggi.diet.Food.repository.DietFoodRepository;
 import com.kyonggi.diet.Food.repository.KyongsulFoodRepository;
+import com.kyonggi.diet.elasticsearch.service.MenuSearchService;
 import com.kyonggi.diet.member.MemberEntity;
 import com.kyonggi.diet.member.service.MemberService;
 import com.kyonggi.diet.review.DTO.CreateReviewDTO;
@@ -29,18 +30,20 @@ public class KyongsulFoodReviewService extends AbstractReviewService<KyongsulFoo
     private final KyongsulFoodReviewRepository kyongsulFoodReviewRepository;
     private final KyongsulFoodRepository kyongsulFoodRepository;
     private final FavoriteKyongsulFoodReviewRepository favoriteKyongsulFoodReviewRepository;
+    private final MenuSearchService menuSearchService;
 
     public KyongsulFoodReviewService(
             MemberService memberService,
             ModelMapper modelMapper,
             KyongsulFoodReviewRepository kyongsulFoodReviewRepository,
             FavoriteKyongsulFoodReviewRepository favoriteKyongsulFoodReviewRepository,
-            KyongsulFoodRepository kyongsulFoodRepository
+            KyongsulFoodRepository kyongsulFoodRepository, MenuSearchService menuSearchService
     ) {
         super(memberService, modelMapper); // 상위 클래스 주입
         this.kyongsulFoodRepository = kyongsulFoodRepository;
         this.favoriteKyongsulFoodReviewRepository = favoriteKyongsulFoodReviewRepository;
         this.kyongsulFoodReviewRepository = kyongsulFoodReviewRepository;
+        this.menuSearchService = menuSearchService;
     }
 
     @Override
@@ -82,6 +85,7 @@ public class KyongsulFoodReviewService extends AbstractReviewService<KyongsulFoo
                 .build();
 
         kyongsulFoodReviewRepository.save(review);
+        menuSearchService.updateRating(foodId, (long) this.getReviewCount(foodId), this.getAverageRating(foodId));
         food.getKyongsulFoodReviews().add(review);
     }
 
@@ -105,12 +109,16 @@ public class KyongsulFoodReviewService extends AbstractReviewService<KyongsulFoo
         KyongsulFoodReview review = kyongsulFoodReviewRepository.findById(reviewId)
                 .orElseThrow(() -> new NoSuchElementException("No review found"));
         review.updateReview(dto.getRating(), dto.getTitle(), dto.getContent());
+        menuSearchService.updateRating(review.getKyongsulFood().getId(), (long) this.getReviewCount(review.getKyongsulFood().getId()), this.getAverageRating(review.getKyongsulFood().getId()));
     }
 
     @Override
     @Transactional
     public void deleteReview(Long reviewId) {
         kyongsulFoodReviewRepository.deleteById(reviewId);
+        KyongsulFoodReview review = kyongsulFoodReviewRepository.findById(reviewId)
+                .orElseThrow(() -> new NoSuchElementException("No review found"));
+        menuSearchService.updateRating(review.getKyongsulFood().getId(), (long) this.getReviewCount(review.getKyongsulFood().getId()), this.getAverageRating(review.getKyongsulFood().getId()));
     }
 
     @Override

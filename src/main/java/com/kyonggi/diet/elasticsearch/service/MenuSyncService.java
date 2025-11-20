@@ -3,12 +3,17 @@ package com.kyonggi.diet.elasticsearch.service;
 import com.kyonggi.diet.Food.domain.ESquareFood;
 import com.kyonggi.diet.Food.domain.KyongsulFood;
 import com.kyonggi.diet.Food.domain.SallyBoxFood;
+import com.kyonggi.diet.Food.eumer.FoodType;
 import com.kyonggi.diet.Food.eumer.RestaurantType;
+import com.kyonggi.diet.Food.eumer.SubRestaurant;
 import com.kyonggi.diet.Food.repository.ESquareFoodRepository;
 import com.kyonggi.diet.Food.repository.KyongsulFoodRepository;
 import com.kyonggi.diet.Food.repository.SallyBoxFoodRepository;
 import com.kyonggi.diet.elasticsearch.document.MenuDocument;
 import com.kyonggi.diet.elasticsearch.repository.MenuSearchRepository;
+import com.kyonggi.diet.review.service.ESquareFoodReviewService;
+import com.kyonggi.diet.review.service.KyongsulFoodReviewService;
+import com.kyonggi.diet.review.service.SallyBoxFoodReviewService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,65 +23,75 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MenuSyncService {
 
-//    private final DietFoodRepository dietRepo;
     private final ESquareFoodRepository esquareRepo;
     private final KyongsulFoodRepository kyongsulRepo;
     private final SallyBoxFoodRepository sallyRepo;
+    private final ESquareFoodReviewService eSquareFoodReviewService;
+    private final KyongsulFoodReviewService kyongsulReviewRepo;
+    private final SallyBoxFoodReviewService sallyReviewRepo;
     private final MenuSearchRepository esRepo;
 
     public void syncAll() {
-
-//        sync(RestaurantType.DORMITORY, dietRepo.findAll());
         sync(RestaurantType.E_SQUARE, esquareRepo.findAll());
         sync(RestaurantType.KYONGSUL, kyongsulRepo.findAll());
         sync(RestaurantType.SALLY_BOX, sallyRepo.findAll());
     }
 
-    private void sync(RestaurantType restaurantType, List<?> list) {
+    private void sync(RestaurantType type, List<?> list) {
 
         for (Object obj : list) {
 
-            MenuDocument doc = null;
-
-//            if (obj instanceof DietFood f) {
-//                doc = new MenuDocument(
-//                        restaurantType + "_" + f.getId(),
-//                        restaurantType,
-//                        f.getName(),
-//                        f.getId()
-//                );
-//            }
+            Long menuId = null;
+            String menuName = null;
+            String menuNameEn = null;
+            FoodType category = null;
+            SubRestaurant sub = null;
+            long reviewCount = 0L;
+            Double avg = 0.0;
 
             if (obj instanceof ESquareFood f) {
-                doc = new MenuDocument(
-                        restaurantType + "_" + f.getId(),
-                        restaurantType,
-                        f.getName(),
-                        f.getId()
-                );
+                menuId = f.getId();
+                menuName = f.getName();
+                menuNameEn = f.getNameEn();
+                category = f.getFoodType();
+                reviewCount = eSquareFoodReviewService.getReviewCount(f.getId());
+                avg = eSquareFoodReviewService.getAverageRating(f.getId());
             }
 
             if (obj instanceof KyongsulFood f) {
-                doc = new MenuDocument(
-                        restaurantType + "_" + f.getId(),
-                        restaurantType,
-                        f.getName(),
-                        f.getId()
-                );
+                menuId = f.getId();
+                menuName = f.getName();
+                menuNameEn = f.getNameEn();
+                category = f.getFoodType();
+                sub = f.getSubRestaurant();
+                reviewCount = kyongsulReviewRepo.getReviewCount(f.getId());
+                avg = kyongsulReviewRepo.getAverageRating(f.getId());
             }
 
             if (obj instanceof SallyBoxFood f) {
-                doc = new MenuDocument(
-                        restaurantType + "_" + f.getId(),
-                        restaurantType,
-                        f.getName(),
-                        f.getId()
-                );
+                menuId = f.getId();
+                menuName = f.getName();
+                menuNameEn = f.getNameEn();
+                category = f.getFoodType();
+                reviewCount = sallyReviewRepo.getReviewCount(f.getId());
+                avg = sallyReviewRepo.getAverageRating(f.getId());
             }
 
-            if (doc != null) {
-                esRepo.save(doc);
-            }
+            if (menuId == null) continue;
+
+
+            MenuDocument doc = MenuDocument.createAuto(
+                    type,
+                    sub,
+                    menuName,
+                    menuNameEn,
+                    menuId,
+                    reviewCount,
+                    avg,
+                    category
+            );
+
+            esRepo.save(doc);
         }
     }
 }

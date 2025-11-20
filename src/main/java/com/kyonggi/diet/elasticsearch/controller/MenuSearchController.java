@@ -1,5 +1,6 @@
 package com.kyonggi.diet.elasticsearch.controller;
 
+import com.kyonggi.diet.Food.eumer.FoodType;
 import com.kyonggi.diet.elasticsearch.dto.MenuDocumentDto;
 import com.kyonggi.diet.elasticsearch.service.MenuSearchService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -22,7 +23,7 @@ public class MenuSearchController {
     private final MenuSearchService menuSearchService;
 
     @GetMapping("/search")
-    public ResponseEntity<List<MenuDocumentDto>> search(@RequestParam String keyword) {
-        return ResponseEntity.ok(menuSearchService.search(keyword));
+    public ResponseEntity<List<MenuDocumentDto>> search(@RequestParam String keyword, @RequestParam(required = false) FoodType category) {
+        return ResponseEntity.ok(menuSearchService.search(keyword, category));
     }
 }

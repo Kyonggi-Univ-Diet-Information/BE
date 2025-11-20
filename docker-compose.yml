@@ -52,12 +52,13 @@ services:
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.13.4
     container_name: elasticsearch
+    env_file:
+      - /opt/kiryong/.env
     environment:
       - discovery.type=single-node
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}    # 여기 설정
       - xpack.security.enabled=true
-#      - xpack.security.http.ssl.enabled=true
-      - xpack.security.transport.ssl.enabled=false
-      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+      - xpack.security.authc.api_key.enabled=true
     ports:
       - "9200:9200"
     networks:

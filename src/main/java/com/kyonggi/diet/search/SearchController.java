@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/search")
@@ -47,6 +49,8 @@ public class SearchController {
             @Parameter(description = "검색 요청 DTO (키워드, 타입, 가격 범위 등)")
             SearchRequestDTO DTO
     ) {
-        return ResponseEntity.ok(searchService.search(DTO));
+        Object result = searchService.search(DTO);
+        Map<String, Object> response = Map.of("result", result);
+        return ResponseEntity.ok(response);
     }
 }

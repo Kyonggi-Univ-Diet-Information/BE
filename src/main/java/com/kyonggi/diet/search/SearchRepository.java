@@ -98,7 +98,8 @@ public class SearchRepository {
         }
 
         // 식당 필터링
-        if (dto.getRestaurantType() != null) {
+        if (dto.getRestaurantType() != null
+                && dto.getRestaurantType() != SearchRestaurantType.ALL) {
             sql.append(" AND restaurant_type = :restaurantType");
             params.put("restaurantType", dto.getRestaurantType().name());
         }

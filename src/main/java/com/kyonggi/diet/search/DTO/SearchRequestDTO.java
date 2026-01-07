@@ -2,6 +2,7 @@ package com.kyonggi.diet.search.DTO;
 
 import com.kyonggi.diet.Food.eumer.FoodType;
 import com.kyonggi.diet.Food.eumer.RestaurantType;
+import com.kyonggi.diet.search.SearchRestaurantType;
 import com.kyonggi.diet.search.SortingType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -22,7 +23,7 @@ public class SearchRequestDTO {
     private FoodType foodType;
 
     @Schema(description = "식당 종류 (RestaurantType enum)")
-    private RestaurantType restaurantType;
+    private SearchRestaurantType restaurantType;
 
     @Schema(description = "최소 가격")
     private Integer priceMin;

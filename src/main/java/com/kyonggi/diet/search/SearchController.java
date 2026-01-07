@@ -30,8 +30,8 @@ public class SearchController {
                         - RICE_BOWL("덮밥류"), BIBIMBAP("비빔밥류"), FRIED_RICE("볶음밥류"),
                         - MEAT("고기류"), NOODLE("면류"), FRIED("튀김류"), SNACK("분식류"), BURGER("버거류"),
                         - SOUP_STEW("찌개/탕류"), COFFEE("커피류"), NON_COFFEE("논커피류"), ETC("기타")
-                    - restaurantType: 식당 종류(RestaurantType enum)  
-                        - DORMITORY("기숙사 식당"), E_SQUARE("이스퀘어"),
+                    - restaurantType: 검색 식당 종류(RestaurantType enum)  
+                        - ALL("전체 식당"), E_SQUARE("이스퀘어"),
                         - SALLY_BOX("샐리박스"), KYONGSUL("경슐랭")
                     - priceMin, priceMax: 가격 범위 필터링
                     

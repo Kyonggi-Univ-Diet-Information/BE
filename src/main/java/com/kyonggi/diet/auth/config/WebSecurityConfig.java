@@ -35,8 +35,7 @@ public class WebSecurityConfig {
 
                                 // Auth API
                                 "/api/login", "api/register", "/api/kakao-form",
-                                "/api/kakao-login/**",
-
+                                "/api/kakao-login/**", "/api/google-form", "/api/google-login/**", "/api/oauth2/google/**",
                                 // Swagger API
                                 "swagger-ui/**", "/v3/api-docs/**",
 

@@ -30,6 +30,16 @@ spring:
       mode: never
       encoding: UTF-8
 
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            redirect-uri: ${GOOGLE_REDIRECT_URI}
+            authorization-grant-type: ${GOOGLE_AUTHORIZATION_GRANT_TYPE}
+
 server:
   port: 8080
 
@@ -40,6 +50,7 @@ logging:
 
 jwt:
   secret: ${JWT_KEY}
+  google-token-uri: https://oauth2.googleapis.com/token
 
 cloud:
   aws:

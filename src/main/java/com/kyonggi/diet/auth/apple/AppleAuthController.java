@@ -3,10 +3,12 @@ package com.kyonggi.diet.auth.apple;
 import com.kyonggi.diet.auth.apple.service.AppleLoginService;
 import com.kyonggi.diet.auth.apple.service.AppleOAuthClient;
 import com.kyonggi.diet.auth.io.AuthResponse;
+import com.kyonggi.diet.auth.util.JwtTokenUtil;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -64,5 +66,15 @@ public class AppleAuthController {
         AuthResponse response = appleLoginService.appleLogin(code, userJson, storedNonce);
 
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/apple-revoke")
+    public ResponseEntity<?> revoke(@RequestHeader("Authorization") String token) {
+        try {
+            appleLoginService.revoke(token);
+            return ResponseEntity.ok("Revoked");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+        }
     }
 }

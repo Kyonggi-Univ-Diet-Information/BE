@@ -13,6 +13,12 @@ spring:
     #username: postgres
     #password: 5432
 
+  data:
+    redis:
+      host: ${SPRING_REDIS_HOST}
+      port: ${SPRING_REDIS_PORT}
+      timeout: 2000ms
+
   jpa:
     hibernate:
       ddl-auto: update

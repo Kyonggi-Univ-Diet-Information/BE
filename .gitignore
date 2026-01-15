@@ -361,3 +361,6 @@ src/main/resources/*.env
 
 nginx/html/
 nginx/letsencrypt/
+
+# Apple Auth
+*.p8

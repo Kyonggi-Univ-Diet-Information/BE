@@ -39,6 +39,31 @@ spring:
             client-secret: ${GOOGLE_CLIENT_SECRET}
             redirect-uri: ${GOOGLE_REDIRECT_URI}
             authorization-grant-type: ${GOOGLE_AUTHORIZATION_GRANT_TYPE}
+          apple:
+            provider: apple
+            client-id: ${APPLE_CLIENT_ID}
+            client-secret: ${CLIENT_SECRET}
+            authorization-grant-type: ${APPLE_AUTHORIZATION_GRANT_TYPE}
+            redirect-uri: ${APPLE_REDIRECT_URL}
+            client-name: ${APPLE_CLIENT_NAME}
+            client-authentication-method: client_secret_post
+            scope:
+              - email
+              - name
+        provider:
+          apple:
+            authorization-uri: https://appleid.apple.com/auth/authorize
+            token-uri: https://appleid.apple.com/auth/token
+            jwk-set-uri: https://appleid.apple.com/auth/keys
+            user-name-attribute: sub
+
+social-login:
+  provider:
+    apple:
+      key-id: ${APPLE_KEY_ID}
+      team-id: ${APPLE_TEAM_ID}
+      key-path: apple/AuthKey_${APPLE_KEY_ID}.p8
+      redirect-uri: ${APPLE_REDIRECT_URL}
 
 server:
   port: 8080

@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -46,6 +47,43 @@ public class MemberServiceImpl implements MemberService {
         memberEntity = memberRepository.save(memberEntity);
         log.info("멤버 정보를 생성하였습니다 {}", memberEntity);
         return mapToMemberDTO(memberEntity);
+    }
+
+    @Transactional
+    @Override
+    public MemberEntity findOrCreateAppleMember(
+            String appleSub,
+            String email,
+            String name
+    ) {
+        // 1. sub 기준 우선 조회
+        Optional<MemberEntity> bySub = memberRepository.findByAppleSub(appleSub);
+        if (bySub.isPresent()) return bySub.get();
+
+        // 2️. 이메일 중복 방지 (기존 회원이 Apple 연동한 경우)
+        Optional<MemberEntity> byEmail = memberRepository.findByEmail(email);
+        if (byEmail.isPresent()) {
+            MemberEntity member = byEmail.get();
+            memberRepository.save(
+                    MemberEntity.builder()
+                            .id(member.getId())
+                            .email(member.getEmail())
+                            .appleSub(appleSub)
+                            .name(member.getName())
+                            .profileUrl(member.getProfileUrl())
+                            .build()
+            );
+            return member;
+        }
+
+        // 3️⃣ 신규 회원 생성
+        return memberRepository.save(
+                MemberEntity.builder()
+                        .email(email)
+                        .appleSub(appleSub)
+                        .name(name)
+                        .build()
+        );
     }
 
     /**

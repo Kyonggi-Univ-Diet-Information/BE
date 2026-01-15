@@ -1,4 +1,4 @@
-package com.kyonggi.diet.auth;
+package com.kyonggi.diet.auth.kakao;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;

@@ -18,6 +18,8 @@ public interface MemberService {
      * @return memberDTO
      */
     MemberDTO createMember(MemberDTO memberDTO);
+
+    MemberEntity findOrCreateAppleMember(String appleSub, String email, String name);
     /**
      * 데이터베이스로 부터 멤버 데이터를 모두 가져옵니다
      * @return list of memberDTO

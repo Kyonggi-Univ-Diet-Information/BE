@@ -38,6 +38,10 @@ public class MemberEntity {
 
     private String profileUrl;
 
+    // 애플 유저 영구 식별자 (sub)
+    @Column(name = "apple_sub", unique = true)
+    private String appleSub;
+
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private Timestamp createdAt;

@@ -15,6 +15,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.servlet.util.matcher.MvcRequestMatcher;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 
 @Configuration
@@ -25,7 +28,9 @@ public class WebSecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity, HandlerMappingIntrospector introspector) throws Exception {
-        return httpSecurity.csrf(csrf -> csrf.disable())
+        return httpSecurity
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(new MvcRequestMatcher(introspector, "/api/review/favorite/{type}/{id}")).permitAll()
                         //.requestMatchers("swagger-ui/**", "/v3/api-docs/**").denyAll()
@@ -36,6 +41,7 @@ public class WebSecurityConfig {
                                 // Auth API
                                 "/api/login", "api/register", "/api/kakao-form",
                                 "/api/kakao-login/**", "/api/google-form", "/api/google-login/**", "/api/oauth2/google/**",
+                                 "/auth", "/api/apple-login","/api/apple-form",
                                 // Swagger API
                                 "swagger-ui/**", "/v3/api-docs/**",
 
@@ -61,6 +67,26 @@ public class WebSecurityConfig {
                 .addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class)
                 .httpBasic(Customizer.withDefaults())
                 .build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+
+        // Apple OAuth 콜백 대응
+        config.addAllowedOriginPattern("*");
+
+        config.addAllowedMethod("*");
+        config.addAllowedHeader("*");
+
+        // Apple은 쿠키 안 씀 → false
+        config.setAllowCredentials(false);
+
+        UrlBasedCorsConfigurationSource source =
+                new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+
+        return source;
     }
 
     @Bean

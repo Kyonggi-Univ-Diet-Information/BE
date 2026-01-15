@@ -7,6 +7,9 @@ on:
 jobs:
   build-push:
     runs-on: ubuntu-latest
+    env:
+      APPLE_KEY_ID: ${{ secrets.APPLE_KEY_ID }}
+      APPLE_P8_BASE64: ${{ secrets.APPLE_P8_BASE64 }}
     permissions:
       id-token: write
       contents: read
@@ -18,6 +21,22 @@ jobs:
         with:
           distribution: temurin
           java-version: "21"
+
+      - name: Create Apple p8 key
+        run: |
+          if [ -z "$APPLE_KEY_ID" ]; then
+            echo "APPLE_KEY_ID is not set"
+            exit 1
+          fi
+
+          if [ -z "$APPLE_P8_BASE64" ]; then
+            echo "APPLE_P8_BASE64 is not set"
+            exit 1
+          fi
+
+          mkdir -p src/main/resources/apple
+          echo "$APPLE_P8_BASE64" | base64 --decode \
+            > src/main/resources/apple/AuthKey_${APPLE_KEY_ID}.p8
 
       - name: Build JAR
         run: ./gradlew clean build -x test

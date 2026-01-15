@@ -15,6 +15,7 @@ services:
 
   redis:
     image: redis:7.2
+    hostname: redis
     container_name: diet-redis
     ports:
       - "6379:6379"

@@ -1,5 +1,6 @@
 package com.kyonggi.diet.member;
 
+import com.kyonggi.diet.auth.socialRefresh.SocialRefreshToken;
 import com.kyonggi.diet.review.domain.DietFoodReview;
 import com.kyonggi.diet.review.domain.ESquareFoodReview;
 import com.kyonggi.diet.review.domain.KyongsulFoodReview;
@@ -72,5 +73,8 @@ public class MemberEntity {
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<FavoriteSallyBoxFoodReview> favoriteSallyBoxFoodReviews;
+
+    @OneToOne(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+    private SocialRefreshToken socialRefreshToken;
 
 }

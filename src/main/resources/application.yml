@@ -15,7 +15,8 @@ spring:
 
   data:
     redis:
-      host: ${SPRING_REDIS_HOST}
+      host: ${SPRING_REDIS_HOST} #배포용
+      #host: localhost #테스트
       port: ${SPRING_REDIS_PORT}
       timeout: 2000ms
 

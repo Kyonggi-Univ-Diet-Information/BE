@@ -7,6 +7,7 @@ import lombok.Data;
 @Data
 public class AppleDto {
     private String sub; //apple sub
-    private String token; //access token
+    private String access_token; //access token
+    private String refresh_token; //refresh_token
     private String email;
 }

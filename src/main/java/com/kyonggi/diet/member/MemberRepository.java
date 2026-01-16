@@ -18,4 +18,6 @@ public interface MemberRepository extends JpaRepository<MemberEntity, Long> {
 
     @Query("select m.name from MemberEntity m where m.id = :id")
     String findNameById(@Param("id") Long id);
+
+    Optional<MemberEntity> findByGoogleSub(String googleSub);
 }

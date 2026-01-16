@@ -1,10 +1,14 @@
 package com.kyonggi.diet.auth.google;
 
+import com.kyonggi.diet.auth.google.dto.GoogleLoginRequest;
 import com.kyonggi.diet.auth.io.AuthResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -18,10 +22,9 @@ public class GoogleAuthController {
 
     @PostMapping("/google-login")
     public AuthResponse googleLogin(
-            @RequestParam(value = "code", required = false) String code
-    ) {
-        log.info("Received google authorization code: {}", code);
-        return googleAuthService.login(code);
+            @Valid @RequestBody GoogleLoginRequest code) {
+
+        return googleAuthService.login(code.getCode());
     }
 
     @GetMapping("/oauth2/google")
@@ -29,5 +32,12 @@ public class GoogleAuthController {
     public String receiveCode(@RequestParam String code) {
         log.info("Received google authorization code: {}", code);
         return "CODE = " + code;
+    }
+
+    @DeleteMapping("/google-revoke")
+    @Operation(summary = "구글 회원탈퇴", description = "구글 회원 탈퇴합니다.")
+    public ResponseEntity<String> revokeToken(@RequestHeader("Authorization") String token) {
+        googleAuthService.revokeToken(token.substring("Bearer ".length()));
+        return ResponseEntity.ok("Google account revoked successfully.");
     }
 }

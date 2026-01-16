@@ -43,6 +43,9 @@ public class MemberEntity {
     @Column(name = "apple_sub", unique = true)
     private String appleSub;
 
+    @Column(name = "google_sub", unique = true)
+    private String googleSub;
+
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private Timestamp createdAt;
@@ -77,4 +80,11 @@ public class MemberEntity {
     @OneToOne(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     private SocialRefreshToken socialRefreshToken;
 
+    public void updateGoogleSub(String googleSub) {
+        this.googleSub = googleSub;
+    }
+
+    public void updateName(String name) {
+        this.name = name;
+    }
 }

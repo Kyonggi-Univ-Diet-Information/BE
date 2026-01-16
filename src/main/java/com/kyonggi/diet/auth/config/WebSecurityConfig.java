@@ -60,8 +60,11 @@ public class WebSecurityConfig {
                                 // Diet Content API
                                 "/api/diet-content/dormitory/dow/*", "api/diet-content/dormitory",
 
-                                // Search
-                                "/api/search/**"
+                                // Search API
+                                "/api/search/**",
+
+                                // Withdraw API
+                                "/api/withdraw/etcs", "/api/withdraw/reasons", "/api/withdraw/each-count"
                                  ).permitAll().anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class)

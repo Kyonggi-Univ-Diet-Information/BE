@@ -55,11 +55,11 @@ public class GoogleAuthService {
                     customMembersDetailService.loadUserByUsername(member.getEmail())
             );
 
-            return new AuthResponse(accessToken, "SUCCESS");
+            return new AuthResponse(accessToken, member.getEmail());
 
         } catch (IllegalArgumentException e) {
             log.warn("Google login failed: {}", e.getMessage());
-            return new AuthResponse(null, "INVALID_GOOGLE_ACCOUNT");
+            return new AuthResponse(null, "");
 
         } catch (Exception e) {
             log.error("Error during Google login process", e);

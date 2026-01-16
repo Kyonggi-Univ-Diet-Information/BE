@@ -21,10 +21,10 @@ public class GoogleAuthController {
     private final GoogleAuthService googleAuthService;
 
     @PostMapping("/google-login")
-    public AuthResponse googleLogin(
+    public ResponseEntity<AuthResponse> googleLogin(
             @Valid @RequestBody GoogleLoginRequest code) {
 
-        return googleAuthService.login(code.getCode());
+        return ResponseEntity.ok(googleAuthService.login(code.getCode()));
     }
 
     @GetMapping("/oauth2/google")

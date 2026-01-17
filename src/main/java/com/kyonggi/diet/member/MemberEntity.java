@@ -80,6 +80,14 @@ public class MemberEntity {
     @OneToOne(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     private SocialRefreshToken socialRefreshToken;
 
+    public void updateEmail(String email) {
+        this.email = email;
+    }
+
+    public void updateAppleSub(String appleSub) {
+        this.appleSub = appleSub;
+    }
+
     public void updateGoogleSub(String googleSub) {
         this.googleSub = googleSub;
     }

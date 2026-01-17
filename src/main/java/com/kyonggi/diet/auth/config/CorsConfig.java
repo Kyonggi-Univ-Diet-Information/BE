@@ -21,7 +21,8 @@ public class CorsConfig {
                 "https://kiryong.kr",
                 "http://localhost:3000",
                 "https://www.kiryong.kr",
-                "https://api.kiryong.kr"
+                "https://api.kiryong.kr",
+                "https://kiryong-app.vercel.app"
         ));
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");

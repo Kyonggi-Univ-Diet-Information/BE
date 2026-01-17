@@ -50,6 +50,7 @@ public class AppleLoginService {
                             memberRepository.save(
                                     MemberEntity.builder()
                                             .email(appleDto.getEmail())
+                                            .email(appleDto.getSub())
                                             .name(name)
                                             .build()
                             )
@@ -61,6 +62,8 @@ public class AppleLoginService {
                     .providerSub(appleDto.getSub())
                     .build();
         }
+
+        appleOAuthClient.saveOrUpdateRefreshToken(member, appleDto.getRefresh_token());
 
         // email 변경 대응
         if (appleDto.getEmail() != null &&
@@ -89,7 +92,13 @@ public class AppleLoginService {
                 .orElseThrow(() ->
                         new UsernameNotFoundException("Member not found: " + email)
                 );
-        // Apple 소셜 계정 조회
+
+        // 1. Apple revoke
+        appleOAuthClient.userRevoke(member);
+        // 2. 회원 삭제 (RefreshToken은 CASCADE)
+        memberRepository.delete(member);
+
+        /*// Apple 소셜 계정 조회
         socialAccountRepository
                 .findByMemberIdAndProvider(member.getId(), Provider.APPLE)
                 .ifPresent(sa -> {
@@ -106,7 +115,7 @@ public class AppleLoginService {
         // 아무 소셜도 없으면 Member 삭제
         if (!hasOtherSocial) {
             memberRepository.delete(member);
-        }
+        }*/
     }
 
     private String extractNameFromUser(AppleLoginRequest.AppleUser user) {

@@ -50,7 +50,7 @@ public class AppleLoginService {
                             memberRepository.save(
                                     MemberEntity.builder()
                                             .email(appleDto.getEmail())
-                                            .email(appleDto.getSub())
+                                            .appleSub(appleDto.getSub())
                                             .name(name)
                                             .build()
                             )

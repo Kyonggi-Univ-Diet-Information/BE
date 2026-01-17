@@ -82,8 +82,7 @@ public class WebSecurityConfig {
         config.addAllowedMethod("*");
         config.addAllowedHeader("*");
 
-        // Apple은 쿠키 안 씀 → false
-        config.setAllowCredentials(false);
+        config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source =
                 new UrlBasedCorsConfigurationSource();

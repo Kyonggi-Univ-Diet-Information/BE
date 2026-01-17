@@ -34,6 +34,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.management.openmbean.InvalidKeyException;
 import java.io.*;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
 import java.security.interfaces.ECPrivateKey;
 import java.security.spec.PKCS8EncodedKeySpec;
@@ -292,7 +294,9 @@ public class AppleOAuthClient {
         if (userJson == null || userJson.isBlank()) return null;
 
         try {
-            JsonNode node = objectMapper.readTree(userJson);
+            String decoded = URLDecoder.decode(userJson, StandardCharsets.UTF_8);
+
+            JsonNode node = objectMapper.readTree(decoded);
             JsonNode nameNode = node.get("name");
             if (nameNode == null) return null;
 
@@ -365,6 +369,4 @@ public class AppleOAuthClient {
             token.updateRefreshToken(refreshTokenValue);
         }
     }
-
-
 }

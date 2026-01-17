@@ -2,11 +2,8 @@ package com.kyonggi.diet.auth.apple.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.kyonggi.diet.auth.Provider;
 import com.kyonggi.diet.auth.apple.dto.AppleDto;
-import com.kyonggi.diet.auth.socialRefresh.SocialRefreshToken;
-import com.kyonggi.diet.auth.socialRefresh.SocialRefreshTokenRepository;
-import com.kyonggi.diet.member.MemberEntity;
+import com.kyonggi.diet.auth.socialAccount.SocialAccountRepository;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.ECDSASigner;
 import com.nimbusds.jose.crypto.ECDSAVerifier;
@@ -24,9 +21,7 @@ import org.bouncycastle.util.io.pem.PemReader;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.*;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
@@ -53,7 +48,7 @@ public class AppleOAuthClient {
     private static final String APPLE_REVOKE_URL = "https://appleid.apple.com/auth/revoke";
 
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final SocialRefreshTokenRepository socialRefreshTokenRepository;
+    private final SocialAccountRepository socialAccountRepository;
 
     @Value("${social-login.provider.apple.team-id}")
     private String teamId;
@@ -309,13 +304,8 @@ public class AppleOAuthClient {
         }
     }
 
-    public void userRevoke(MemberEntity member) {
-        SocialRefreshToken socialRefreshToken = socialRefreshTokenRepository.findByMemberId(member.getId())
-                .orElseThrow(() ->
-                        new UsernameNotFoundException("RefreshToken not found for memberId: " + member.getId())
-                );
-
-        revokeAppleToken(socialRefreshToken.getRefreshToken());
+    public void userRevoke(String appleRefreshToken) {
+        revokeAppleToken(appleRefreshToken);
     }
 
     private void revokeAppleToken(String appleRefreshToken) {
@@ -347,26 +337,6 @@ public class AppleOAuthClient {
 
         } catch (Exception e) {
             throw new IllegalStateException("Apple revoke error", e);
-        }
-    }
-
-    @Transactional
-    public void saveOrUpdateRefreshToken(MemberEntity member, String refreshTokenValue) {
-        if (refreshTokenValue == null) return;
-
-        SocialRefreshToken token =
-                socialRefreshTokenRepository.findByMemberId(member.getId())
-                        .orElse(null);
-
-        if (token == null) {
-            token = SocialRefreshToken.builder()
-                    .member(member)
-                    .provider(Provider.APPLE)
-                    .refreshToken(refreshTokenValue)
-                    .build();
-            socialRefreshTokenRepository.save(token);
-        } else {
-            token.updateRefreshToken(refreshTokenValue);
         }
     }
 }

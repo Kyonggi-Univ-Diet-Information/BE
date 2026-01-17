@@ -1,5 +1,6 @@
 package com.kyonggi.diet.auth.apple;
 
+import com.kyonggi.diet.auth.apple.dto.AppleLoginRequest;
 import com.kyonggi.diet.auth.apple.service.AppleLoginService;
 import com.kyonggi.diet.auth.apple.service.AppleOAuthClient;
 import com.kyonggi.diet.auth.io.AuthResponse;
@@ -48,25 +49,34 @@ public class AppleAuthController {
     }
 
     @PostMapping("/apple-login")
-    public ResponseEntity<AuthResponse> appleCallback(
-            @RequestParam("code") String code,
-            @RequestParam(value = "user", required = false) String userJson,
-            @RequestParam("state") String state
-    ) throws Exception {
+        public ResponseEntity<AuthResponse> appleCallback(
+                @RequestBody AppleLoginRequest request
+        ) throws Exception {
 
-        String storedNonce = redisTemplate.opsForValue().get("APPLE_STATE:" + state);
+            String code = request.getCode();
+            String state = request.getState();
+            AppleLoginRequest.AppleUser user = request.getUser(); // null 가능
 
-        if (storedNonce == null) {
-            throw new IllegalStateException("Invalid or expired state");
+            if (code == null || state == null) {
+                throw new IllegalArgumentException("code or state is missing");
+            }
+
+            String storedNonce =
+                    redisTemplate.opsForValue().get("APPLE_STATE:" + state);
+
+            if (storedNonce == null) {
+                throw new IllegalStateException("Invalid or expired state");
+            }
+
+            // 검증 후 삭제
+            redisTemplate.delete("APPLE_STATE:" + state);
+
+            // user == null 인 경우도 고려해서 서비스로 전달
+            AuthResponse response =
+                    appleLoginService.appleLogin(code, user, storedNonce);
+
+            return ResponseEntity.ok(response);
         }
-
-        // 검증 후 삭제
-        redisTemplate.delete("APPLE_STATE:" + state);
-
-        AuthResponse response = appleLoginService.appleLogin(code, userJson, storedNonce);
-
-        return ResponseEntity.ok(response);
-    }
 
     @PostMapping("/apple-revoke")
     public ResponseEntity<?> revoke(@RequestHeader("Authorization") String token) {

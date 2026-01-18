@@ -4,8 +4,6 @@ import com.kyonggi.diet.auth.Provider;
 import com.kyonggi.diet.auth.apple.dto.AppleDto;
 import com.kyonggi.diet.auth.apple.dto.AppleLoginRequest;
 import com.kyonggi.diet.auth.io.AuthResponse;
-import com.kyonggi.diet.auth.socialAccount.SocialAccount;
-import com.kyonggi.diet.auth.socialAccount.SocialAccountRepository;
 import com.kyonggi.diet.auth.util.JwtTokenUtil;
 import com.kyonggi.diet.member.MemberEntity;
 import com.kyonggi.diet.member.MemberRepository;
@@ -26,7 +24,7 @@ public class AppleLoginService {
     private final MemberRepository memberRepository;
     private final CustomMembersDetailService customMembersDetailService;
     private final JwtTokenUtil jwtTokenUtil;
-    private final SocialAccountRepository socialAccountRepository;
+    //private final SocialAccountRepository socialAccountRepository;
 
     /**
      * 애플 로그인
@@ -35,13 +33,21 @@ public class AppleLoginService {
         AppleDto appleDto = appleOAuthClient.getAppleInfo(code, expectedNonce);
         String name = extractNameFromUser(user);
 
-        SocialAccount social = socialAccountRepository
+        /*SocialAccount social = socialAccountRepository
                         .findByProviderAndProviderSub(Provider.APPLE, appleDto.getSub())
-                        .orElse(null);
+                        .orElse(null);*/
 
         MemberEntity member;
 
-        if (social != null) {
+        member = memberRepository.findByEmail(appleDto.getEmail())
+                .orElseGet(() ->
+                        memberRepository.save(
+                                MemberEntity.builder()
+                                        .email(appleDto.getEmail())
+                                        .appleSub(appleDto.getSub())
+                                        .name(name)
+                                        .build()));
+        /*if (social != null) {
             member = social.getMember();
         } else {
             // email 기준 연결 or 신규
@@ -61,7 +67,7 @@ public class AppleLoginService {
                     .provider(Provider.APPLE)
                     .providerSub(appleDto.getSub())
                     .build();
-        }
+        }*/
 
         appleOAuthClient.saveOrUpdateRefreshToken(member, appleDto.getRefresh_token());
 
@@ -71,8 +77,8 @@ public class AppleLoginService {
             member.updateEmail(appleDto.getEmail());
         }
 
-        social.updateToken(appleDto.getRefresh_token());
-        socialAccountRepository.save(social);
+        /*social.updateToken(appleDto.getRefresh_token());
+        socialAccountRepository.save(social);*/
 
         String jwt = jwtTokenUtil.generateToken(
                 customMembersDetailService.loadUserByUsername(member.getEmail())

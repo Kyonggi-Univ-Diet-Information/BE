@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kyonggi.diet.auth.Provider;
 import com.kyonggi.diet.auth.apple.dto.AppleDto;
-import com.kyonggi.diet.auth.socialAccount.SocialAccountRepository;
 import com.kyonggi.diet.auth.socialRefresh.SocialRefreshToken;
 import com.kyonggi.diet.auth.socialRefresh.SocialRefreshTokenRepository;
 import com.kyonggi.diet.member.MemberEntity;
@@ -54,7 +53,7 @@ public class AppleOAuthClient {
     private static final String APPLE_REVOKE_URL = "https://appleid.apple.com/auth/revoke";
 
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final SocialAccountRepository socialAccountRepository;
+    //private final SocialAccountRepository socialAccountRepository;
     private final SocialRefreshTokenRepository socialRefreshTokenRepository;
 
     @Value("${social-login.provider.apple.team-id}")

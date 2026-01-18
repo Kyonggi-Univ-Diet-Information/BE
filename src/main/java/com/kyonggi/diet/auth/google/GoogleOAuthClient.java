@@ -1,27 +1,12 @@
 package com.kyonggi.diet.auth.google;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
-import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
-import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.json.gson.GsonFactory;
 import com.kyonggi.diet.auth.google.dto.GoogleTokenDto;
-import com.kyonggi.diet.member.MemberEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
-
-import java.util.Collections;
 
 
 @Component
@@ -30,13 +15,16 @@ public class GoogleOAuthClient {
 
     private final WebClient webClient = WebClient.builder().build();
 
-    @Value("${google.client-id}")
+    //@Value("${google.client-id}")
+    @Value("${spring.security.oauth2.client.registration.google.client-id}")
     private String clientId;
 
-    @Value("${google.client-secret}")
+    //@Value("${google.client-secret}")
+    @Value("${spring.security.oauth2.client.registration.google.client-secret}")
     private String clientSecret;
 
-    @Value("${google.redirect-uri}")
+    //@Value("${google.redirect-uri}")
+    @Value("${spring.security.oauth2.client.registration.google.redirect-uri}")
     private String redirectUri;
 
     public GoogleTokenDto login(String code) {

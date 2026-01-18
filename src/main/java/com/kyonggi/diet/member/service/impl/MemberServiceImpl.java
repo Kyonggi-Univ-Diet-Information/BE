@@ -1,8 +1,12 @@
 package com.kyonggi.diet.member.service.impl;
 
+import com.kyonggi.diet.auth.Provider;
+import com.kyonggi.diet.auth.socialRefresh.SocialRefreshToken;
+import com.kyonggi.diet.auth.socialRefresh.SocialRefreshTokenRepository;
 import com.kyonggi.diet.member.DTO.MemberDTO;
 import com.kyonggi.diet.member.MemberEntity;
 import com.kyonggi.diet.member.MemberRepository;
+import com.kyonggi.diet.member.service.CustomMembersDetailService;
 import com.kyonggi.diet.member.service.MemberService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +35,8 @@ public class MemberServiceImpl implements MemberService {
     private final MemberRepository memberRepository;
     private final ModelMapper modelMapper;
     private final PasswordEncoder encoder;
+    private final CustomMembersDetailService customMembersDetailService;
+    private final SocialRefreshTokenRepository socialRefreshTokenRepository;
 
     @Override
     public MemberDTO createMember(MemberDTO memberDTO) {
@@ -144,5 +150,14 @@ public class MemberServiceImpl implements MemberService {
      */
     private MemberEntity mapToMemberEntity(MemberDTO memberDTO) {
         return modelMapper.map(memberDTO, MemberEntity.class);
+    }
+
+    @Override
+    public Provider getProvider(String email) {
+        MemberEntity member = getMemberByEmail(email);
+        SocialRefreshToken socialRefreshToken
+                = socialRefreshTokenRepository.findByMemberId(member.getId()).orElseThrow(
+                        () -> new NoSuchElementException("해당 멤버에 대한 소셜 리프레시 토큰을 획들학 수 없습니다."));
+        return socialRefreshToken.getProvider();
     }
 }

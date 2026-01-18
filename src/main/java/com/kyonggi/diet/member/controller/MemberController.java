@@ -1,17 +1,16 @@
 package com.kyonggi.diet.member.controller;
 
+import com.kyonggi.diet.auth.Provider;
 import com.kyonggi.diet.auth.util.JwtTokenUtil;
 import com.kyonggi.diet.controllerDocs.MemberControllerDocs;
 import com.kyonggi.diet.member.DTO.MemberDTO;
 import com.kyonggi.diet.member.io.MemberRequest;
 import com.kyonggi.diet.member.io.MemberResponse;
 import com.kyonggi.diet.member.service.MemberService;
-import com.kyonggi.diet.member.service.MyPageService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,6 +30,7 @@ public class MemberController implements MemberControllerDocs {
 
     private final MemberService memberService;
     private final ModelMapper modelMapper;
+    private final JwtTokenUtil jwtTokenUtil;
 
     /**
      * 모든 멤버 정보를 반환합니다.
@@ -52,6 +52,13 @@ public class MemberController implements MemberControllerDocs {
         return mapToMemberResponse(memberDTO);
     }
 
+    @GetMapping("/get-provider")
+    public ResponseEntity<?> getProvider(@RequestHeader("Authorization") String token) {
+        String email = jwtTokenUtil.getUsernameFromToken(token.substring(7));
+        Provider provider = memberService.getProvider(email);
+        return ResponseEntity.ok(provider);
+    }
+
     /**
      * MemberDTO 에서 MemberResponse 으로 변환하는 Mapper Method 입니다.
      * @param memberDTO (member DTO)
@@ -64,4 +71,6 @@ public class MemberController implements MemberControllerDocs {
     private MemberDTO mapToMemberDTO(MemberRequest memberRequest) {
         return modelMapper.map(memberRequest, MemberDTO.class);
     }
+
+
 }

@@ -3,7 +3,10 @@ package com.kyonggi.diet.review.controller;
 import com.kyonggi.diet.Food.eumer.RestaurantType;
 import com.kyonggi.diet.auth.util.JwtTokenUtil;
 import com.kyonggi.diet.controllerDocs.ReviewControllerDocs;
+import com.kyonggi.diet.member.CustomUserDetails;
 import com.kyonggi.diet.review.DTO.*;
+import com.kyonggi.diet.review.domain.Review;
+import com.kyonggi.diet.review.moderation.block.BlockService;
 import com.kyonggi.diet.review.repository.ReviewRepository;
 import com.kyonggi.diet.review.service.ReviewService;
 import jakarta.annotation.PostConstruct;
@@ -11,6 +14,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.*;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -24,18 +29,19 @@ public class ReviewController implements ReviewControllerDocs {
 
     private final JwtTokenUtil jwtTokenUtil;
     private final ReviewRepository reviewRepository;
-    private final List<ReviewService> reviewServices;
-    private final Map<RestaurantType, ReviewService> serviceMap = new EnumMap<>(RestaurantType.class);
+    private final BlockService blockService;
+    private final List<ReviewService<?>> reviewServices;
+    private final Map<RestaurantType, ReviewService<?>> serviceMap = new EnumMap<>(RestaurantType.class);
 
     @PostConstruct
     public void initServiceMap() {
-        for (ReviewService service : reviewServices) {
+        for (ReviewService<?> service : reviewServices) {
             serviceMap.put(service.getRestaurantType(), service);
             log.info("✅ Registered ReviewService for {}", service.getRestaurantType());
         }
     }
 
-    private ReviewService resolve(RestaurantType type) {
+    private ReviewService<?> resolve(RestaurantType type) {
         return Optional.ofNullable(serviceMap.get(type))
                 .orElseThrow(() -> new IllegalArgumentException("Unsupported RestaurantType: " + type));
     }
@@ -77,21 +83,11 @@ public class ReviewController implements ReviewControllerDocs {
     @GetMapping("/{type}/paged/{foodId}")
     public ResponseEntity<?> getPagedReviews(@PathVariable("type") RestaurantType type,
                                              @PathVariable("foodId") Long foodId,
-                                             @RequestParam(name = "pageNo", defaultValue = "0") int pageNo) {
+                                             @RequestParam(name = "pageNo", defaultValue = "0") int pageNo,
+                                             @AuthenticationPrincipal CustomUserDetails user) {
         try {
-            Page<ReviewDTO> page = resolve(type).getAllReviewsByFoodIdPaged(foodId, pageNo);
+            Page<ReviewDTO> page = resolve(type).getAllReviewsByFoodIdPaged(foodId, pageNo, user);
             return ResponseEntity.ok(page);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid restaurant type: " + type);
-        }
-    }
-
-    /** 해당 음식에 대한 모든 리뷰 조회 */
-    @GetMapping("/{type}/all/{foodId}")
-    public ResponseEntity<?> getAllReviews(@PathVariable("type") RestaurantType type,
-                                           @PathVariable("foodId") Long foodId) {
-        try {
-            return ResponseEntity.ok(resolve(type).getAllReviews(foodId));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid restaurant type: " + type);
         }
@@ -211,5 +207,16 @@ public class ReviewController implements ReviewControllerDocs {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid restaurant type: " + type);
         }
+    }
+
+    @PostMapping("/{type}/block/{reviewId}")
+    public ResponseEntity<?> blockByReview(
+            @PathVariable RestaurantType type,
+            @PathVariable Long reviewId,
+            @AuthenticationPrincipal CustomUserDetails me
+            ) {
+        Review review = resolve(type).getReview(reviewId);
+        blockService.block(me.getMemberId(), review.getMember().getId());
+        return ResponseEntity.ok("Review Blocked");
     }
 }

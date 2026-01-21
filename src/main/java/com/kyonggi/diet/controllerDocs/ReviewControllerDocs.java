@@ -1,6 +1,7 @@
 package com.kyonggi.diet.controllerDocs;
 
 import com.kyonggi.diet.Food.eumer.RestaurantType;
+import com.kyonggi.diet.member.CustomUserDetails;
 import com.kyonggi.diet.review.DTO.CreateReviewDTO;
 import com.kyonggi.diet.review.DTO.ForTopReviewDTO;
 import com.kyonggi.diet.review.DTO.RatingCountResponse;
@@ -13,6 +14,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -155,23 +157,22 @@ public interface ReviewControllerDocs {
             @Parameter(name = "foodId", description = "음식 ID", in = ParameterIn.PATH)
             @PathVariable Long foodId,
             @Parameter(name = "pageNo", description = "페이지 번호 (0부터 시작)", in = ParameterIn.QUERY)
-            @RequestParam(name = "pageNo", defaultValue = "0") int pageNo
+            @RequestParam(name = "pageNo", defaultValue = "0") int pageNo,
+            @AuthenticationPrincipal CustomUserDetails user
+            );
+
+    @Operation(
+            summary = "차단 기능",
+            description = "reviewId에 해당하는 멤버를 차단합니다."
+    )
+    ResponseEntity<?> blockByReview(
+            @Parameter(name = "type", description = "식당 종류", in = ParameterIn.PATH)
+            @PathVariable RestaurantType type,
+            @Parameter(name = "reviewId", description = "리뷰 ID", in = ParameterIn.PATH)
+            @PathVariable Long reviewId,
+            @AuthenticationPrincipal CustomUserDetails me
     );
 
-    // ---------------------- 음식별 전체 리뷰 조회 ----------------------
-    @Operation(
-            summary = "음식별 전체 리뷰 조회",
-            description = "foodId에 해당하는 음식의 모든 리뷰를 조회합니다. 페이징 없이 전체 목록을 반환합니다."
-    )
-    @ApiResponse(responseCode = "200", description = "리뷰 전체 조회 성공")
-    @ApiResponse(responseCode = "400", description = "유효하지 않은 식당 타입 (RestaurantType)")
-    @GetMapping("/all/{foodId}")
-    ResponseEntity<?> getAllReviews(
-            @Parameter(name = "type", description = "식당 종류 (DORMITORY, KYONGSUL 등)", in = ParameterIn.PATH)
-            @PathVariable RestaurantType type,
-            @Parameter(name = "foodId", description = "음식 ID", in = ParameterIn.PATH)
-            @PathVariable Long foodId
-    );
 
     @Operation(
             summary = "최신 리뷰 Top5 조회(version2)",

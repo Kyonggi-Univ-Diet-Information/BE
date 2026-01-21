@@ -9,6 +9,8 @@ import com.kyonggi.diet.review.favoriteReview.domain.FavoriteDietFoodReview;
 import com.kyonggi.diet.review.favoriteReview.domain.FavoriteESquareFoodReview;
 import com.kyonggi.diet.review.favoriteReview.domain.FavoriteKyongsulFoodReview;
 import com.kyonggi.diet.review.favoriteReview.domain.FavoriteSallyBoxFoodReview;
+import com.kyonggi.diet.review.moderation.block.Block;
+import com.kyonggi.diet.review.moderation.report.Report;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -79,6 +81,18 @@ public class MemberEntity {
 
     @OneToOne(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     private SocialRefreshToken socialRefreshToken;
+
+    @OneToMany(mappedBy = "blocker", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Block> blocks;
+
+    @OneToMany(mappedBy = "blocked")
+    private List<Block> blockedBy;
+
+    @OneToMany(mappedBy = "reporter")
+    private List<Report> reports;
+
+    @OneToMany(mappedBy = "reported")
+    private List<Report> reportedBy;
 
     public void updateEmail(String email) {
         this.email = email;

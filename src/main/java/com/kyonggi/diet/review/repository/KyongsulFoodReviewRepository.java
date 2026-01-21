@@ -38,6 +38,18 @@ public interface KyongsulFoodReviewRepository extends JpaRepository<KyongsulFood
     """)
     List<Object[]> find5KyongsulFoodReviewsRecent(Pageable pageable);
 
+    @Query("""
+                select r
+                from KyongsulFoodReview r
+                where r.kyongsulFood.id = :foodId
+                  and (:blockedIds is null or r.member.id not in :blockedIds)
+            """)
+    Page<KyongsulFoodReview> findAllExcludeBlocked(
+            Long foodId,
+            List<Long> blockedIds,
+            Pageable pageable
+    );
+
     List<KyongsulFoodReview> findAllByMember(MemberEntity member);
 
     Page<KyongsulFoodReview> findAllByMember(MemberEntity member, Pageable pageable);

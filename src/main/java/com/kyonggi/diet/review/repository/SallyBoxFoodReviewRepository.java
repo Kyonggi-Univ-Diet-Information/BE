@@ -38,6 +38,18 @@ public interface SallyBoxFoodReviewRepository extends JpaRepository<SallyBoxFood
             """)
     List<Object[]> find5SallyBoxFoodReviewsRecent(Pageable pageable);
 
+    @Query("""
+                select r
+                from SallyBoxFoodReview r
+                where r.sallyBoxFood.id = :foodId
+                  and (:blockedIds is null or r.member.id not in :blockedIds)
+            """)
+    Page<SallyBoxFoodReview> findAllExcludeBlocked(
+            Long foodId,
+            List<Long> blockedIds,
+            Pageable pageable
+    );
+
     List<SallyBoxFoodReview> findAllByMember(MemberEntity member);
 
     Page<SallyBoxFoodReview> findAllByMember(MemberEntity member, Pageable pageable);

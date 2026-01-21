@@ -39,6 +39,18 @@ public interface ESquareFoodReviewRepository extends JpaRepository<ESquareFoodRe
     """)
     List<Object[]> find5ESquareFoodReviewsRecent(Pageable pageable);
 
+    @Query("""
+                select r
+                from ESquareFoodReview r
+                where r.eSquareFood.id = :foodId
+                  and (:blockedIds is null or r.member.id not in :blockedIds)
+            """)
+    Page<ESquareFoodReview> findAllExcludeBlocked(
+            Long foodId,
+            List<Long> blockedIds,
+            Pageable pageable
+    );
+
     List<ESquareFoodReview> findAllByMember(MemberEntity member);
 
     Page<ESquareFoodReview> findAllByMember(MemberEntity member, Pageable pageable);

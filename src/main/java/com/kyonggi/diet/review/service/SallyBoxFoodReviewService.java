@@ -3,14 +3,17 @@ package com.kyonggi.diet.review.service;
 import com.kyonggi.diet.Food.domain.SallyBoxFood;
 import com.kyonggi.diet.Food.eumer.RestaurantType;
 import com.kyonggi.diet.Food.repository.SallyBoxFoodRepository;
+import com.kyonggi.diet.member.CustomUserDetails;
 import com.kyonggi.diet.member.MemberEntity;
 import com.kyonggi.diet.member.service.MemberService;
 import com.kyonggi.diet.review.DTO.CreateReviewDTO;
 import com.kyonggi.diet.review.DTO.ForTopReviewDTO;
 import com.kyonggi.diet.review.DTO.ReviewDTO;
+import com.kyonggi.diet.review.domain.ESquareFoodReview;
 import com.kyonggi.diet.review.domain.SallyBoxFoodReview;
 import com.kyonggi.diet.review.favoriteReview.domain.FavoriteSallyBoxFoodReview;
 import com.kyonggi.diet.review.favoriteReview.repository.FavoriteSallyBoxFoodReviewRepository;
+import com.kyonggi.diet.review.moderation.block.BlockService;
 import com.kyonggi.diet.review.repository.SallyBoxFoodReviewRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -34,19 +37,26 @@ public class SallyBoxFoodReviewService
     private final SallyBoxFoodReviewRepository sallyBoxFoodReviewRepository;
     private final SallyBoxFoodRepository sallyBoxFoodRepository;
     private final FavoriteSallyBoxFoodReviewRepository favoriteSallyBoxFoodReviewRepository;
+    private final BlockService blockService;
 
     SallyBoxFoodReviewService(
             ModelMapper modelMapper,
             MemberService memberService,
             SallyBoxFoodReviewRepository sallyBoxFoodReviewRepository,
             SallyBoxFoodRepository sallyBoxFoodRepository,
-            FavoriteSallyBoxFoodReviewRepository favoriteSallyBoxFoodReviewRepository) {
+            FavoriteSallyBoxFoodReviewRepository favoriteSallyBoxFoodReviewRepository,
+            BlockService blockService) {
         super(memberService, modelMapper);
         this.sallyBoxFoodReviewRepository = sallyBoxFoodReviewRepository;
         this.sallyBoxFoodRepository = sallyBoxFoodRepository;
         this.favoriteSallyBoxFoodReviewRepository = favoriteSallyBoxFoodReviewRepository;
+        this.blockService = blockService;
     }
 
+    public SallyBoxFoodReview getReview(Long reviewId) {
+        return sallyBoxFoodReviewRepository.findById(reviewId).orElseThrow(
+                () -> new NoSuchElementException("해당 id에 대한 리뷰가 없습니다: " + reviewId));
+    }
 
     @Override
     protected JpaRepository<SallyBoxFoodReview, Long> getRepository() {
@@ -95,13 +105,6 @@ public class SallyBoxFoodReviewService
         SallyBoxFoodReview review = sallyBoxFoodReviewRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Review not found: " + id));
         return super.mapToReviewDTO(review);
-    }
-
-    @Override
-    public Page<ReviewDTO> getAllReviewsByFoodIdPaged(Long foodId, int pageNo) {
-        Pageable pageable = PageRequest.of(pageNo, 10, Sort.by(Sort.Direction.DESC, "id"));
-        Page<SallyBoxFoodReview> reviews = sallyBoxFoodReviewRepository.findAllBySallyBoxFoodId(foodId, pageable);
-        return super.toPagedDTO(reviews, pageNo);
     }
 
     @Override
@@ -157,12 +160,6 @@ public class SallyBoxFoodReviewService
     }
 
     @Override
-    public List<ReviewDTO> getAllReviews(Long id) {
-        List<SallyBoxFoodReview> all = sallyBoxFoodReviewRepository.findListById(id);
-        return all.stream().map(super::mapToReviewDTO).toList();
-    }
-
-    @Override
     public Page<ReviewDTO> findAllByMemberPaged(MemberEntity member, int pageNo) {
         Pageable pageable = PageRequest.of(pageNo, 10, Sort.by(Sort.Direction.DESC, "id"));
         Page<SallyBoxFoodReview> reviews = sallyBoxFoodReviewRepository.findAllByMember(member, pageable);
@@ -179,4 +176,27 @@ public class SallyBoxFoodReviewService
         return super.toPagedDTO(reviews, pageNo);
     }
 
+    @Override
+    public Page<ReviewDTO> getAllReviewsByFoodIdPaged(Long foodId, int pageNo, CustomUserDetails user) {
+        Pageable pageable = PageRequest.of(pageNo, 10, Sort.by(Sort.Direction.DESC, "id"));
+
+        if (user == null) {
+            Page<SallyBoxFoodReview> reviews =
+                    sallyBoxFoodReviewRepository.findAllBySallyBoxFoodId(foodId, pageable);
+            return super.toPagedDTO(reviews, pageNo);
+        }
+
+        List<Long> blockedIds = blockService.getBlockedMemberIds(user.getMemberId());
+
+        Page<SallyBoxFoodReview> reviews;
+
+        if (blockedIds.isEmpty()) {
+            reviews = sallyBoxFoodReviewRepository.findAllBySallyBoxFoodId(foodId, pageable);
+        } else {
+            reviews = sallyBoxFoodReviewRepository
+                    .findAllExcludeBlocked(foodId, blockedIds, pageable);
+        }
+
+        return super.toPagedDTO(reviews, pageNo);
+    }
 }

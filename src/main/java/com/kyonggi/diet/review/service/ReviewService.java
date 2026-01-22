@@ -1,6 +1,7 @@
 package com.kyonggi.diet.review.service;
 
 import com.kyonggi.diet.Food.eumer.RestaurantType;
+import com.kyonggi.diet.member.CustomUserDetails;
 import com.kyonggi.diet.member.MemberEntity;
 import com.kyonggi.diet.review.DTO.CreateReviewDTO;
 import com.kyonggi.diet.review.DTO.ForTopReviewDTO;
@@ -16,7 +17,7 @@ import java.util.Map;
  * 식당 리뷰 서비스 공통 인터페이스
  * 각 식당별 구현체(Diet, Kyongsul 등)는 RestaurantType을 명시해야 함.
  */
-public interface ReviewService {
+public interface ReviewService<R extends Review> {
 
     RestaurantType getRestaurantType(); // 어떤 식당용 서비스인지 구분
 
@@ -24,7 +25,7 @@ public interface ReviewService {
 
     ReviewDTO findReviewDTO(Long reviewId);
 
-    Page<ReviewDTO> getAllReviewsByFoodIdPaged(Long foodId, int pageNo);
+    Page<ReviewDTO> getAllReviewsByFoodIdPaged(Long foodId, int pageNo, CustomUserDetails user);
 
     void modifyReview(Long reviewId, CreateReviewDTO dto);
 
@@ -46,9 +47,9 @@ public interface ReviewService {
 
     List<ReviewDTO> findAllByMemberFavorited(MemberEntity member);
 
-    List<ReviewDTO> getAllReviews(Long id);
-
     Page<ReviewDTO> findAllByMemberPaged(MemberEntity member, int pageNo);
 
     Page<ReviewDTO> findAllByMemberFavoritedPaged(MemberEntity member, int pageNo);
+
+    R getReview(Long reviewId);
 }

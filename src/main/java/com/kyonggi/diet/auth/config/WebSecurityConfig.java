@@ -1,7 +1,7 @@
 package com.kyonggi.diet.auth.config;
 
 import com.kyonggi.diet.member.service.CustomMembersDetailService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -21,10 +21,10 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 
 @Configuration
+@RequiredArgsConstructor
 public class WebSecurityConfig {
 
-    @Autowired
-    private CustomMembersDetailService customMembersDetailService;
+    private final CustomMembersDetailService customMembersDetailService;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity, HandlerMappingIntrospector introspector) throws Exception {
@@ -55,7 +55,7 @@ public class WebSecurityConfig {
                                 "/api/review/*/count/*","/api/review/*/rating-count/*",
                                 "/api/review/*/average/*","/api/review/*/one/*", "/api/review/*/paged/*",
                                 "/api/review/*/all/*", "/api/review/top5-recent",
-                                "/api/review/favorite/*/count/*",
+                                "/api/review/favorite/*/count/*", "/api/review/report/reasons",
 
                                 // Diet Content API
                                 "/api/diet-content/dormitory/dow/*", "api/diet-content/dormitory",

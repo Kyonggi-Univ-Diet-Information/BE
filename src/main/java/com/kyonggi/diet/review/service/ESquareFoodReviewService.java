@@ -3,6 +3,7 @@ package com.kyonggi.diet.review.service;
 import com.kyonggi.diet.Food.domain.ESquareFood;
 import com.kyonggi.diet.Food.eumer.RestaurantType;
 import com.kyonggi.diet.Food.repository.ESquareFoodRepository;
+import com.kyonggi.diet.member.CustomUserDetails;
 import com.kyonggi.diet.member.MemberEntity;
 import com.kyonggi.diet.member.service.MemberService;
 import com.kyonggi.diet.review.DTO.CreateReviewDTO;
@@ -13,6 +14,7 @@ import com.kyonggi.diet.review.domain.KyongsulFoodReview;
 import com.kyonggi.diet.review.favoriteReview.domain.FavoriteESquareFoodReview;
 import com.kyonggi.diet.review.favoriteReview.repository.FavoriteESquareFoodReviewRepository;
 import com.kyonggi.diet.review.favoriteReview.service.FavoriteESquareFoodReviewService;
+import com.kyonggi.diet.review.moderation.block.BlockService;
 import com.kyonggi.diet.review.repository.ESquareFoodReviewRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -31,11 +33,13 @@ import java.util.Objects;
 @Service
 @Transactional(readOnly = true)
 public class ESquareFoodReviewService
-        extends AbstractReviewService<ESquareFoodReview, Long> implements ReviewService {
+        extends AbstractReviewService<ESquareFoodReview, Long>
+        implements ReviewService<ESquareFoodReview> {
 
     private final ESquareFoodReviewRepository esquareFoodReviewRepository;
     private final ESquareFoodRepository esquareFoodRepository;
     private final FavoriteESquareFoodReviewRepository favoriteESquareFoodReviewRepository;
+    private final BlockService blockService;
 
     ESquareFoodReviewService(
             ModelMapper modelMapper,
@@ -43,13 +47,19 @@ public class ESquareFoodReviewService
             ESquareFoodReviewRepository esquareFoodReviewRepository,
             ESquareFoodRepository eSquareFoodRepository,
             FavoriteESquareFoodReviewService favoriteESquareFoodReviewService,
-            FavoriteESquareFoodReviewRepository favoriteESquareFoodReviewRepository) {
+            FavoriteESquareFoodReviewRepository favoriteESquareFoodReviewRepository,
+            BlockService blockService) {
         super(memberService, modelMapper);
         this.esquareFoodReviewRepository = esquareFoodReviewRepository;
         this.esquareFoodRepository = eSquareFoodRepository;
         this.favoriteESquareFoodReviewRepository = favoriteESquareFoodReviewRepository;
+        this.blockService = blockService;
     }
 
+    public ESquareFoodReview getReview(Long reviewId) {
+        return esquareFoodReviewRepository.findById(reviewId).orElseThrow(
+                () -> new NoSuchElementException("해당 id에 대한 리뷰가 없습니다: " + reviewId));
+    }
 
     @Override
     protected JpaRepository<ESquareFoodReview, Long> getRepository() {
@@ -98,13 +108,6 @@ public class ESquareFoodReviewService
         ESquareFoodReview review = esquareFoodReviewRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Review not found: " + id));
         return super.mapToReviewDTO(review);
-    }
-
-    @Override
-    public Page<ReviewDTO> getAllReviewsByFoodIdPaged(Long foodId, int pageNo) {
-        Pageable pageable = PageRequest.of(pageNo, 10, Sort.by(Sort.Direction.DESC, "id"));
-        Page<ESquareFoodReview> reviews = esquareFoodReviewRepository.findAllByESquareFoodId(foodId, pageable);
-        return super.toPagedDTO(reviews, pageNo);
     }
 
     @Override
@@ -160,12 +163,6 @@ public class ESquareFoodReviewService
         }
 
     @Override
-    public List<ReviewDTO> getAllReviews(Long id) {
-        List<ESquareFoodReview> all = esquareFoodReviewRepository.findListById(id);
-        return all.stream().map(super::mapToReviewDTO).toList();
-    }
-
-    @Override
     public Page<ReviewDTO> findAllByMemberPaged(MemberEntity member, int pageNo) {
         Pageable pageable = PageRequest.of(pageNo, 10, Sort.by(Sort.Direction.DESC, "id"));
         Page<ESquareFoodReview> reviews = esquareFoodReviewRepository.findAllByMember(member, pageable);
@@ -182,4 +179,27 @@ public class ESquareFoodReviewService
         return super.toPagedDTO(reviews, pageNo);
     }
 
+    @Override
+    public Page<ReviewDTO> getAllReviewsByFoodIdPaged(Long foodId, int pageNo, CustomUserDetails user) {
+        Pageable pageable = PageRequest.of(pageNo, 10, Sort.by(Sort.Direction.DESC, "id"));
+
+        if (user == null) {
+            Page<ESquareFoodReview> reviews =
+                    esquareFoodReviewRepository.findAllByESquareFoodId(foodId, pageable);
+            return super.toPagedDTO(reviews, pageNo);
+            }
+
+        List<Long> blockedIds = blockService.getBlockedMemberIds(user.getMemberId());
+
+        Page<ESquareFoodReview> reviews;
+
+        if (blockedIds.isEmpty()) {
+            reviews = esquareFoodReviewRepository.findAllByESquareFoodId(foodId, pageable);
+        } else {
+            reviews = esquareFoodReviewRepository
+                    .findAllExcludeBlocked(foodId, blockedIds, pageable);
+        }
+
+        return super.toPagedDTO(reviews, pageNo);
+    }
 }

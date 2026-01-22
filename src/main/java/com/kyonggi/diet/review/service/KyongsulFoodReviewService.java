@@ -4,15 +4,18 @@ import com.kyonggi.diet.Food.domain.KyongsulFood;
 import com.kyonggi.diet.Food.eumer.RestaurantType;
 import com.kyonggi.diet.Food.repository.DietFoodRepository;
 import com.kyonggi.diet.Food.repository.KyongsulFoodRepository;
+import com.kyonggi.diet.member.CustomUserDetails;
 import com.kyonggi.diet.member.MemberEntity;
 import com.kyonggi.diet.member.service.MemberService;
 import com.kyonggi.diet.review.DTO.CreateReviewDTO;
 import com.kyonggi.diet.review.DTO.ForTopReviewDTO;
 import com.kyonggi.diet.review.DTO.ReviewDTO;
 import com.kyonggi.diet.review.domain.DietFoodReview;
+import com.kyonggi.diet.review.domain.ESquareFoodReview;
 import com.kyonggi.diet.review.domain.KyongsulFoodReview;
 import com.kyonggi.diet.review.favoriteReview.domain.FavoriteKyongsulFoodReview;
 import com.kyonggi.diet.review.favoriteReview.repository.FavoriteKyongsulFoodReviewRepository;
+import com.kyonggi.diet.review.moderation.block.BlockService;
 import com.kyonggi.diet.review.repository.KyongsulFoodReviewRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.*;
@@ -24,23 +27,33 @@ import java.util.*;
 
 @Service
 @Transactional(readOnly = true)
-public class KyongsulFoodReviewService extends AbstractReviewService<KyongsulFoodReview, Long> implements ReviewService {
+public class KyongsulFoodReviewService
+        extends AbstractReviewService<KyongsulFoodReview, Long>
+        implements ReviewService<KyongsulFoodReview> {
 
     private final KyongsulFoodReviewRepository kyongsulFoodReviewRepository;
     private final KyongsulFoodRepository kyongsulFoodRepository;
     private final FavoriteKyongsulFoodReviewRepository favoriteKyongsulFoodReviewRepository;
+    private final BlockService blockService;
 
     public KyongsulFoodReviewService(
             MemberService memberService,
             ModelMapper modelMapper,
             KyongsulFoodReviewRepository kyongsulFoodReviewRepository,
             FavoriteKyongsulFoodReviewRepository favoriteKyongsulFoodReviewRepository,
-            KyongsulFoodRepository kyongsulFoodRepository
+            KyongsulFoodRepository kyongsulFoodRepository,
+            BlockService blockService
     ) {
         super(memberService, modelMapper); // 상위 클래스 주입
         this.kyongsulFoodRepository = kyongsulFoodRepository;
         this.favoriteKyongsulFoodReviewRepository = favoriteKyongsulFoodReviewRepository;
         this.kyongsulFoodReviewRepository = kyongsulFoodReviewRepository;
+        this.blockService = blockService;
+    }
+
+    public KyongsulFoodReview getReview(Long reviewId) {
+        return kyongsulFoodReviewRepository.findById(reviewId).orElseThrow(
+                () -> new NoSuchElementException("해당 id에 대한 리뷰가 없습니다: " + reviewId));
     }
 
     @Override
@@ -90,13 +103,6 @@ public class KyongsulFoodReviewService extends AbstractReviewService<KyongsulFoo
         KyongsulFoodReview review = kyongsulFoodReviewRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Review not found: " + id));
         return super.mapToReviewDTO(review);
-    }
-
-    @Override
-    public Page<ReviewDTO> getAllReviewsByFoodIdPaged(Long foodId, int pageNo) {
-        Pageable pageable = PageRequest.of(pageNo, 10, Sort.by(Sort.Direction.DESC, "id"));
-        Page<KyongsulFoodReview> reviews = kyongsulFoodReviewRepository.findAllByKyongsulFoodId(foodId, pageable);
-        return super.toPagedDTO(reviews,pageNo);
     }
 
     @Override
@@ -152,12 +158,6 @@ public class KyongsulFoodReviewService extends AbstractReviewService<KyongsulFoo
     }
 
     @Override
-    public List<ReviewDTO> getAllReviews(Long id) {
-        List<KyongsulFoodReview> all = kyongsulFoodReviewRepository.findListById(id);
-        return all.stream().map(super::mapToReviewDTO).toList();
-    }
-
-    @Override
     public Page<ReviewDTO> findAllByMemberPaged(MemberEntity member, int pageNo) {
         Pageable pageable = PageRequest.of(pageNo, 10, Sort.by(Sort.Direction.DESC, "id"));
         Page<KyongsulFoodReview> reviews = kyongsulFoodReviewRepository.findAllByMember(member, pageable);
@@ -174,4 +174,27 @@ public class KyongsulFoodReviewService extends AbstractReviewService<KyongsulFoo
         return super.toPagedDTO(reviews, pageNo);
     }
 
+    @Override
+    public Page<ReviewDTO> getAllReviewsByFoodIdPaged(Long foodId, int pageNo, CustomUserDetails user) {
+        Pageable pageable = PageRequest.of(pageNo, 10, Sort.by(Sort.Direction.DESC, "id"));
+
+        if (user == null) {
+            Page<KyongsulFoodReview> reviews =
+                    kyongsulFoodReviewRepository.findAllByKyongsulFoodId(foodId, pageable);
+            return super.toPagedDTO(reviews, pageNo);
+        }
+
+        List<Long> blockedIds = blockService.getBlockedMemberIds(user.getMemberId());
+
+        Page<KyongsulFoodReview> reviews;
+
+        if (blockedIds.isEmpty()) {
+            reviews = kyongsulFoodReviewRepository.findAllByKyongsulFoodId(foodId, pageable);
+        } else {
+            reviews = kyongsulFoodReviewRepository
+                    .findAllExcludeBlocked(foodId, blockedIds, pageable);
+        }
+
+        return super.toPagedDTO(reviews, pageNo);
+    }
 }

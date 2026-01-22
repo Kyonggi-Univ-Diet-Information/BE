@@ -3,12 +3,14 @@ package com.kyonggi.diet.review.service;
 import com.kyonggi.diet.Food.domain.DietFood;
 import com.kyonggi.diet.Food.eumer.RestaurantType;
 import com.kyonggi.diet.Food.repository.DietFoodRepository;
+import com.kyonggi.diet.member.CustomUserDetails;
 import com.kyonggi.diet.member.MemberEntity;
 import com.kyonggi.diet.member.service.MemberService;
 import com.kyonggi.diet.review.DTO.CreateReviewDTO;
 import com.kyonggi.diet.review.DTO.ForTopReviewDTO;
 import com.kyonggi.diet.review.DTO.ReviewDTO;
 import com.kyonggi.diet.review.domain.DietFoodReview;
+import com.kyonggi.diet.review.domain.ESquareFoodReview;
 import com.kyonggi.diet.review.domain.KyongsulFoodReview;
 import com.kyonggi.diet.review.favoriteReview.domain.FavoriteDietFoodReview;
 import com.kyonggi.diet.review.favoriteReview.repository.FavoriteDietFoodReviewRepository;
@@ -23,7 +25,9 @@ import java.util.*;
 
 @Service
 @Transactional(readOnly = true)
-public class DietFoodReviewService extends AbstractReviewService<DietFoodReview, Long> implements ReviewService {
+public class DietFoodReviewService
+        extends AbstractReviewService<DietFoodReview, Long>
+        implements ReviewService<DietFoodReview> {
 
     private final DietFoodReviewRepository dietFoodReviewRepository;
     private final FavoriteDietFoodReviewRepository favoriteDietFoodReviewRepository;
@@ -40,6 +44,12 @@ public class DietFoodReviewService extends AbstractReviewService<DietFoodReview,
         this.dietFoodReviewRepository = dietFoodReviewRepository;
         this.favoriteDietFoodReviewRepository = favoriteDietFoodReviewRepository;
         this.dietFoodRepository = dietFoodRepository;
+    }
+
+    @Override
+    public DietFoodReview getReview(Long reviewId) {
+        return dietFoodReviewRepository.findById(reviewId).orElseThrow(
+                () -> new NoSuchElementException("해당 id에 대한 리뷰가 없습니다: " + reviewId));
     }
 
     @Override
@@ -93,7 +103,7 @@ public class DietFoodReviewService extends AbstractReviewService<DietFoodReview,
     }
 
     @Override
-    public Page<ReviewDTO> getAllReviewsByFoodIdPaged(Long foodId, int pageNo) {
+    public Page<ReviewDTO> getAllReviewsByFoodIdPaged(Long foodId, int pageNo, CustomUserDetails user) {
         Pageable pageable = PageRequest.of(pageNo, 10, Sort.by(Sort.Direction.DESC, "id"));
         Page<DietFoodReview> reviews = dietFoodReviewRepository.findAllByDietFoodId(foodId, pageable);
         return super.toPagedDTO(reviews, pageNo);
@@ -149,12 +159,6 @@ public class DietFoodReviewService extends AbstractReviewService<DietFoodReview,
     @Override
     public Long extractId(DietFoodReview review) {
         return review.getId();
-    }
-
-    @Override
-    public List<ReviewDTO> getAllReviews(Long id) {
-        List<DietFoodReview> all = dietFoodReviewRepository.findListById(id);
-        return all.stream().map(super::mapToReviewDTO).toList();
     }
 
     @Override

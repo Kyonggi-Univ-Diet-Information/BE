@@ -55,7 +55,7 @@ public class WebSecurityConfig {
                                 "/api/review/*/count/*","/api/review/*/rating-count/*",
                                 "/api/review/*/average/*","/api/review/*/one/*", "/api/review/*/paged/*",
                                 "/api/review/*/all/*", "/api/review/top5-recent",
-                                "/api/review/favorite/*/count/*",
+                                "/api/review/favorite/*/count/*", "/api/review/report/reasons",
 
                                 // Diet Content API
                                 "/api/diet-content/dormitory/dow/*", "api/diet-content/dormitory",

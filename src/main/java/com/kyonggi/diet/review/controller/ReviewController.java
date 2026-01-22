@@ -7,15 +7,19 @@ import com.kyonggi.diet.member.CustomUserDetails;
 import com.kyonggi.diet.review.DTO.*;
 import com.kyonggi.diet.review.domain.Review;
 import com.kyonggi.diet.review.moderation.block.BlockService;
+import com.kyonggi.diet.review.moderation.report.ReportReasonType;
+import com.kyonggi.diet.review.moderation.report.dto.ReportReasonDto;
+import com.kyonggi.diet.review.moderation.report.dto.ReportReasonEtcDto;
+import com.kyonggi.diet.review.moderation.report.ReportService;
 import com.kyonggi.diet.review.repository.ReviewRepository;
 import com.kyonggi.diet.review.service.ReviewService;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -30,6 +34,7 @@ public class ReviewController implements ReviewControllerDocs {
     private final JwtTokenUtil jwtTokenUtil;
     private final ReviewRepository reviewRepository;
     private final BlockService blockService;
+    private final ReportService reportService;
     private final List<ReviewService<?>> reviewServices;
     private final Map<RestaurantType, ReviewService<?>> serviceMap = new EnumMap<>(RestaurantType.class);
 
@@ -218,5 +223,52 @@ public class ReviewController implements ReviewControllerDocs {
         Review review = resolve(type).getReview(reviewId);
         blockService.block(me.getMemberId(), review.getMember().getId());
         return ResponseEntity.ok("Review Blocked");
+    }
+
+    @Operation(
+            summary = "신고 사유 목록 조회",
+            description = "리뷰 신고 시 선택할 수 있는 모든 신고 사유(enum)와 설명을 조회합니다."
+    )
+    @GetMapping("/report/reasons")
+    public ResponseEntity<?> getReportReasons() {
+        Map<String, Object> result = new HashMap<>();
+        result.put("result", reportService.getAllReportReasonTypes());
+        return ResponseEntity.ok(result);
+    }
+
+    @PostMapping("/{type}/report/{reviewId}/{reasonType}")
+    public ResponseEntity<?> reportByReview(
+            @PathVariable RestaurantType type,
+            @PathVariable Long reviewId,
+            @AuthenticationPrincipal CustomUserDetails me,
+            @PathVariable ReportReasonType reasonType,
+            @RequestBody(required = false) ReportReasonEtcDto reason
+    ) {
+        if (reportService.existReportForReview(me, reviewId, type)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("이미 신고한 게시물입니다.");
+        }
+
+        Review review = resolve(type).getReview(reviewId);
+        try {
+            if (reasonType != ReportReasonType.ETC
+                    && reason != null
+                    && reason.getEtcReason() != null) {
+                return ResponseEntity.badRequest()
+                        .body("ETC가 아닌 탈퇴 사유에는 기타 사유를 입력할 수 없습니다.");
+            }
+
+            ReportReasonDto dto = ReportReasonDto.builder()
+                    .type(reasonType).build();
+
+            if (reason != null) {
+                dto.setEtcReason(reason.getEtcReason());
+            }
+
+            reportService.report(me, type, review, reviewId, dto);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest()
+                    .body(e.getMessage());
+        }
+        return ResponseEntity.ok("Review reported");
     }
 }

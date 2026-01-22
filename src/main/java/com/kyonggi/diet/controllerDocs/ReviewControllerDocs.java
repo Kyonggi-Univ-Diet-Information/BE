@@ -6,6 +6,8 @@ import com.kyonggi.diet.review.DTO.CreateReviewDTO;
 import com.kyonggi.diet.review.DTO.ForTopReviewDTO;
 import com.kyonggi.diet.review.DTO.RatingCountResponse;
 import com.kyonggi.diet.review.DTO.ReviewDTO;
+import com.kyonggi.diet.review.moderation.report.ReportReasonType;
+import com.kyonggi.diet.review.moderation.report.dto.ReportReasonEtcDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -179,4 +181,46 @@ public interface ReviewControllerDocs {
             description = "경슐랭, 이스퀘어, 샐리박스 전체 식당을 통합하여 가장 최신 리뷰 5개를 조회합니다"
     )
     ResponseEntity<?> getTop5RecentReviews();
+
+    // ---------------------- 신고 사유 목록 조회 ----------------------
+    @Operation(
+            summary = "신고 사유 목록 조회",
+            description = "리뷰 신고 시 선택할 수 있는 모든 신고 사유(enum)와 설명을 조회합니다."
+    )
+    @ApiResponse(responseCode = "200", description = "신고 사유 목록 조회 성공")
+    @GetMapping("/report/reasons")
+    ResponseEntity<?> getReportReasons();
+
+    // ---------------------- 리뷰 신고 ----------------------
+    @Operation(
+            summary = "리뷰 신고",
+            description = """
+                    특정 리뷰를 신고합니다.
+                    
+                    - 신고 사유는 enum 값으로 전달합니다.
+                    - 신고 사유가 ETC인 경우, 기타 사유 내용은 RequestBody로 전달해야 합니다.
+                    - 동일한 리뷰에 대해 중복 신고는 불가능합니다.
+                    """
+    )
+    @ApiResponse(responseCode = "200", description = "리뷰 신고 성공")
+    @ApiResponse(responseCode = "400", description = "중복 신고 또는 요청 값 검증 실패")
+    @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
+    @PostMapping("/{type}/report/{reviewId}/{reasonType}")
+    ResponseEntity<?> reportByReview(
+            @Parameter(name = "type", description = "식당 종류", in = ParameterIn.PATH)
+            @PathVariable RestaurantType type,
+
+            @Parameter(name = "reviewId", description = "신고할 리뷰 ID", in = ParameterIn.PATH)
+            @PathVariable Long reviewId,
+            @AuthenticationPrincipal CustomUserDetails me,
+            @Parameter(
+                    name = "reasonType",
+                    description = "신고 사유 타입 (enum)",
+                    in = ParameterIn.PATH,
+                    schema = @Schema(implementation = ReportReasonType.class)
+            )
+            @PathVariable ReportReasonType reasonType,
+
+            @RequestBody(required = false) ReportReasonEtcDto reason
+    );
 }

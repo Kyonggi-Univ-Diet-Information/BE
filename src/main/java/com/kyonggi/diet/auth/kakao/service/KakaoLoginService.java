@@ -3,6 +3,8 @@ package com.kyonggi.diet.auth.kakao.service;
 import com.kyonggi.diet.auth.io.AuthResponse;
 import com.kyonggi.diet.auth.kakao.dto.KakaoTokenResponse;
 import com.kyonggi.diet.auth.kakao.dto.KakaoUserInfo;
+import com.kyonggi.diet.auth.socialAccount.SocialAccount;
+import com.kyonggi.diet.auth.socialAccount.SocialAccountRepository;
 import com.kyonggi.diet.auth.socialRefresh.SocialRefreshToken;
 import com.kyonggi.diet.auth.socialRefresh.SocialRefreshTokenRepository;
 import com.kyonggi.diet.auth.util.JwtTokenUtil;
@@ -24,8 +26,8 @@ public class KakaoLoginService {
 
     private final KakaoOAuthService kakaoOAuthService;
     private final MemberRepository memberRepository;
-    private final SocialRefreshTokenRepository socialRefreshTokenRepository;
     private final CustomMembersDetailService membersDetailService;
+    private final SocialAccountRepository socialAccountRepository;
     private final JwtTokenUtil jwtTokenUtil;
 
     /**
@@ -39,19 +41,42 @@ public class KakaoLoginService {
         KakaoUserInfo userInfo =
                 kakaoOAuthService.getUserInfo(tokenResponse.getAccessToken());
 
+        SocialAccount social = socialAccountRepository
+                .findByProviderAndProviderSub(Provider.KAKAO, userInfo.getProviderId())
+                .orElse(null);
+
+        MemberEntity member;
+
         // 3. 회원 조회 / 생성
-        MemberEntity member = memberRepository.findByEmail(userInfo.getEmail())
-                .orElseGet(() ->
-                        memberRepository.saveAndFlush(
-                                MemberEntity.builder()
-                                        .email(userInfo.getEmail())
-                                        .name(userInfo.getNickname())
-                                        .build()
-                        )
-                );
+        if (social != null) {
+            member = social.getMember();
+        } else {
+            // email 기준 연결 or 신규
+            member = memberRepository.findByEmail(userInfo.getEmail())
+                    .orElseGet(() ->
+                            memberRepository.save(
+                                    MemberEntity.builder()
+                                            .email(userInfo.getEmail())
+                                            .name(userInfo.getNickname())
+                                            .build()
+                            )
+                    );
+
+            social = SocialAccount.builder()
+                    .member(member)
+                    .provider(Provider.KAKAO)
+                    .providerSub(userInfo.getProviderId())
+                    .build();
+        }
+
+        if (userInfo.getEmail() != null &&
+                !userInfo.getEmail().equals(member.getEmail())) {
+            member.updateEmail(userInfo.getEmail());
+        }
 
         // 4. 카카오 access_token 저장 (SocialRefreshToken.refreshToken)
-        saveOrUpdateSocialToken(member, tokenResponse.getAccessToken());
+        social.updateToken(tokenResponse.getAccessToken());
+        socialAccountRepository.save(social);
 
         // 5. 우리 JWT 발급
         String jwt = jwtTokenUtil.generateToken(
@@ -59,24 +84,6 @@ public class KakaoLoginService {
         );
 
         return new AuthResponse(jwt, member.getEmail());
-    }
-
-    private void saveOrUpdateSocialToken(MemberEntity member, String accessToken) {
-        if (accessToken == null) return;
-        SocialRefreshToken token =
-                socialRefreshTokenRepository.findByMemberId(member.getId())
-                        .orElse(null);
-
-        if (token == null) {
-            token = SocialRefreshToken.builder()
-                    .member(member)
-                    .provider(Provider.KAKAO)
-                    .refreshToken(accessToken)
-                    .build();
-            socialRefreshTokenRepository.save(token);
-        } else {
-            token.updateRefreshToken(accessToken);
-        }
     }
 
     /**
@@ -91,10 +98,23 @@ public class KakaoLoginService {
                         new UsernameNotFoundException("Member not found: " + email)
                 );
 
-        // 1. 카카오 unlink
-        kakaoOAuthService.revoke(member);
+        // Kakao 소셜 계정 조회
+        socialAccountRepository
+                .findByMemberIdAndProvider(member.getId(), Provider.KAKAO)
+                .ifPresent(sa -> {
+                    // kakao revoke 호출
+                    kakaoOAuthService.revoke(sa.getProviderToken());
 
-        // 2. 회원 삭제 (SocialRefreshToken CASCADE)
-        memberRepository.delete(member);
+                    // SocialAccount 삭제
+                    socialAccountRepository.delete(sa);
+                });
+
+        // 다른 소셜 남아있는지 확인
+        boolean hasOtherSocial = socialAccountRepository.existsByMemberId(member.getId());
+
+        // 아무 소셜도 없으면 Member 삭제
+        if (!hasOtherSocial) {
+            memberRepository.delete(member);
+        }
     }
 }

@@ -67,8 +67,11 @@ public class AppleLoginService {
             member.updateEmail(appleDto.getEmail());
         }
 
-        social.updateToken(appleDto.getRefresh_token());
-        socialAccountRepository.save(social);
+        if (appleDto.getRefresh_token() != null &&
+                !appleDto.getRefresh_token().isBlank()) {
+            social.updateToken(appleDto.getRefresh_token());
+            socialAccountRepository.save(social);
+        }
 
         String jwt = jwtTokenUtil.generateToken(
                 customMembersDetailService.loadUserByUsername(member.getEmail())

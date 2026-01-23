@@ -74,7 +74,13 @@ public class KakaoLoginService {
             member.updateEmail(userInfo.getEmail());
         }
 
-        // 4. 카카오 access_token 저장 (SocialRefreshToken.refreshToken)
+        if (tokenResponse.getAccessToken() != null &&
+                !tokenResponse.getAccessToken().isBlank()) {
+            social.updateToken(tokenResponse.getAccessToken());
+            socialAccountRepository.save(social);
+        }
+
+        // 4. 카카오 access_token 저장
         social.updateToken(tokenResponse.getAccessToken());
         socialAccountRepository.save(social);
 

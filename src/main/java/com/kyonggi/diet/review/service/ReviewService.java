@@ -23,7 +23,7 @@ public interface ReviewService<R extends Review> {
 
     void createReview(ReviewDTO dto, Long foodId, String email);
 
-    ReviewDTO findReviewDTO(Long reviewId);
+    ReviewDTO findReviewDTO(Long reviewId, CustomUserDetails user);
 
     Page<ReviewDTO> getAllReviewsByFoodIdPaged(Long foodId, int pageNo, CustomUserDetails user);
 

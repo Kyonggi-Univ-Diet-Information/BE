@@ -99,10 +99,10 @@ public class KyongsulFoodReviewService
     }
 
     @Override
-    public ReviewDTO findReviewDTO(Long id) {
+    public ReviewDTO findReviewDTO(Long id, CustomUserDetails user) {
         KyongsulFoodReview review = kyongsulFoodReviewRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Review not found: " + id));
-        return super.mapToReviewDTO(review);
+        return super.mapToReviewDTO(review, user);
     }
 
     @Override
@@ -177,16 +177,14 @@ public class KyongsulFoodReviewService
     @Override
     public Page<ReviewDTO> getAllReviewsByFoodIdPaged(Long foodId, int pageNo, CustomUserDetails user) {
         Pageable pageable = PageRequest.of(pageNo, 10, Sort.by(Sort.Direction.DESC, "id"));
+        Page<KyongsulFoodReview> reviews;
 
         if (user == null) {
-            Page<KyongsulFoodReview> reviews =
-                    kyongsulFoodReviewRepository.findAllByKyongsulFoodId(foodId, pageable);
-            return super.toPagedDTO(reviews, pageNo);
+            reviews = kyongsulFoodReviewRepository.findAllByKyongsulFoodId(foodId, pageable);
+            return super.toPagedDTO(reviews, pageNo, null);
         }
 
         List<Long> blockedIds = blockService.getBlockedMemberIds(user.getMemberId());
-
-        Page<KyongsulFoodReview> reviews;
 
         if (blockedIds.isEmpty()) {
             reviews = kyongsulFoodReviewRepository.findAllByKyongsulFoodId(foodId, pageable);
@@ -195,6 +193,6 @@ public class KyongsulFoodReviewService
                     .findAllExcludeBlocked(foodId, blockedIds, pageable);
         }
 
-        return super.toPagedDTO(reviews, pageNo);
+        return super.toPagedDTO(reviews, pageNo, user);
     }
 }

@@ -101,10 +101,10 @@ public class SallyBoxFoodReviewService
     }
 
     @Override
-    public ReviewDTO findReviewDTO(Long id) {
+    public ReviewDTO findReviewDTO(Long id, CustomUserDetails user) {
         SallyBoxFoodReview review = sallyBoxFoodReviewRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Review not found: " + id));
-        return super.mapToReviewDTO(review);
+        return super.mapToReviewDTO(review, user);
     }
 
     @Override
@@ -179,16 +179,14 @@ public class SallyBoxFoodReviewService
     @Override
     public Page<ReviewDTO> getAllReviewsByFoodIdPaged(Long foodId, int pageNo, CustomUserDetails user) {
         Pageable pageable = PageRequest.of(pageNo, 10, Sort.by(Sort.Direction.DESC, "id"));
+        Page<SallyBoxFoodReview> reviews;
 
         if (user == null) {
-            Page<SallyBoxFoodReview> reviews =
-                    sallyBoxFoodReviewRepository.findAllBySallyBoxFoodId(foodId, pageable);
-            return super.toPagedDTO(reviews, pageNo);
+            reviews = sallyBoxFoodReviewRepository.findAllBySallyBoxFoodId(foodId, pageable);
+            return super.toPagedDTO(reviews, pageNo, null);
         }
 
         List<Long> blockedIds = blockService.getBlockedMemberIds(user.getMemberId());
-
-        Page<SallyBoxFoodReview> reviews;
 
         if (blockedIds.isEmpty()) {
             reviews = sallyBoxFoodReviewRepository.findAllBySallyBoxFoodId(foodId, pageable);
@@ -197,6 +195,6 @@ public class SallyBoxFoodReviewService
                     .findAllExcludeBlocked(foodId, blockedIds, pageable);
         }
 
-        return super.toPagedDTO(reviews, pageNo);
+        return super.toPagedDTO(reviews, pageNo, user);
     }
 }

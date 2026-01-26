@@ -96,17 +96,17 @@ public class DietFoodReviewService
     }
 
     @Override
-    public ReviewDTO findReviewDTO(Long id) {
+    public ReviewDTO findReviewDTO(Long id, CustomUserDetails user) {
         DietFoodReview review = dietFoodReviewRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Review not found: " + id));
-        return super.mapToReviewDTO(review);
+        return super.mapToReviewDTO(review, user);
     }
 
     @Override
     public Page<ReviewDTO> getAllReviewsByFoodIdPaged(Long foodId, int pageNo, CustomUserDetails user) {
         Pageable pageable = PageRequest.of(pageNo, 10, Sort.by(Sort.Direction.DESC, "id"));
         Page<DietFoodReview> reviews = dietFoodReviewRepository.findAllByDietFoodId(foodId, pageable);
-        return super.toPagedDTO(reviews, pageNo);
+        return super.toPagedDTO(reviews, pageNo, user);
     }
 
     @Override

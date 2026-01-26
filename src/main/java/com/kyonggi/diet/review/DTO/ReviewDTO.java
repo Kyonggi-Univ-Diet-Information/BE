@@ -6,8 +6,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.sql.Timestamp;
-
 @Data
 @Builder
 @AllArgsConstructor
@@ -29,6 +27,9 @@ public class ReviewDTO {
 
     @Schema(description = "작성자 이름")
     private String memberName;
+
+    @Schema(description = "본인 작성 여부")
+    private boolean isMyReview;
 
     @Schema(description = "생성 일자")
     private String createdAt;

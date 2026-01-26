@@ -104,10 +104,10 @@ public class ESquareFoodReviewService
     }
 
     @Override
-    public ReviewDTO findReviewDTO(Long id) {
+    public ReviewDTO findReviewDTO(Long id, CustomUserDetails user) {
         ESquareFoodReview review = esquareFoodReviewRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Review not found: " + id));
-        return super.mapToReviewDTO(review);
+        return super.mapToReviewDTO(review, user);
     }
 
     @Override
@@ -182,16 +182,14 @@ public class ESquareFoodReviewService
     @Override
     public Page<ReviewDTO> getAllReviewsByFoodIdPaged(Long foodId, int pageNo, CustomUserDetails user) {
         Pageable pageable = PageRequest.of(pageNo, 10, Sort.by(Sort.Direction.DESC, "id"));
+        Page<ESquareFoodReview> reviews;
 
         if (user == null) {
-            Page<ESquareFoodReview> reviews =
-                    esquareFoodReviewRepository.findAllByESquareFoodId(foodId, pageable);
-            return super.toPagedDTO(reviews, pageNo);
-            }
+            reviews = esquareFoodReviewRepository.findAllByESquareFoodId(foodId, pageable);
+            return super.toPagedDTO(reviews, pageNo, null);
+        }
 
         List<Long> blockedIds = blockService.getBlockedMemberIds(user.getMemberId());
-
-        Page<ESquareFoodReview> reviews;
 
         if (blockedIds.isEmpty()) {
             reviews = esquareFoodReviewRepository.findAllByESquareFoodId(foodId, pageable);
@@ -200,6 +198,6 @@ public class ESquareFoodReviewService
                     .findAllExcludeBlocked(foodId, blockedIds, pageable);
         }
 
-        return super.toPagedDTO(reviews, pageNo);
+        return super.toPagedDTO(reviews, pageNo, user);
     }
 }

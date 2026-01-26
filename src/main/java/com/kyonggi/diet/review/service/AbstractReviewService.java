@@ -1,5 +1,6 @@
 package com.kyonggi.diet.review.service;
 
+import com.kyonggi.diet.member.CustomUserDetails;
 import com.kyonggi.diet.member.MemberEntity;
 import com.kyonggi.diet.member.service.MemberService;
 import com.kyonggi.diet.review.DTO.ForTopReviewDTO;
@@ -52,6 +53,25 @@ public abstract class AbstractReviewService<R extends Review, ID> {
      * @param review (Review)
      * @return ReviewDTO
      */
+    protected ReviewDTO mapToReviewDTO(R review, CustomUserDetails user) {
+        ReviewDTO dto = Objects.requireNonNull(modelMapper).map(review, ReviewDTO.class);
+
+        if (user != null) {
+            dto.setMyReview(
+                    review.getMember().getId().equals(user.getMemberId())
+            );
+        }
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm");
+        if (review.getCreatedAt() != null) {
+            dto.setCreatedAt(review.getCreatedAt().toLocalDateTime().format(formatter));
+        }
+        if (review.getUpdatedAt() != null) {
+            dto.setUpdatedAt(review.getUpdatedAt().toLocalDateTime().format(formatter));
+        }
+        return dto;
+    }
+
     protected ReviewDTO mapToReviewDTO(R review) {
         ReviewDTO dto = Objects.requireNonNull(modelMapper).map(review, ReviewDTO.class);
 
@@ -94,6 +114,14 @@ public abstract class AbstractReviewService<R extends Review, ID> {
     /**
      * 공통 페이징 변환 메서드
      */
+    protected Page<ReviewDTO> toPagedDTO(Page<R> page, int pageNo, CustomUserDetails user) {
+        if (page.isEmpty()) {
+            Pageable pageable = PageRequest.of(pageNo, 10);
+            return Page.empty(pageable);
+        }
+        return page.map(r -> mapToReviewDTO(r, user));
+    }
+
     protected Page<ReviewDTO> toPagedDTO(Page<R> page, int pageNo) {
         if (page.isEmpty()) {
             Pageable pageable = PageRequest.of(pageNo, 10);

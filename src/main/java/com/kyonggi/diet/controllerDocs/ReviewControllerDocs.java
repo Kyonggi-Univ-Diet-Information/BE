@@ -59,7 +59,8 @@ public interface ReviewControllerDocs {
             @Parameter(name = "type", description = "식당 종류", in = ParameterIn.PATH)
             @PathVariable RestaurantType type,
             @Parameter(name = "reviewId", description = "리뷰 ID", in = ParameterIn.PATH)
-            @PathVariable Long reviewId
+            @PathVariable Long reviewId,
+            @AuthenticationPrincipal CustomUserDetails user
     );
 
     // ---------------------- 리뷰 수정 ----------------------

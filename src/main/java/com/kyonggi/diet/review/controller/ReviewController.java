@@ -74,9 +74,10 @@ public class ReviewController implements ReviewControllerDocs {
     /** 리뷰 한개 조회 */
     @GetMapping("/{type}/one/{reviewId}")
     public ResponseEntity<?> getReview(@PathVariable("type") RestaurantType type,
-                                       @PathVariable("reviewId") Long reviewId) {
+                                       @PathVariable("reviewId") Long reviewId,
+                                       @AuthenticationPrincipal CustomUserDetails user) {
         try {
-            return ResponseEntity.ok(resolve(type).findReviewDTO(reviewId));
+            return ResponseEntity.ok(resolve(type).findReviewDTO(reviewId, user));
         } catch (NoSuchElementException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (IllegalArgumentException e) {

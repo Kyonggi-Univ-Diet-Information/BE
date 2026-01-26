@@ -53,8 +53,6 @@ public class AppleOAuthClient {
     private static final String APPLE_REVOKE_URL = "https://appleid.apple.com/auth/revoke";
 
     private final ObjectMapper objectMapper = new ObjectMapper();
-    //private final SocialAccountRepository socialAccountRepository;
-    private final SocialRefreshTokenRepository socialRefreshTokenRepository;
 
     @Value("${social-login.provider.apple.team-id}")
     private String teamId;
@@ -310,17 +308,8 @@ public class AppleOAuthClient {
         }
     }
 
-    /*public void userRevoke(String appleRefreshToken) {
+    public void userRevoke(String appleRefreshToken) {
         revokeAppleToken(appleRefreshToken);
-    }*/
-
-    public void userRevoke(MemberEntity member) {
-        SocialRefreshToken socialRefreshToken = socialRefreshTokenRepository.findByMemberId(member.getId())
-                .orElseThrow(() ->
-                        new UsernameNotFoundException("RefreshToken not found for memberId: " + member.getId())
-                );
-
-        revokeAppleToken(socialRefreshToken.getRefreshToken());
     }
 
     private void revokeAppleToken(String appleRefreshToken) {
@@ -352,26 +341,6 @@ public class AppleOAuthClient {
 
         } catch (Exception e) {
             throw new IllegalStateException("Apple revoke error", e);
-        }
-    }
-
-    @Transactional
-    public void saveOrUpdateRefreshToken(MemberEntity member, String refreshTokenValue) {
-        if (refreshTokenValue == null) return;
-
-        SocialRefreshToken token =
-                socialRefreshTokenRepository.findByMemberId(member.getId())
-                        .orElse(null);
-
-        if (token == null) {
-            token = SocialRefreshToken.builder()
-                    .member(member)
-                    .provider(Provider.APPLE)
-                    .refreshToken(refreshTokenValue)
-                    .build();
-            socialRefreshTokenRepository.save(token);
-        } else {
-            token.updateRefreshToken(refreshTokenValue);
         }
     }
 }

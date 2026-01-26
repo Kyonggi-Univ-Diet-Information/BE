@@ -97,12 +97,16 @@ public class KakaoOAuthService {
             String result = br.lines().reduce("", String::concat);
             JsonObject root = JsonParser.parseString(result).getAsJsonObject();
 
+            Long id = root.get("id").getAsLong();
             JsonObject properties = root.getAsJsonObject("properties");
             JsonObject account = root.getAsJsonObject("kakao_account");
 
             return new KakaoUserInfo(
-                    account.get("email").getAsString(),
-                    properties.get("nickname").getAsString()
+                    account.has("email")
+                            ? account.get("email").getAsString()
+                            : null,
+                    properties.get("nickname").getAsString(),
+                    String.valueOf(id)
             );
         } catch (Exception e) {
             throw new IllegalStateException("Kakao user info request failed", e);
@@ -112,14 +116,8 @@ public class KakaoOAuthService {
     /**
      * 카카오 계정 revoke
      */
-    public void revoke(MemberEntity member) {
-        SocialRefreshToken token = socialRefreshTokenRepository
-                .findByMemberId(member.getId())
-                .orElseThrow(() ->
-                        new UsernameNotFoundException("SocialRefreshToken not found")
-                );
-
-        unlink(token.getRefreshToken());
+    public void revoke(String kakaoAccessToken) {
+        unlink(kakaoAccessToken);
     }
 
     /**

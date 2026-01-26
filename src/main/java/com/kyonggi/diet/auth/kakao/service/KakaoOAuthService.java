@@ -4,14 +4,10 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.kyonggi.diet.auth.kakao.dto.KakaoTokenResponse;
 import com.kyonggi.diet.auth.kakao.dto.KakaoUserInfo;
-import com.kyonggi.diet.auth.socialRefresh.SocialRefreshToken;
-import com.kyonggi.diet.auth.socialRefresh.SocialRefreshTokenRepository;
-import com.kyonggi.diet.member.MemberEntity;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -27,8 +23,6 @@ public class KakaoOAuthService {
     private static final String TOKEN_URL = "https://kauth.kakao.com/oauth/token";
     private static final String USER_INFO_URL = "https://kapi.kakao.com/v2/user/me";
     private static final String UNLINK_URL = "https://kapi.kakao.com/v1/user/unlink";
-
-    private final SocialRefreshTokenRepository socialRefreshTokenRepository;
 
     @Value("${kakao.client_id}")
     private String clientId;

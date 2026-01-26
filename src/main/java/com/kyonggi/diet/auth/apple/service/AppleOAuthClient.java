@@ -2,11 +2,7 @@ package com.kyonggi.diet.auth.apple.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.kyonggi.diet.auth.Provider;
 import com.kyonggi.diet.auth.apple.dto.AppleDto;
-import com.kyonggi.diet.auth.socialRefresh.SocialRefreshToken;
-import com.kyonggi.diet.auth.socialRefresh.SocialRefreshTokenRepository;
-import com.kyonggi.diet.member.MemberEntity;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.ECDSASigner;
 import com.nimbusds.jose.crypto.ECDSAVerifier;

@@ -1,6 +1,5 @@
 package com.kyonggi.diet.member;
 
-import com.kyonggi.diet.auth.socialRefresh.SocialRefreshToken;
 import com.kyonggi.diet.review.domain.DietFoodReview;
 import com.kyonggi.diet.review.domain.ESquareFoodReview;
 import com.kyonggi.diet.review.domain.KyongsulFoodReview;
@@ -41,13 +40,6 @@ public class MemberEntity {
 
     private String profileUrl;
 
-    // 애플 유저 영구 식별자 (sub)
-    @Column(name = "apple_sub", unique = true)
-    private String appleSub;
-
-    @Column(name = "google_sub", unique = true)
-    private String googleSub;
-
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private Timestamp createdAt;
@@ -79,9 +71,6 @@ public class MemberEntity {
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<FavoriteSallyBoxFoodReview> favoriteSallyBoxFoodReviews;
 
-    @OneToOne(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
-    private SocialRefreshToken socialRefreshToken;
-
     @OneToMany(mappedBy = "blocker", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Block> blocks;
 
@@ -96,14 +85,6 @@ public class MemberEntity {
 
     public void updateEmail(String email) {
         this.email = email;
-    }
-
-    public void updateAppleSub(String appleSub) {
-        this.appleSub = appleSub;
-    }
-
-    public void updateGoogleSub(String googleSub) {
-        this.googleSub = googleSub;
     }
 
     public void updateName(String name) {

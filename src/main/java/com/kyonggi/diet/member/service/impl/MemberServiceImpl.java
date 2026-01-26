@@ -1,8 +1,8 @@
 package com.kyonggi.diet.member.service.impl;
 
 import com.kyonggi.diet.auth.Provider;
-import com.kyonggi.diet.auth.socialRefresh.SocialRefreshToken;
-import com.kyonggi.diet.auth.socialRefresh.SocialRefreshTokenRepository;
+import com.kyonggi.diet.auth.socialAccount.SocialAccount;
+import com.kyonggi.diet.auth.socialAccount.SocialAccountRepository;
 import com.kyonggi.diet.member.DTO.MemberDTO;
 import com.kyonggi.diet.member.MemberEntity;
 import com.kyonggi.diet.member.MemberRepository;
@@ -33,10 +33,9 @@ import java.util.stream.Collectors;
 public class MemberServiceImpl implements MemberService {
 
     private final MemberRepository memberRepository;
+    private final SocialAccountRepository socialAccountRepository;
     private final ModelMapper modelMapper;
     private final PasswordEncoder encoder;
-    private final CustomMembersDetailService customMembersDetailService;
-    private final SocialRefreshTokenRepository socialRefreshTokenRepository;
 
     @Override
     public MemberDTO createMember(MemberDTO memberDTO) {
@@ -53,43 +52,6 @@ public class MemberServiceImpl implements MemberService {
         memberEntity = memberRepository.save(memberEntity);
         log.info("멤버 정보를 생성하였습니다 {}", memberEntity);
         return mapToMemberDTO(memberEntity);
-    }
-
-    @Transactional
-    @Override
-    public MemberEntity findOrCreateAppleMember(
-            String appleSub,
-            String email,
-            String name
-    ) {
-        // 1. sub 기준 우선 조회
-        Optional<MemberEntity> bySub = memberRepository.findByAppleSub(appleSub);
-        if (bySub.isPresent()) return bySub.get();
-
-        // 2️. 이메일 중복 방지 (기존 회원이 Apple 연동한 경우)
-        Optional<MemberEntity> byEmail = memberRepository.findByEmail(email);
-        if (byEmail.isPresent()) {
-            MemberEntity member = byEmail.get();
-            memberRepository.save(
-                    MemberEntity.builder()
-                            .id(member.getId())
-                            .email(member.getEmail())
-                            .appleSub(appleSub)
-                            .name(member.getName())
-                            .profileUrl(member.getProfileUrl())
-                            .build()
-            );
-            return member;
-        }
-
-        // 3️⃣ 신규 회원 생성
-        return memberRepository.save(
-                MemberEntity.builder()
-                        .email(email)
-                        .appleSub(appleSub)
-                        .name(name)
-                        .build()
-        );
     }
 
     /**
@@ -155,9 +117,8 @@ public class MemberServiceImpl implements MemberService {
     @Override
     public Provider getProvider(String email) {
         MemberEntity member = getMemberByEmail(email);
-        SocialRefreshToken socialRefreshToken
-                = socialRefreshTokenRepository.findByMemberId(member.getId()).orElseThrow(
-                        () -> new NoSuchElementException("해당 멤버에 대한 소셜 리프레시 토큰을 획들학 수 없습니다."));
-        return socialRefreshToken.getProvider();
+        SocialAccount socialAccount = socialAccountRepository.findByMemberId(member.getId()).orElseThrow(
+                () -> new NoSuchElementException("해당 멤버에 대한 소셜 어카운트를 획들학 수 없습니다."));
+        return socialAccount.getProvider();
     }
 }

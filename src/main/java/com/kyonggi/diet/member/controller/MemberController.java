@@ -11,10 +11,12 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 /**
@@ -54,9 +56,13 @@ public class MemberController implements MemberControllerDocs {
 
     @GetMapping("/get-provider")
     public ResponseEntity<?> getProvider(@RequestHeader("Authorization") String token) {
-        String email = jwtTokenUtil.getUsernameFromToken(token.substring(7));
-        Provider provider = memberService.getProvider(email);
-        return ResponseEntity.ok(provider);
+        try {
+            String email = jwtTokenUtil.getUsernameFromToken(token.substring(7));
+            Provider provider = memberService.getProvider(email);
+            return ResponseEntity.ok(provider);
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e);
+        }
     }
 
     /**

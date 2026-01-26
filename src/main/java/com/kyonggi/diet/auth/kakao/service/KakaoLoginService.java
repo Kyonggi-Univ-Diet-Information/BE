@@ -5,8 +5,6 @@ import com.kyonggi.diet.auth.kakao.dto.KakaoTokenResponse;
 import com.kyonggi.diet.auth.kakao.dto.KakaoUserInfo;
 import com.kyonggi.diet.auth.socialAccount.SocialAccount;
 import com.kyonggi.diet.auth.socialAccount.SocialAccountRepository;
-import com.kyonggi.diet.auth.socialRefresh.SocialRefreshToken;
-import com.kyonggi.diet.auth.socialRefresh.SocialRefreshTokenRepository;
 import com.kyonggi.diet.auth.util.JwtTokenUtil;
 import com.kyonggi.diet.auth.Provider;
 import com.kyonggi.diet.member.MemberEntity;

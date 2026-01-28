@@ -181,7 +181,7 @@ public interface ReviewControllerDocs {
             summary = "최신 리뷰 Top5 조회(version2)",
             description = "경슐랭, 이스퀘어, 샐리박스 전체 식당을 통합하여 가장 최신 리뷰 5개를 조회합니다"
     )
-    ResponseEntity<?> getTop5RecentReviews();
+    ResponseEntity<?> getTop5RecentReviews(@AuthenticationPrincipal CustomUserDetails user);
 
     // ---------------------- 신고 사유 목록 조회 ----------------------
     @Operation(

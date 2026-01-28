@@ -11,7 +11,7 @@ import com.kyonggi.diet.review.moderation.report.ReportReasonType;
 import com.kyonggi.diet.review.moderation.report.dto.ReportReasonDto;
 import com.kyonggi.diet.review.moderation.report.dto.ReportReasonEtcDto;
 import com.kyonggi.diet.review.moderation.report.ReportService;
-import com.kyonggi.diet.review.repository.ReviewRepository;
+import com.kyonggi.diet.review.service.EtcReviewService;
 import com.kyonggi.diet.review.service.ReviewService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.annotation.PostConstruct;
@@ -32,11 +32,11 @@ import java.util.*;
 public class ReviewController implements ReviewControllerDocs {
 
     private final JwtTokenUtil jwtTokenUtil;
-    private final ReviewRepository reviewRepository;
     private final BlockService blockService;
     private final ReportService reportService;
     private final List<ReviewService<?>> reviewServices;
     private final Map<RestaurantType, ReviewService<?>> serviceMap = new EnumMap<>(RestaurantType.class);
+    private final EtcReviewService eTCReviewService;
 
     @PostConstruct
     public void initServiceMap() {
@@ -171,12 +171,12 @@ public class ReviewController implements ReviewControllerDocs {
     }
 
     /**
-     * 최신 TOP5 리뷰 Version 2
+     * 최신 TOP5 리뷰 Version 2. 식당 전체
      */
     @GetMapping("/top5-recent")
-    public ResponseEntity<?> getTop5RecentReviews() {
+    public ResponseEntity<?> getTop5RecentReviews(@AuthenticationPrincipal CustomUserDetails user) {
         try {
-            List<RecentReviewDTO> result = reviewRepository.findRecent5Reviews();
+            List<RecentReviewDTO> result = eTCReviewService.getRecentTop5(user);
 
             if (result == null || result.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)

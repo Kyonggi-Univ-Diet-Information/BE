@@ -4,6 +4,7 @@ import com.kyonggi.diet.auth.Provider;
 import com.kyonggi.diet.auth.apple.dto.AppleDto;
 import com.kyonggi.diet.auth.apple.dto.AppleLoginRequest;
 import com.kyonggi.diet.auth.io.AuthResponse;
+import com.kyonggi.diet.auth.io.AuthResponseWithRefresh;
 import com.kyonggi.diet.auth.socialAccount.SocialAccount;
 import com.kyonggi.diet.auth.socialAccount.SocialAccountRepository;
 import com.kyonggi.diet.auth.util.JwtTokenUtil;
@@ -30,7 +31,9 @@ public class AppleLoginService {
     /**
      * 애플 로그인
      */
-    public AuthResponse appleLogin(String code, AppleLoginRequest.AppleUser user, String expectedNonce) throws Exception {
+    public AuthResponseWithRefresh appleLogin(
+            String code, AppleLoginRequest.AppleUser user, String expectedNonce
+    ) throws Exception {
         AppleDto appleDto = appleOAuthClient.getAppleInfo(code, expectedNonce);
         String name = extractNameFromUser(user);
 
@@ -73,17 +76,21 @@ public class AppleLoginService {
             socialAccountRepository.save(social);
         }
 
-        String jwt = jwtTokenUtil.generateToken(
+        String accessJwt = jwtTokenUtil.generateAccessToken(
                 customMembersDetailService.loadUserByUsername(member.getEmail())
         );
 
-        return new AuthResponse(jwt, appleDto.getEmail());
+        String refreshJwt = jwtTokenUtil.generateRefreshToken(
+                customMembersDetailService.loadUserByUsername(member.getEmail())
+        );
+
+        return new AuthResponseWithRefresh(accessJwt, refreshJwt, appleDto.getEmail());
     }
 
     /**
      * 애플 REVOKE
      */
-    public void revoke(String authorizationHeader) {
+    public String revoke(String authorizationHeader) {
         String jwt = authorizationHeader.substring(7);
         String email = jwtTokenUtil.getUsernameFromToken(jwt);
 
@@ -110,6 +117,7 @@ public class AppleLoginService {
         if (!hasOtherSocial) {
             memberRepository.delete(member);
         }
+        return email;
     }
 
     private String extractNameFromUser(AppleLoginRequest.AppleUser user) {

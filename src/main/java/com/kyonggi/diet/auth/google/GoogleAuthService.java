@@ -7,6 +7,7 @@ import com.google.api.client.json.gson.GsonFactory;
 import com.kyonggi.diet.auth.Provider;
 import com.kyonggi.diet.auth.google.dto.GoogleTokenDto;
 import com.kyonggi.diet.auth.io.AuthResponse;
+import com.kyonggi.diet.auth.io.AuthResponseWithRefresh;
 import com.kyonggi.diet.auth.socialAccount.SocialAccount;
 import com.kyonggi.diet.auth.socialAccount.SocialAccountRepository;
 import com.kyonggi.diet.auth.util.JwtTokenUtil;
@@ -36,7 +37,7 @@ public class GoogleAuthService {
     private String clientId;
 
     @Transactional
-    public AuthResponse login(String code) {
+    public AuthResponseWithRefresh login(String code) {
         try {
             // 1. code → token
             GoogleTokenDto tokenResponse = googleOAuthClient.login(code);
@@ -93,15 +94,19 @@ public class GoogleAuthService {
             }
 
             // 4. JWT 발급
-            String jwt = jwtTokenUtil.generateToken(
+            String accessJwt = jwtTokenUtil.generateAccessToken(
                     customMembersDetailService.loadUserByUsername(member.getEmail())
             );
 
-            return new AuthResponse(jwt, member.getEmail());
+            String refreshJwt = jwtTokenUtil.generateRefreshToken(
+                    customMembersDetailService.loadUserByUsername(member.getEmail())
+            );
+
+            return new AuthResponseWithRefresh(accessJwt, refreshJwt, member.getEmail());
 
         } catch (IllegalArgumentException e) {
             log.warn("Google login failed: {}", e.getMessage());
-            return new AuthResponse(null, "");
+            return new AuthResponseWithRefresh(null, null,"");
 
         } catch (Exception e) {
             log.error("Error during Google login process", e);
@@ -146,7 +151,7 @@ public class GoogleAuthService {
     }
 
     @Transactional
-    public void revokeToken(String jwt) {
+    public String revokeToken(String jwt) {
         String email = jwtTokenUtil.getUsernameFromToken(jwt);
 
         MemberEntity member = memberRepository.findByEmail(email)
@@ -171,5 +176,6 @@ public class GoogleAuthService {
         if (!hasOtherSocial) {
             memberRepository.delete(member);
         }
+        return email;
     }
 }

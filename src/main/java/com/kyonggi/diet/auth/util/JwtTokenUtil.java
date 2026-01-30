@@ -3,10 +3,13 @@ package com.kyonggi.diet.auth.util;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
+import javax.crypto.SecretKey;
 import javax.xml.crypto.Data;
 import java.util.Date;
 import java.util.HashMap;
@@ -17,8 +20,8 @@ import java.util.function.Function;
 public class JwtTokenUtil {
     private static final long JWT_TOKEN_VALIDITY = 5 * 60 * 60;
 
-    private static final long ACCESS_TOKEN_VALIDITY = 30 * 60;          // 30분 (초)
-    private static final long REFRESH_TOKEN_VALIDITY = 14 * 24 * 60 * 60; // 14일 (초)
+    private static final long ACCESS_TOKEN_VALIDITY = 60 * 60;          // 1시간 (초)
+    private static final long REFRESH_TOKEN_VALIDITY = 30 * 24 * 60 * 60; // 30일 (초)
 
 
 
@@ -54,7 +57,7 @@ public class JwtTokenUtil {
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + JWT_TOKEN_VALIDITY * 1000))
-                .signWith(SignatureAlgorithm.HS256, secret)
+                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
@@ -62,9 +65,14 @@ public class JwtTokenUtil {
         return getClaimFromToken(token, Claims::getSubject);
     }
 
+    private SecretKey getSigningKey() {
+        byte[] keyBytes = Decoders.BASE64.decode(secret);
+        return Keys.hmacShaKeyFor(keyBytes);
+    }
+
     private <T> T getClaimFromToken(String token, Function<Claims, T> claimResolver) {
         final Claims claims = Jwts.parserBuilder()
-                .setSigningKey(secret)
+                .setSigningKey(getSigningKey())
                 .build()
                 .parseClaimsJws(token)
                 .getBody();

@@ -51,7 +51,22 @@ public class AuthController implements AuthControllerDocs {
         return new AuthResponse(token, authRequest.getEmail());
     }
 
+    @PostMapping("/token/refresh")
+    public AuthResponse refreshToken(@CookieValue(name = "refreshToken") String refreshToken) {
+        // 1. refreshToken 유효성 체크
+        if (jwtTokenUtil.isTokenExpired(refreshToken)) {
+            throw new RuntimeException("Refresh token expired");
+        }
 
+        String username = jwtTokenUtil.getUsernameFromToken(refreshToken);
+        UserDetails user = membersDetailService.loadUserByUsername(username);
+
+        // 2. 새 Access Token 생성
+        String newAccessToken = jwtTokenUtil.generateAccessToken(user);
+
+        // 3. 응답
+        return new AuthResponse(newAccessToken, username);
+    }
 
     /**
      * MemberDTO 에서 MemberResponse 으로 변환하는 Mapper Method 입니다.

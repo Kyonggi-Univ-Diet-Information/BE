@@ -1,6 +1,7 @@
 package com.kyonggi.diet.auth.kakao.service;
 
 import com.kyonggi.diet.auth.io.AuthResponse;
+import com.kyonggi.diet.auth.io.AuthResponseWithRefresh;
 import com.kyonggi.diet.auth.kakao.dto.KakaoTokenResponse;
 import com.kyonggi.diet.auth.kakao.dto.KakaoUserInfo;
 import com.kyonggi.diet.auth.socialAccount.SocialAccount;
@@ -12,9 +13,12 @@ import com.kyonggi.diet.member.MemberRepository;
 import com.kyonggi.diet.member.service.CustomMembersDetailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Duration;
 
 @Service
 @Transactional
@@ -27,11 +31,14 @@ public class KakaoLoginService {
     private final CustomMembersDetailService membersDetailService;
     private final SocialAccountRepository socialAccountRepository;
     private final JwtTokenUtil jwtTokenUtil;
+    private final StringRedisTemplate redisTemplate;
+
+    private static final Duration REFRESH_TOKEN_TTL = Duration.ofDays(30);
 
     /**
      * 카카오 로그인 서비스
      */
-    public AuthResponse login(String code) {
+    public AuthResponseWithRefresh login(String code) {
         // 1. 카카오 토큰 발급
         KakaoTokenResponse tokenResponse = kakaoOAuthService.getToken(code);
 
@@ -78,16 +85,21 @@ public class KakaoLoginService {
             socialAccountRepository.save(social);
         }
 
-        // 4. 카카오 access_token 저장
-        social.updateToken(tokenResponse.getAccessToken());
-        socialAccountRepository.save(social);
-
         // 5. 우리 JWT 발급
-        String jwt = jwtTokenUtil.generateToken(
+        String accessJwt = jwtTokenUtil.generateAccessToken(
+                membersDetailService.loadUserByUsername(member.getEmail())
+        );
+        String refreshJwt = jwtTokenUtil.generateRefreshToken(
                 membersDetailService.loadUserByUsername(member.getEmail())
         );
 
-        return new AuthResponse(jwt, member.getEmail());
+        redisTemplate.opsForValue().set(
+                "KAKAO_REFRESH" + member.getEmail(),
+                refreshJwt,
+                REFRESH_TOKEN_TTL
+        );
+
+        return new AuthResponseWithRefresh(accessJwt, refreshJwt, member.getEmail());
     }
 
     /**
@@ -106,12 +118,11 @@ public class KakaoLoginService {
         socialAccountRepository
                 .findByMemberIdAndProvider(member.getId(), Provider.KAKAO)
                 .ifPresent(sa -> {
-                    // kakao revoke 호출
                     kakaoOAuthService.revoke(sa.getProviderToken());
-
-                    // SocialAccount 삭제
                     socialAccountRepository.delete(sa);
                 });
+
+        redisTemplate.delete("KAKAO_REFRESH" + email);
 
         // 다른 소셜 남아있는지 확인
         boolean hasOtherSocial = socialAccountRepository.existsByMemberId(member.getId());

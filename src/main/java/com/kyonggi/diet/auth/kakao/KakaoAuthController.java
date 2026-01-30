@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.view.RedirectView;
 
 import java.time.Duration;
-import java.util.Map;
 
 @RestController
 @Slf4j
@@ -25,7 +24,7 @@ public class KakaoAuthController {
     private final KakaoLoginService kakaoLoginService;
 
     private static final Duration REFRESH_TOKEN_TTL = Duration.ofDays(30);
-        private static final long COOKIE_AGE_SECONDS = REFRESH_TOKEN_TTL.getSeconds();
+    private static final long COOKIE_AGE_SECONDS = REFRESH_TOKEN_TTL.getSeconds();
 
     @Value("${kakao.client_id}")
     private String clientId;

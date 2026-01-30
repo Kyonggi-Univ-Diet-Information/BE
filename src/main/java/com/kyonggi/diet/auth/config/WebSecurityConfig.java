@@ -64,7 +64,10 @@ public class WebSecurityConfig {
                                 "/api/search/**",
 
                                 // Withdraw API
-                                "/api/withdraw/etcs", "/api/withdraw/reasons", "/api/withdraw/each-count"
+                                "/api/withdraw/etcs", "/api/withdraw/reasons", "/api/withdraw/each-count",
+
+                                // Refresh API
+                                "/api/token/refresh"
                                  ).permitAll().anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class)

@@ -94,7 +94,7 @@ public class KakaoLoginService {
         );
 
         redisTemplate.opsForValue().set(
-                "KAKAO_REFRESH" + member.getEmail(),
+                "KAKAO_REFRESH:" + member.getEmail(),
                 refreshJwt,
                 REFRESH_TOKEN_TTL
         );
@@ -122,7 +122,7 @@ public class KakaoLoginService {
                     socialAccountRepository.delete(sa);
                 });
 
-        redisTemplate.delete("KAKAO_REFRESH" + email);
+        redisTemplate.delete("KAKAO_REFRESH:" + email);
 
         // 다른 소셜 남아있는지 확인
         boolean hasOtherSocial = socialAccountRepository.existsByMemberId(member.getId());

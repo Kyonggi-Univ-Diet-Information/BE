@@ -74,7 +74,7 @@ public class AppleAuthController {
         redisTemplate.delete("APPLE_STATE:" + state);
         AuthResponseWithRefresh tokens = appleLoginService.appleLogin(code, user, storedNonce);
         redisTemplate.opsForValue().set(
-                "APPLE_REFRESH" + tokens.getEmail(),
+                "APPLE_REFRESH:" + tokens.getEmail(),
                 tokens.getRefreshToken(),
                 REFRESH_TOKEN_TTL
         );
@@ -96,7 +96,7 @@ public class AppleAuthController {
     public ResponseEntity<?> revoke(@RequestHeader("Authorization") String token) {
         try {
             String email = appleLoginService.revoke(token);
-            redisTemplate.delete("APPLE_REFRESH" + email);
+            redisTemplate.delete("APPLE_REFRESH:" + email);
             ResponseCookie cookie = ResponseCookie.from("refreshToken", "")
                     .httpOnly(true)
                     .secure(true)

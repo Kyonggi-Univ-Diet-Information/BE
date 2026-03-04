@@ -31,8 +31,8 @@ public class DietContentController implements DietContentControllerDocs {
     @GetMapping("/dormitory/dow/{dow}")
     public ResponseEntity<?> dormitoryDow(@PathVariable("dow") DayOfWeek dow) {
         LocalDate today = LocalDate.now();
-        LocalDate startOfWeek = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-        LocalDate endOfWeek = today.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
+        LocalDate startOfWeek = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY));
+        LocalDate endOfWeek = startOfWeek.plusDays(6);
 
         Map<String, Object> result = new HashMap<>();
         try {
@@ -56,8 +56,8 @@ public class DietContentController implements DietContentControllerDocs {
     @GetMapping("/dormitory")
     public Map<String, Map<DayOfWeek, Map<DietTime, DietContentDTO>>> dormitoryHome() {
         LocalDate today = LocalDate.now();
-        LocalDate startOfWeek = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-        LocalDate endOfWeek = today.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
+        LocalDate startOfWeek = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY));
+        LocalDate endOfWeek = startOfWeek.plusDays(6);
 
         Map<String, Map<DayOfWeek, Map<DietTime, DietContentDTO>>> result = new HashMap<>();
 

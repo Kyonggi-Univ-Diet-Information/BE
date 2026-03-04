@@ -2,6 +2,7 @@ package com.kyonggi.diet.dietContent.service;
 
 import com.kyonggi.diet.dietContent.DTO.DietContentDTO;
 import com.kyonggi.diet.dietContent.DietContent;
+import com.kyonggi.diet.dietContent.DietTime;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -29,5 +30,7 @@ public interface DietContentService {
          * @param startOfWeek (LocalDate)
          * @param endOfWeek (LocalDate)
          */
-        List<DietContentDTO> findDietContentsAtDay(DayOfWeek targetDay, LocalDate startOfWeek, LocalDate endOfWeek);
+    List<DietContentDTO> findDietContentsAtDay(DayOfWeek targetDay, LocalDate startOfWeek, LocalDate endOfWeek);
+
+    boolean existsByDateAndTime(String date, DietTime time);
 }

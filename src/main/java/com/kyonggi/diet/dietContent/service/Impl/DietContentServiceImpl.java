@@ -5,6 +5,7 @@ import com.kyonggi.diet.diet.DietRepository;
 import com.kyonggi.diet.dietContent.DTO.DietContentDTO;
 import com.kyonggi.diet.dietContent.DietContent;
 import com.kyonggi.diet.dietContent.DietContentRepository;
+import com.kyonggi.diet.dietContent.DietTime;
 import com.kyonggi.diet.dietContent.service.DietContentService;
 import com.kyonggi.diet.diet.Diet;
 import com.kyonggi.diet.diet.DietDTO;
@@ -145,6 +146,11 @@ public class DietContentServiceImpl implements DietContentService {
         }).collect(Collectors.toList());
     }
 
+    @Override
+    public boolean existsByDateAndTime(String date, DietTime time) {
+        // repository에 해당 메서드를 만들어두어야 합니다.
+        return dietContentRepository.existsByDateAndTime(date, time);
+    }
 
     /**
      * DietContent -> DietContentDTO

@@ -24,4 +24,6 @@ public interface DietContentRepository extends JpaRepository<DietContent, Long> 
         @Param("end") LocalDate end,
         @Param("dow") int dow
     );
+
+    boolean existsByDateAndTime(String date, DietTime time);
 }

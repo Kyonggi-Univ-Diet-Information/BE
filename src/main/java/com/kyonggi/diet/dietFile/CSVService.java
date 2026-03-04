@@ -18,6 +18,7 @@ import com.kyonggi.diet.translation.service.TranslationService;
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvValidationException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
@@ -34,6 +35,7 @@ import java.util.function.Function;
 @Service
 @Transactional
 @RequiredArgsConstructor
+@Slf4j
 public class CSVService {
 
     @Value("${cloud.aws.s3.bucketName.diet}")
@@ -60,48 +62,57 @@ public class CSVService {
     //-------------------------------기숙사------------------------------------------
     @Transactional
     public void readAndSave(String key) throws IOException, CsvValidationException {
-
         S3Object s3Object = amazonS3.getObject(bucketName, key);
         InputStream inputStream = s3Object.getObjectContent();
 
         try (CSVReader reader = new CSVReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
             String[] nextLine;
 
-            reader.readNext(); //csv 파일의 첫 줄 건넘 띔 (헤더 제거 목적)
+            reader.readNext();
             while ((nextLine = reader.readNext()) != null) {
+                // 날짜 데이터 검증 (공백 제거)
+                if (nextLine[0] == null || nextLine[0].trim().isEmpty()) continue;
+                String rawDate = nextLine[0].trim();
 
                 for (int j = 1; j <= 3; j++) {
-
-                    if (nextLine[j].contains("미운영") || nextLine[j].isEmpty()) //식당 미운영 시 건너 띔
+                    // "미운영" 혹은 데이터 없음 스킵
+                    if (j >= nextLine.length || nextLine[j].contains("미운영") || nextLine[j].trim().isEmpty())
                         continue;
 
-                    List<DietDTO> dietDTOS = new ArrayList<>();
-                    List<String> foods = new ArrayList<>();
-                    String str = nextLine[j];
+                    String dateOnly = nextLine[0].split(" ")[0]; // 날짜만 추출
+                    DietTime currentTime = sortDietTime(j);
 
-                    StringTokenizer st = new StringTokenizer(str, "&/"); //&로 구분된 식단을 각 메뉴로 받아냄
-                    while (st.hasMoreTokens()) {
-                        foods.add(st.nextToken());
+                    if (dietContentService.existsByDateAndTime(dateOnly, currentTime)) {
+                        continue;
                     }
 
-                    for (String food : foods) {
-                        DietFood existing = dietFoodService.findDietFoodByName(food);
+                    List<DietDTO> dietDTOS = new ArrayList<>();
+                    String str = nextLine[j];
 
-                        String nameEn;
+                    // 메뉴 분리
+                    StringTokenizer st = new StringTokenizer(str, "&/");
+                    while (st.hasMoreTokens()) {
+                        String foodName = st.nextToken().trim();
+                        if (foodName.isEmpty()) continue;
+
+                        DietFood existing = dietFoodService.findDietFoodByName(foodName);
+                        DietFood savedEntity;
+
                         if (existing != null) {
-                            nameEn = (existing.getNameEn() != null)
-                                    ? existing.getNameEn()
-                                    : translationService.translateToEnglish(food); // nameEn이 NULL일 때만 번역
+                            // 이미 존재하면 저장하지 않고 기존 것 사용 (영어 이름 없으면 업데이트)
+                            if (existing.getNameEn() == null || existing.getNameEn().isBlank()) {
+                                existing.updateNameEn(translationService.translateToEnglish(foodName));
+                            }
+                            savedEntity = existing;
                         } else {
-                            nameEn = translationService.translateToEnglish(food);
+                            // 존재하지 않을 때만 신규 저장
+                            String nameEn = translationService.translateToEnglish(foodName);
+                            DietFoodDTO dietFoodDTO = DietFoodDTO.builder()
+                                    .name(foodName)
+                                    .nameEn(nameEn)
+                                    .build();
+                            savedEntity = dietFoodService.save(dietFoodDTO);
                         }
-
-                        DietFoodDTO dietFoodDTO = DietFoodDTO.builder()
-                                .name(food)
-                                .nameEn(nameEn)
-                                .build();
-
-                        DietFood savedEntity = dietFoodService.save(dietFoodDTO);
 
                         DietFoodDTO savedDTO = DietFoodDTO.builder()
                                 .id(savedEntity.getId())
@@ -115,18 +126,17 @@ public class CSVService {
                                 .build());
                     }
 
+                    if (!dietDTOS.isEmpty()) {
 
-                    DietContentDTO dietContentDTO = DietContentDTO
-                            .builder()
-                            .date(nextLine[0].substring(0, nextLine[0].length() - 4))
-                            .time(sortDietTime(j))
-                            .contents(dietDTOS).build();
-                    dietContentService.save(dietContentDTO);
+                        DietContentDTO dietContentDTO = DietContentDTO.builder()
+                                .date(dateOnly)
+                                .time(sortDietTime(j))
+                                .contents(dietDTOS)
+                                .build();
+                        dietContentService.save(dietContentDTO);
+                    }
                 }
-
-
             }
-            reader.close();
         }
     }
 

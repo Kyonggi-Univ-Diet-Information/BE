@@ -3,6 +3,7 @@ package com.kyonggi.diet.member.service;
 import com.kyonggi.diet.auth.Provider;
 import com.kyonggi.diet.member.DTO.MemberDTO;
 import com.kyonggi.diet.member.DTO.MyPageDTO;
+import com.kyonggi.diet.member.DTO.NicknameCheckResponse;
 import com.kyonggi.diet.member.MemberEntity;
 
 import java.util.List;
@@ -41,4 +42,8 @@ public interface MemberService {
     String getNameById(Long id);
 
     Provider getProvider(String email);
+
+    String updateMemberNickname(String email, String nickname);
+
+    NicknameCheckResponse checkNicknameAvailable(String nickname);
 }

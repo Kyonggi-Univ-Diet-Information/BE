@@ -40,6 +40,12 @@ public class MemberEntity {
 
     private String profileUrl;
 
+    @Column(unique = true)
+    private String nickname;
+
+    @Column
+    private Timestamp nicknameUpdatedAt;
+
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private Timestamp createdAt;
@@ -82,6 +88,14 @@ public class MemberEntity {
 
     @OneToMany(mappedBy = "reported")
     private List<Report> reportedBy;
+
+    public void updateNickname(String nickname) {
+        this.nickname = nickname;
+    }
+
+    public void updateNicknameUpdatedAt(Timestamp time) {
+        this.nicknameUpdatedAt = time;
+    }
 
     public void updateEmail(String email) {
         this.email = email;

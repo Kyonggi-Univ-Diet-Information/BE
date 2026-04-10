@@ -2,6 +2,7 @@ package com.kyonggi.diet.auth.kakao;
 
 import com.kyonggi.diet.auth.io.AuthResponse;
 import com.kyonggi.diet.auth.io.AuthResponseWithRefresh;
+import com.kyonggi.diet.auth.kakao.dto.KakaoLoginRequest;
 import com.kyonggi.diet.auth.kakao.service.KakaoLoginService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -42,6 +43,24 @@ public class KakaoAuthController {
     @GetMapping("/kakao-login")
     public ResponseEntity<?> kakaoLogin(@RequestParam("code") String code) {
         AuthResponseWithRefresh tokens = kakaoLoginService.login(code);
+
+        ResponseCookie cookie = ResponseCookie.from("refreshToken", tokens.getRefreshToken())
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .sameSite("None")
+                .maxAge(COOKIE_AGE_SECONDS)
+                .build();
+
+        return ResponseEntity.ok()
+                .header("Set-Cookie", cookie.toString())
+                .body(new AuthResponse(tokens.getAccessToken(), tokens.getEmail()));
+    }
+
+    @PostMapping("/kakao-login-token")
+    public ResponseEntity<?> kakaoLoginWithToken(@RequestBody KakaoLoginRequest request) {
+        AuthResponseWithRefresh tokens =
+                kakaoLoginService.loginWithAccessToken(request.getKakaoAccessToken());
 
         ResponseCookie cookie = ResponseCookie.from("refreshToken", tokens.getRefreshToken())
                 .httpOnly(true)

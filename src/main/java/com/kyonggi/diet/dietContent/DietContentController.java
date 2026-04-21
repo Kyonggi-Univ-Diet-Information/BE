@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.temporal.TemporalAdjusters;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +35,9 @@ public class DietContentController implements DietContentControllerDocs {
         LocalDate startOfWeek = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY));
         LocalDate endOfWeek = startOfWeek.plusDays(6);
 
+        LocalDate targetDate = startOfWeek.plusDays(dow.getValue() % 7);
+        String targetDateStr = targetDate.toString();
+
         Map<String, Object> result = new HashMap<>();
         try {
             List<DietContentDTO> diets = dietContentService.findDietContentsAtDay(dow, startOfWeek, endOfWeek);
@@ -43,12 +47,31 @@ public class DietContentController implements DietContentControllerDocs {
                 dietMap.put(diet.getTime(), diet);
             }
 
-            SingleDayDietResponse response = new SingleDayDietResponse(dow, dietMap);
-            result.put("result", response);
+            for (DietTime time : DietTime.values()) {
+                if (!dietMap.containsKey(time)) {
+                    dietMap.put(time, DietContentDTO.builder()
+                            .date(targetDateStr)
+                            .time(time)
+                            .status(DietStatus.CLOSED)
+                            .contents(new ArrayList<>())
+                            .build());
+                }
+            }
+
+            result.put("result", new SingleDayDietResponse(dow, dietMap));
             return ResponseEntity.ok(result);
+
         } catch (EntityNotFoundException e) {
-            SingleDayDietResponse emptyResponse = new SingleDayDietResponse(dow, new HashMap<>());
-            result.put("result", emptyResponse);
+            Map<DietTime, DietContentDTO> emptyMap = new HashMap<>();
+            for (DietTime time : DietTime.values()) {
+                emptyMap.put(time, DietContentDTO.builder()
+                        .date(targetDateStr)
+                        .time(time)
+                        .status(DietStatus.NO_DATA)
+                        .contents(new ArrayList<>())
+                        .build());
+            }
+            result.put("result", new SingleDayDietResponse(dow, emptyMap));
             return ResponseEntity.ok(result);
         }
     }

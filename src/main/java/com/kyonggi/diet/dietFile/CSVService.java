@@ -10,6 +10,7 @@ import com.kyonggi.diet.Food.repository.SallyBoxFoodRepository;
 import com.kyonggi.diet.Food.service.DietFoodService;
 import com.kyonggi.diet.diet.DietDTO;
 import com.kyonggi.diet.dietContent.DTO.DietContentDTO;
+import com.kyonggi.diet.dietContent.DietStatus;
 import com.kyonggi.diet.dietContent.DietTime;
 import com.kyonggi.diet.dietContent.service.DietContentService;
 import com.kyonggi.diet.Food.DTO.DietFoodDTO;
@@ -67,30 +68,38 @@ public class CSVService {
 
         try (CSVReader reader = new CSVReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
             String[] nextLine;
-
             reader.readNext();
+
             while ((nextLine = reader.readNext()) != null) {
-                // 날짜 데이터 검증 (공백 제거)
                 if (nextLine[0] == null || nextLine[0].trim().isEmpty()) continue;
-                String rawDate = nextLine[0].trim();
+                String dateOnly = nextLine[0].split(" ")[0]; // 날짜만 추출
 
                 for (int j = 1; j <= 3; j++) {
-                    // "미운영" 혹은 데이터 없음 스킵
-                    if (j >= nextLine.length || nextLine[j].contains("미운영") || nextLine[j].trim().isEmpty())
-                        continue;
-
-                    String dateOnly = nextLine[0].split(" ")[0]; // 날짜만 추출
                     DietTime currentTime = sortDietTime(j);
 
                     if (dietContentService.existsByDateAndTime(dateOnly, currentTime)) {
                         continue;
                     }
 
+                    boolean isClosed = (j >= nextLine.length ||
+                                        nextLine[j] == null ||
+                                        nextLine[j].trim().isEmpty() ||
+                                        nextLine[j].contains("미운영"));
+                    // 미운영 상태로 저장
+                    if (isClosed) {
+                        dietContentService.save(DietContentDTO.builder()
+                                .date(dateOnly)
+                                .time(currentTime)
+                                .status(DietStatus.CLOSED)
+                                .contents(new ArrayList<>())
+                                .build());
+                        continue;
+                    }
+
                     List<DietDTO> dietDTOS = new ArrayList<>();
                     String str = nextLine[j];
-
-                    // 메뉴 분리
                     StringTokenizer st = new StringTokenizer(str, "&/");
+
                     while (st.hasMoreTokens()) {
                         String foodName = st.nextToken().trim();
                         if (foodName.isEmpty()) continue;
@@ -99,41 +108,34 @@ public class CSVService {
                         DietFood savedEntity;
 
                         if (existing != null) {
-                            // 이미 존재하면 저장하지 않고 기존 것 사용 (영어 이름 없으면 업데이트)
                             if (existing.getNameEn() == null || existing.getNameEn().isBlank()) {
                                 existing.updateNameEn(translationService.translateToEnglish(foodName));
                             }
                             savedEntity = existing;
                         } else {
-                            // 존재하지 않을 때만 신규 저장
-                            String nameEn = translationService.translateToEnglish(foodName);
-                            DietFoodDTO dietFoodDTO = DietFoodDTO.builder()
+                            savedEntity = dietFoodService.save(DietFoodDTO.builder()
                                     .name(foodName)
-                                    .nameEn(nameEn)
-                                    .build();
-                            savedEntity = dietFoodService.save(dietFoodDTO);
+                                    .nameEn(translationService.translateToEnglish(foodName))
+                                    .build());
                         }
 
-                        DietFoodDTO savedDTO = DietFoodDTO.builder()
-                                .id(savedEntity.getId())
-                                .name(savedEntity.getName())
-                                .nameEn(savedEntity.getNameEn())
-                                .type(savedEntity.getDietFoodType())
-                                .build();
-
                         dietDTOS.add(DietDTO.builder()
-                                .dietFoodDTO(savedDTO)
+                                .dietFoodDTO(DietFoodDTO.builder()
+                                        .id(savedEntity.getId())
+                                        .name(savedEntity.getName())
+                                        .nameEn(savedEntity.getNameEn())
+                                        .type(savedEntity.getDietFoodType())
+                                        .build())
                                 .build());
                     }
 
                     if (!dietDTOS.isEmpty()) {
-
-                        DietContentDTO dietContentDTO = DietContentDTO.builder()
+                        dietContentService.save(DietContentDTO.builder()
                                 .date(dateOnly)
-                                .time(sortDietTime(j))
+                                .time(currentTime)
+                                .status(DietStatus.OPEN)
                                 .contents(dietDTOS)
-                                .build();
-                        dietContentService.save(dietContentDTO);
+                                .build());
                     }
                 }
             }

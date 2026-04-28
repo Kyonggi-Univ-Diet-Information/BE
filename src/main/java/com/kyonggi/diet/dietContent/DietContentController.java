@@ -14,10 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.temporal.TemporalAdjusters;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -77,34 +74,64 @@ public class DietContentController implements DietContentControllerDocs {
     }
 
     @GetMapping("/dormitory")
-    public Map<String, Map<DayOfWeek, Map<DietTime, DietContentDTO>>> dormitoryHome() {
+    public Map<String, Object> dormitoryHome() {
         LocalDate today = LocalDate.now();
         LocalDate startOfWeek = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY));
-        LocalDate endOfWeek = startOfWeek.plusDays(6);
 
-        Map<String, Map<DayOfWeek, Map<DietTime, DietContentDTO>>> result = new HashMap<>();
+        Map<String, Object> result = new HashMap<>();
 
         try {
-            // 이번주 식단 가져오기
-            List<DietContentDTO> diets = dietContentService.findDietContentsBetweenDates(startOfWeek, endOfWeek);
+            List<DietContentDTO> diets = dietContentService.findDietContentsBetweenDates(startOfWeek, startOfWeek.plusDays(6));
 
-            // 이번주 식단 반환
-            Map<DayOfWeek, Map<DietTime, DietContentDTO>> dietMap = new HashMap<>();
-            for (DietContentDTO diet : diets) {
-                LocalDate localDate = LocalDate.parse(diet.getDate());
-                DayOfWeek dayOfWeek = localDate.getDayOfWeek();
+            Map<DayOfWeek, Map<DietTime, DietContentDTO>> dietMap = new LinkedHashMap<>();
 
-                // 해당 요일에 map 없으면 생성
-                dietMap.putIfAbsent(dayOfWeek, new HashMap<>());
+            for (int i = 0; i < 7; i++) {
+                LocalDate targetDate = startOfWeek.plusDays(i);
+                DayOfWeek dow = targetDate.getDayOfWeek();
 
-                dietMap.get(dayOfWeek).put(diet.getTime(), diet);
+                Map<DietTime, DietContentDTO> timeMap = new HashMap<>();
+                for (DietTime time : DietTime.values()) {
+                    timeMap.put(time, DietContentDTO.builder()
+                            .date(targetDate.toString())
+                            .time(time)
+                            .status(DietStatus.NO_DATA)
+                            .contents(new ArrayList<>())
+                            .build());
+                }
+                dietMap.put(dow, timeMap);
             }
-            result.put("result", dietMap);
 
+            for (DietContentDTO diet : diets) {
+                LocalDate dietDate = LocalDate.parse(diet.getDate());
+                DayOfWeek dow = dietDate.getDayOfWeek();
+
+                if (dietMap.containsKey(dow)) {
+                    dietMap.get(dow).put(diet.getTime(), diet);
+                }
+            }
+
+            result.put("result", dietMap);
             return result;
+
         } catch (EntityNotFoundException e) {
-            result.put("result", null);
-            return result; //이번주 식단 조회 안될 시 null 반환
+            Map<DayOfWeek, Map<DietTime, DietContentDTO>> emptyWeeklyMap = new LinkedHashMap<>();
+            for (int i = 0; i < 7; i++) {
+                LocalDate targetDate = startOfWeek.plusDays(i);
+                DayOfWeek dow = targetDate.getDayOfWeek();
+
+                Map<DietTime, DietContentDTO> timeMap = new HashMap<>();
+                for (DietTime time : DietTime.values()) {
+                    timeMap.put(time, DietContentDTO.builder()
+                            .date(targetDate.toString())
+                            .time(time)
+                            .status(DietStatus.NO_DATA)
+                            .contents(new ArrayList<>())
+                            .build());
+                }
+                emptyWeeklyMap.put(dow, timeMap);
+            }
+            result.put("result", emptyWeeklyMap);
+            return result;
         }
     }
 }

@@ -28,6 +28,9 @@ public class DietContent {
     @OneToMany(mappedBy = "dietContent")
     private List<Diet> contents;
 
+    @Enumerated(value = EnumType.STRING)
+    private DietStatus status;
+
     @CreationTimestamp
     private Timestamp createdAt;
 

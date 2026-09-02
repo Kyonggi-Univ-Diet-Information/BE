@@ -163,7 +163,22 @@ jobs:
             # 3) 배포 (TAG는 compose의 ${TAG} 로 치환됨)
             export TAG
             echo "Deploying $REG/$REPO:$TAG"
-            docker compose -f "$COMPOSE" pull
+
+            # Docker Hub 구간이 불안정해 동시 pull 시 TLS timeout 이 나므로
+            # 한 번에 하나씩 받고, 실패하면 재시도한다.
+            export COMPOSE_PARALLEL_LIMIT=1
+            for i in 1 2 3; do
+              if docker compose -f "$COMPOSE" pull; then
+                break
+              fi
+              if [ "$i" = 3 ]; then
+                echo "❌ image pull 3회 모두 실패"
+                exit 1
+              fi
+              echo "⏳ pull 실패, 재시도 ($i/3)"
+              sleep 15
+            done
+
             docker compose -f "$COMPOSE" up -d --force-recreate
             docker image prune -f
 

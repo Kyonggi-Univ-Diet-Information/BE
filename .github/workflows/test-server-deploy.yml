@@ -96,8 +96,10 @@ jobs:
             echo "❌ ENV_FILE_TEST secret 이 비어 있습니다. 레포 Settings > Secrets 에 등록하세요."
             exit 1
           fi
-          umask 177
           printf '%s\n' "$ENV_FILE_TEST" > .env
+          # scp-action 이 컨테이너에서 워크스페이스를 tar 로 묶으므로 읽기 권한 필요.
+          # 러너는 일회용이고, 원격 도착 후 배포 스크립트가 600 으로 조입니다.
+          chmod 644 .env
 
       - name: Copy compose file & .env to EC2
         uses: appleboy/scp-action@v0.1.7

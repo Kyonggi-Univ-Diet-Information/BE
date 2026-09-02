@@ -14,7 +14,7 @@ env:
   AWS_REGION: ap-northeast-2
   ECR_REGISTRY: 381305464439.dkr.ecr.ap-northeast-2.amazonaws.com
   ECR_REPOSITORY: kiryong/test
-  EC2_HOST: 13.125.206.172
+  EC2_HOST: 3.35.86.137
   EC2_USER: ubuntu
   REMOTE_DIR: /home/ubuntu/kiryong-test
 

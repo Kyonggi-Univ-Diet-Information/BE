@@ -357,6 +357,10 @@ gradle-app.setting
 
 src/main/resources/*.env
 
+# 환경변수는 GitHub Secret(ENV_FILE_TEST)으로 주입하므로 커밋하지 않음
+.env
+.env.*
+
 .idea
 
 nginx/html/

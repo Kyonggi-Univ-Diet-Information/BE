@@ -1,0 +1,179 @@
+name: Test Server - Build & Deploy
+
+on:
+  push:
+    branches: [ "test-server" ]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "배포할 이미지 태그 (비우면 현재 커밋 SHA)"
+        required: false
+        default: ""
+
+env:
+  AWS_REGION: ap-northeast-2
+  ECR_REGISTRY: 381305464439.dkr.ecr.ap-northeast-2.amazonaws.com
+  ECR_REPOSITORY: kiryong/test
+  EC2_HOST: 13.125.206.172
+  EC2_USER: ubuntu
+  REMOTE_DIR: /home/ubuntu/kiryong-test
+
+jobs:
+  build-push:
+    name: Build & Push to ECR
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    outputs:
+      tag: ${{ steps.meta.outputs.tag }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create Apple p8 key
+        env:
+          APPLE_KEY_ID: ${{ secrets.APPLE_KEY_ID }}
+          APPLE_P8_BASE64: ${{ secrets.APPLE_P8_BASE64 }}
+        run: |
+          if [ -z "$APPLE_KEY_ID" ]; then
+            echo "APPLE_KEY_ID is not set"
+            exit 1
+          fi
+
+          if [ -z "$APPLE_P8_BASE64" ]; then
+            echo "APPLE_P8_BASE64 is not set"
+            exit 1
+          fi
+
+          mkdir -p src/main/resources/apple
+          echo "$APPLE_P8_BASE64" | base64 --decode \
+            > src/main/resources/apple/AuthKey_${APPLE_KEY_ID}.p8
+
+      - name: Compute image tag
+        id: meta
+        run: |
+          INPUT_TAG="${{ github.event.inputs.tag }}"
+          if [ -n "$INPUT_TAG" ]; then
+            TAG="$INPUT_TAG"
+          else
+            TAG="$(git rev-parse --short=8 HEAD)"
+          fi
+          echo "TAG=$TAG" >> $GITHUB_ENV
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "Image TAG=$TAG"
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::381305464439:role/push
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build & Push image
+        run: |
+          docker build \
+            -t "$ECR_REGISTRY/$ECR_REPOSITORY:$TAG" \
+            -t "$ECR_REGISTRY/$ECR_REPOSITORY:latest" .
+          docker push "$ECR_REGISTRY/$ECR_REPOSITORY:$TAG"
+          docker push "$ECR_REGISTRY/$ECR_REPOSITORY:latest"
+
+  deploy:
+    name: Deploy to Test EC2
+    needs: build-push
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Write .env from secret
+        env:
+          ENV_FILE_TEST: ${{ secrets.ENV_FILE_TEST }}
+        run: |
+          if [ -z "$ENV_FILE_TEST" ]; then
+            echo "❌ ENV_FILE_TEST secret 이 비어 있습니다. 레포 Settings > Secrets 에 등록하세요."
+            exit 1
+          fi
+          umask 177
+          printf '%s\n' "$ENV_FILE_TEST" > .env
+
+      - name: Copy compose file & .env to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ env.EC2_HOST }}
+          username: ${{ env.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY_TEST }}
+          source: "docker-compose.test-server.yml,.env"
+          target: ${{ env.REMOTE_DIR }}
+
+      - name: SSH & deploy
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          TAG: ${{ needs.build-push.outputs.tag }}
+        with:
+          host: ${{ env.EC2_HOST }}
+          username: ${{ env.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY_TEST }}
+          script_stop: true
+          envs: TAG
+          script: |
+            set -euo pipefail
+
+            APP_DIR="/home/ubuntu/kiryong-test"
+            COMPOSE="docker-compose.test-server.yml"
+            REG="381305464439.dkr.ecr.ap-northeast-2.amazonaws.com"
+            REPO="kiryong/test"
+
+            cd "$APP_DIR"
+
+            # 0) 앞 단계에서 scp 로 올린 .env 확인 및 권한 조정
+            if [ ! -s "$APP_DIR/.env" ]; then
+              echo "❌ $APP_DIR/.env 가 없거나 비어 있습니다."
+              exit 1
+            fi
+            chmod 600 "$APP_DIR/.env"
+
+            # 1) aws cli / docker compose 설치 확인
+            if ! command -v curl >/dev/null 2>&1; then
+              sudo apt-get update -y && sudo apt-get install -y curl
+            fi
+            if ! command -v aws >/dev/null 2>&1; then
+              sudo apt-get update -y
+              sudo apt-get install -y unzip ca-certificates
+              curl -sL https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o /tmp/awscliv2.zip
+              unzip -q /tmp/awscliv2.zip -d /tmp
+              sudo /tmp/aws/install --update
+            fi
+            if ! docker compose version >/dev/null 2>&1; then
+              DOCKER_CONFIG=${DOCKER_CONFIG:-$HOME/.docker}
+              mkdir -p "$DOCKER_CONFIG/cli-plugins"
+              curl -sSL https://github.com/docker/compose/releases/download/v2.29.2/docker-compose-linux-x86_64 \
+                -o "$DOCKER_CONFIG/cli-plugins/docker-compose"
+              chmod +x "$DOCKER_CONFIG/cli-plugins/docker-compose"
+            fi
+
+            # 2) ECR 로그인
+            aws ecr get-login-password --region ap-northeast-2 \
+              | docker login --username AWS --password-stdin "$REG"
+
+            # 3) 배포 (TAG는 compose의 ${TAG} 로 치환됨)
+            export TAG
+            echo "Deploying $REG/$REPO:$TAG"
+            docker compose -f "$COMPOSE" pull
+            docker compose -f "$COMPOSE" up -d --force-recreate
+            docker image prune -f
+
+            # 4) 헬스체크 (응답 코드가 오면 기동 성공으로 간주)
+            for i in $(seq 1 30); do
+              CODE="$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/actuator/health || true)"
+              if [ "$CODE" != "000" ] && [ -n "$CODE" ]; then
+                echo "healthy ✅ (HTTP $CODE)"
+                exit 0
+              fi
+              sleep 3
+            done
+            echo "health check failed ❌"
+            docker compose -f "$COMPOSE" logs --tail=200 springboot
+            exit 1

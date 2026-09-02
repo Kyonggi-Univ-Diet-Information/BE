@@ -1,0 +1,54 @@
+services:
+  springboot:
+    image: 381305464439.dkr.ecr.ap-northeast-2.amazonaws.com/kiryong/test:${TAG:-latest}
+    container_name: kiryong-test-app
+    restart: always
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - web
+
+  postgres:
+    image: postgres:15
+    container_name: kiryong-test-postgres
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "127.0.0.1:5432:5432"   # 외부 노출 없이 서버 내부에서만 접근
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER}" ]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks:
+      - web
+
+  redis:
+    image: redis:7.2
+    container_name: kiryong-test-redis
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis_data:/data
+    networks: [ web ]
+
+networks:
+  web:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:

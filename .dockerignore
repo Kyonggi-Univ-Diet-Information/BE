@@ -1,0 +1,18 @@
+# Dockerfile 이 COPY . . 로 전체를 복사하므로 빌드 컨텍스트를 줄입니다.
+.git
+.gitignore
+.github
+.idea
+.gradle
+build
+out
+*.tar.gz
+*.log
+
+.env
+.env.*
+
+docker-compose*.yml
+Jenkinsfile*
+README.md
+HELP.md

@@ -108,10 +108,8 @@ springdoc:
     try-it-out-enabled: true
     disable-swagger-default-url: true
     filter: true
-    urls:
-      - url : http://localhost:8080/v3/api-docs # dev
-      #- url: https://api.kiryong.kr/v3/api-docs   # ✅ HTTPS 강제
-        name: Kiryong API
+    # urls 를 지정하지 않으면 상대경로 /v3/api-docs 를 사용한다.
+    # 로컬/테스트/운영 어디서 열어도 그 호스트를 그대로 따라가므로 환경별 수정이 필요 없다.
 
 openai:
   api-key: ${OPENAI_API_KEY}

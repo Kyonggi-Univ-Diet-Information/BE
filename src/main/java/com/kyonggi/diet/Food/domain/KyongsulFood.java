@@ -44,4 +44,9 @@ public class KyongsulFood extends ExtendedFood {
             orphanRemoval = true
     )
     private List<KyongsulFoodReview> kyongsulFoodReviews;
+
+    public void updateFoodCategory(KyongsulCategory category, String categoryKorean) {
+            this.category = category;
+            this.categoryKorean = categoryKorean;
+        }
 }

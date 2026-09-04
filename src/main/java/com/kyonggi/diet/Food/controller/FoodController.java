@@ -2,6 +2,7 @@ package com.kyonggi.diet.Food.controller;
 
 import com.amazonaws.services.kms.model.NotFoundException;
 import com.kyonggi.diet.Food.DTO.TopReviewedFoodDTO;
+import com.kyonggi.diet.Food.eumer.FoodSortType;
 import com.kyonggi.diet.Food.eumer.RestaurantType;
 import com.kyonggi.diet.Food.eumer.SubRestaurant;
 import com.kyonggi.diet.Food.repository.FoodRepository;
@@ -117,12 +118,15 @@ public class FoodController implements FoodControllerDocs {
         * 카테고리별 음식 조회 (경슐, 이퀘, 샐박)
         */
        @GetMapping("/{type}/each-category")
-       public ResponseEntity<?> getFoodByCategory(@PathVariable RestaurantType type) {
+       public ResponseEntity<?> getFoodByCategory(
+                      @PathVariable RestaurantType type,
+                      @RequestParam(required = false) String sort) {
            try {
+               FoodSortType sortType = FoodSortType.from(sort);
                Object result = switch (type) {
-                   case KYONGSUL -> kyongsulFoodService.findFoodByCategory();
-                   case E_SQUARE -> esquareFoodService.findFoodByCategory();
-                   case SALLY_BOX -> sallyBoxFoodService.findFoodByCategory();
+                   case KYONGSUL -> kyongsulFoodService.findFoodByCategory(sortType);
+                   case E_SQUARE -> esquareFoodService.findFoodByCategory(sortType);
+                   case SALLY_BOX -> sallyBoxFoodService.findFoodByCategory(sortType);
                    default -> null;
                };
 

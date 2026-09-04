@@ -180,7 +180,7 @@ public class CSVService {
     }
 
     private KyongsulFood mapKyongsul(String[] nextLine) {
-        if (nextLine.length < 7 || nextLine[0].isEmpty()) return null;
+        if (nextLine.length < 9 || nextLine[0].isEmpty()) return null;
 
         String restaurantStr = nextLine[0];
         String name = nextLine[1].trim();
@@ -193,11 +193,15 @@ public class CSVService {
         FoodType foodType = FoodType.valueOf(nextLine[5].trim().toUpperCase());
         DetailedMenu detailedMenu = DetailedMenu.valueOf(nextLine[6].trim().toUpperCase());
         SubRestaurant subRestaurant = SubRestaurant.valueOf(restaurantStr);
+        KyongsulCategory category = KyongsulCategory.valueOf(nextLine[7].trim().toUpperCase());
+        String categoryKorean = nextLine[8].trim();
 
         Optional<KyongsulFood> exist = kyongsulFoodRepository.findByName(name);
         if (exist.isPresent()) {
             if (exist.get().getCuisine() == null)
                 exist.get().updateCategory(cuisine, foodType, detailedMenu);
+            if (exist.get().getCategory() == null)
+                exist.get().updateFoodCategory(category, categoryKorean);
             return null;
         }
 
@@ -209,6 +213,8 @@ public class CSVService {
                 .cuisine(cuisine)
                 .foodType(foodType)
                 .detailedMenu(detailedMenu)
+                .category(category)
+                .categoryKorean(categoryKorean)
                 .build();
     }
 
@@ -259,7 +265,7 @@ public class CSVService {
     }
 
     private ESquareFood mapESquare(String[] nextLine) {
-        if (nextLine.length < 6 || nextLine[0].isEmpty()) return null;
+        if (nextLine.length < 8 || nextLine[0].isEmpty()) return null;
 
         String name = nextLine[0].trim();
         Long price = parsePrice(nextLine[1]);
@@ -270,11 +276,15 @@ public class CSVService {
         Cuisine cuisine = Cuisine.valueOf(nextLine[3].trim().toUpperCase());
         FoodType foodType = FoodType.valueOf(nextLine[4].trim().toUpperCase());
         DetailedMenu detailedMenu = DetailedMenu.valueOf(nextLine[5].trim().toUpperCase());
+        ESquareCategory category = ESquareCategory.valueOf(nextLine[6].trim().toUpperCase());
+        String categoryKorean = nextLine[7].trim();
 
         Optional<ESquareFood> exist = esquareFoodRepository.findByName(name);
         if (exist.isPresent()) {
             if (exist.get().getCuisine() == null)
                 exist.get().updateCategory(cuisine, foodType, detailedMenu);
+            if (exist.get().getCategory() == null)
+                exist.get().updateFoodCategory(category, categoryKorean);
             return null;
         }
 
@@ -285,6 +295,8 @@ public class CSVService {
                 .cuisine(cuisine)
                 .foodType(foodType)
                 .detailedMenu(detailedMenu)
+                .category(category)
+                .categoryKorean(categoryKorean)
                 .build();
     }
 
@@ -295,7 +307,7 @@ public class CSVService {
     }
 
     private SallyBoxFood mapSallyBox(String[] nextLine) {
-        if (nextLine.length < 6 || nextLine[0].isEmpty()) return null;
+        if (nextLine.length < 8 || nextLine[0].isEmpty()) return null;
 
         String name = nextLine[0].trim();
         Long price = parsePrice(nextLine[1]);
@@ -306,11 +318,15 @@ public class CSVService {
         Cuisine cuisine = Cuisine.valueOf(nextLine[3].trim().toUpperCase());
         FoodType foodType = FoodType.valueOf(nextLine[4].trim().toUpperCase());
         DetailedMenu detailedMenu = DetailedMenu.valueOf(nextLine[5].trim().toUpperCase());
+        SallyBoxCategory category = SallyBoxCategory.valueOf(nextLine[6].trim().toUpperCase());
+        String categoryKorean = nextLine[7].trim();
 
         Optional<SallyBoxFood> exist = sallyBoxFoodRepository.findByName(name);
         if (exist.isPresent()) {
             if (exist.get().getCuisine() == null)
                 exist.get().updateCategory(cuisine, foodType, detailedMenu);
+            if (exist.get().getCategory() == null)
+                exist.get().updateFoodCategory(category, categoryKorean);
             return null;
         }
 
@@ -321,6 +337,8 @@ public class CSVService {
                 .cuisine(cuisine)
                 .foodType(foodType)
                 .detailedMenu(detailedMenu)
+                .category(category)
+                .categoryKorean(categoryKorean)
                 .build();
     }
 

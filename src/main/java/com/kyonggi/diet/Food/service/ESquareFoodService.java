@@ -3,12 +3,10 @@ package com.kyonggi.diet.Food.service;
 import com.amazonaws.services.kms.model.NotFoundException;
 import com.kyonggi.diet.Food.DTO.ESquareFoodDTO;
 import com.kyonggi.diet.Food.domain.ESquareFood;
-import com.kyonggi.diet.Food.eumer.Cuisine;
-import com.kyonggi.diet.Food.eumer.DetailedMenu;
-import com.kyonggi.diet.Food.eumer.ESquareCategory;
-import com.kyonggi.diet.Food.eumer.FoodType;
+import com.kyonggi.diet.Food.eumer.*;
 import com.kyonggi.diet.Food.repository.ESquareFoodRepository;
 import com.kyonggi.diet.review.DTO.FoodNamesDTO;
+import com.kyonggi.diet.review.repository.ESquareFoodReviewRepository;
 import com.kyonggi.diet.translation.service.TranslationService;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -24,12 +22,15 @@ public class ESquareFoodService extends AbstractFoodService<ESquareFood, ESquare
 
     private final TranslationService translationService;
     private final ESquareFoodRepository esquareFoodRepository;
+    private final ESquareFoodReviewRepository esquareFoodReviewRepository;
 
     public ESquareFoodService(ModelMapper modelMapper, TranslationService translationService,
-                              ESquareFoodRepository esquareFoodRepository) {
+                              ESquareFoodRepository esquareFoodRepository,
+                              ESquareFoodReviewRepository esquareFoodReviewRepository) {
         super(modelMapper);
         this.translationService = translationService;
         this.esquareFoodRepository = esquareFoodRepository;
+        this.esquareFoodReviewRepository = esquareFoodReviewRepository;
     }
 
     /**
@@ -138,16 +139,19 @@ public class ESquareFoodService extends AbstractFoodService<ESquareFood, ESquare
     /**
      * 이스퀘어 카테고리별 음식 출력
      */
-    public Map<ESquareCategory, List<ESquareFoodDTO>> findFoodByCategory() {
+    public Map<ESquareCategory, List<ESquareFoodDTO>> findFoodByCategory(FoodSortType sort) {
         List<ESquareFood> foods = esquareFoodRepository.findAll();
         if (foods.isEmpty()) {
             throw new NotFoundException("이스퀘어 음식 목록이 비어있습니다.");
         }
 
+        Map<Long, Object[]> statsByFoodId = esquareFoodReviewRepository.findRatingStatsGroupByFoodId().stream()
+                       .collect(Collectors.toMap(row -> (Long) row[0], row -> row));
+
         Map<ESquareCategory, List<ESquareFoodDTO>> mappingFoods = foods.stream()
                 .collect(Collectors.groupingBy(
                         ESquareFood::getCategory,
-                        Collectors.mapping(food -> super.mapToDto(food, ESquareFoodDTO.class), Collectors.toList())
+                        Collectors.mapping(food -> toDtoWithStats(food, statsByFoodId), Collectors.toList())
                 ));
 
 
@@ -155,9 +159,31 @@ public class ESquareFoodService extends AbstractFoodService<ESquareFood, ESquare
                 .filter(entry -> !entry.getValue().isEmpty())
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
-                        Map.Entry::getValue,
+                        entry -> sortDtoList(entry.getValue(), sort),
                         (a, b) -> a,
                         LinkedHashMap::new
                 ));
     }
+
+    private ESquareFoodDTO toDtoWithStats(ESquareFood food, Map<Long, Object[]> statsByFoodId) {
+            ESquareFoodDTO dto = super.mapToDto(food, ESquareFoodDTO.class);
+            Object[] stats = statsByFoodId.get(food.getId());
+            if (stats != null) {
+                dto.setAverageRating((Double) stats[1]);
+                dto.setReviewCount((Long) stats[2]);
+            }
+            return dto;
+        }
+
+        private List<ESquareFoodDTO> sortDtoList(List<ESquareFoodDTO> list, FoodSortType sort) {
+            if (sort == null) return list;
+            Comparator<ESquareFoodDTO> comparator = switch (sort) {
+                case RATING -> Comparator.comparing(ESquareFoodDTO::getAverageRating,
+                        Comparator.nullsLast(Comparator.reverseOrder()));
+                case NAME -> Comparator.comparing(ESquareFoodDTO::getName);
+                case REVIEW_COUNT -> Comparator.comparing(ESquareFoodDTO::getReviewCount,
+                        Comparator.nullsLast(Comparator.reverseOrder()));
+            };
+            return list.stream().sorted(comparator).collect(Collectors.toList());
+        }
 }

@@ -6,12 +6,14 @@ import com.kyonggi.diet.Food.domain.SallyBoxFood;
 import com.kyonggi.diet.Food.eumer.*;
 import com.kyonggi.diet.Food.repository.SallyBoxFoodRepository;
 import com.kyonggi.diet.review.DTO.FoodNamesDTO;
+import com.kyonggi.diet.review.repository.SallyBoxFoodReviewRepository;
 import com.kyonggi.diet.translation.service.TranslationService;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.LinkedHashMap;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -24,12 +26,15 @@ public class SallyBoxFoodService extends AbstractFoodService<SallyBoxFood, Sally
 
     private final TranslationService translationService;
     private final SallyBoxFoodRepository sallyBoxFoodRepository;
+    private final SallyBoxFoodReviewRepository sallyBoxFoodReviewRepository;
 
     public SallyBoxFoodService(ModelMapper modelMapper, TranslationService translationService,
-                               SallyBoxFoodRepository sallyBoxFoodRepository) {
+                               SallyBoxFoodRepository sallyBoxFoodRepository,
+                               SallyBoxFoodReviewRepository sallyBoxFoodReviewRepository) {
         super(modelMapper);
         this.translationService = translationService;
         this.sallyBoxFoodRepository = sallyBoxFoodRepository;
+        this.sallyBoxFoodReviewRepository = sallyBoxFoodReviewRepository;
     }
 
     /**
@@ -129,16 +134,19 @@ public class SallyBoxFoodService extends AbstractFoodService<SallyBoxFood, Sally
     /**
      * 샐리박스 카테고리별 음식 출력
      */
-    public Map<SallyBoxCategory, List<SallyBoxFoodDTO>> findFoodByCategory() {
+    public Map<SallyBoxCategory, List<SallyBoxFoodDTO>> findFoodByCategory(FoodSortType sort) {
         List<SallyBoxFood> foods = sallyBoxFoodRepository.findAll();
         if (foods.isEmpty()) {
             throw new NotFoundException("쌜리박스 음식 목록이 비어있습니다.");
         }
 
+        Map<Long, Object[]> statsByFoodId = sallyBoxFoodReviewRepository.findRatingStatsGroupByFoodId().stream()
+                        .collect(Collectors.toMap(row -> (Long) row[0], row -> row));
+
         Map<SallyBoxCategory, List<SallyBoxFoodDTO>> mappingFoods = foods.stream()
                 .collect(Collectors.groupingBy(
                         SallyBoxFood::getCategory,
-                        Collectors.mapping(food -> super.mapToDto(food, SallyBoxFoodDTO.class), Collectors.toList())
+                        Collectors.mapping(food -> toDtoWithStats(food, statsByFoodId), Collectors.toList())
                 ));
 
 
@@ -146,9 +154,31 @@ public class SallyBoxFoodService extends AbstractFoodService<SallyBoxFood, Sally
                 .filter(entry -> !entry.getValue().isEmpty())
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
-                        Map.Entry::getValue,
+                        entry -> sortDtoList(entry.getValue(), sort),
                         (a, b) -> a,
                         LinkedHashMap::new
                 ));
     }
+
+    private SallyBoxFoodDTO toDtoWithStats(SallyBoxFood food, Map<Long, Object[]> statsByFoodId) {
+            SallyBoxFoodDTO dto = super.mapToDto(food, SallyBoxFoodDTO.class);
+            Object[] stats = statsByFoodId.get(food.getId());
+            if (stats != null) {
+                dto.setAverageRating((Double) stats[1]);
+                dto.setReviewCount((Long) stats[2]);
+            }
+            return dto;
+        }
+
+        private List<SallyBoxFoodDTO> sortDtoList(List<SallyBoxFoodDTO> list, FoodSortType sort) {
+            if (sort == null) return list;
+            Comparator<SallyBoxFoodDTO> comparator = switch (sort) {
+                case RATING -> Comparator.comparing(SallyBoxFoodDTO::getAverageRating,
+                        Comparator.nullsLast(Comparator.reverseOrder()));
+                case NAME -> Comparator.comparing(SallyBoxFoodDTO::getName);
+                case REVIEW_COUNT -> Comparator.comparing(SallyBoxFoodDTO::getReviewCount,
+                        Comparator.nullsLast(Comparator.reverseOrder()));
+            };
+            return list.stream().sorted(comparator).collect(Collectors.toList());
+        }
 }

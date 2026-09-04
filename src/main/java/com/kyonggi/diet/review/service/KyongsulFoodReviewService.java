@@ -10,6 +10,7 @@ import com.kyonggi.diet.member.service.MemberService;
 import com.kyonggi.diet.review.DTO.CreateReviewDTO;
 import com.kyonggi.diet.review.DTO.ForTopReviewDTO;
 import com.kyonggi.diet.review.DTO.ReviewDTO;
+import com.kyonggi.diet.review.ReviewSortType;
 import com.kyonggi.diet.review.domain.DietFoodReview;
 import com.kyonggi.diet.review.domain.ESquareFoodReview;
 import com.kyonggi.diet.review.domain.KyongsulFoodReview;
@@ -175,8 +176,8 @@ public class KyongsulFoodReviewService
     }
 
     @Override
-    public Page<ReviewDTO> getAllReviewsByFoodIdPaged(Long foodId, int pageNo, CustomUserDetails user) {
-        Pageable pageable = PageRequest.of(pageNo, 10, Sort.by(Sort.Direction.DESC, "id"));
+    public Page<ReviewDTO> getAllReviewsByFoodIdPaged(Long foodId, int pageNo, ReviewSortType sort, CustomUserDetails user) {
+        Pageable pageable = super.buildPageable(pageNo, sort);
         Page<KyongsulFoodReview> reviews;
 
         if (user == null) {

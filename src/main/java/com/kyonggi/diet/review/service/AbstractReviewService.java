@@ -6,11 +6,13 @@ import com.kyonggi.diet.member.service.MemberService;
 import com.kyonggi.diet.review.DTO.ForTopReviewDTO;
 import com.kyonggi.diet.review.DTO.ReviewDTO;
 import com.kyonggi.diet.review.domain.Review;
+import com.kyonggi.diet.review.ReviewSortType;
 import lombok.NoArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -109,6 +111,23 @@ public abstract class AbstractReviewService<R extends Review, ID> {
             ratingCountMap.put(rating.intValue(), count);
         }
         return ratingCountMap;
+    }
+
+    /**
+    * 정렬 기준에 맞는 Pageable 생성 (페이지당 10개 고정)
+     * sort가 null(파라미터 없음/인식 불가)이면 기존 기본 정렬(id desc) 그대로 유지
+     * 평점 동률일 땐 최신순으로 2차 정렬
+     */
+    protected Pageable buildPageable(int pageNo, ReviewSortType sort) {
+        if (sort == null) {
+            return PageRequest.of(pageNo, 10, Sort.by(Sort.Direction.DESC, "id"));
+        }
+        Sort sortOrder = switch (sort) {
+            case RECENT -> Sort.by(Sort.Direction.DESC, "createdAt");
+            case RATING_DESC -> Sort.by(Sort.Order.desc("rating"), Sort.Order.desc("createdAt"));
+            case RATING_ASC -> Sort.by(Sort.Order.asc("rating"), Sort.Order.desc("createdAt"));
+        };
+        return PageRequest.of(pageNo, 10, sortOrder);
     }
 
     /**

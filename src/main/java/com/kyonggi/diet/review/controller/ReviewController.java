@@ -5,6 +5,7 @@ import com.kyonggi.diet.auth.util.JwtTokenUtil;
 import com.kyonggi.diet.controllerDocs.ReviewControllerDocs;
 import com.kyonggi.diet.member.CustomUserDetails;
 import com.kyonggi.diet.review.DTO.*;
+import com.kyonggi.diet.review.ReviewSortType;
 import com.kyonggi.diet.review.domain.Review;
 import com.kyonggi.diet.review.moderation.block.BlockService;
 import com.kyonggi.diet.review.moderation.report.ReportReasonType;
@@ -90,9 +91,11 @@ public class ReviewController implements ReviewControllerDocs {
     public ResponseEntity<?> getPagedReviews(@PathVariable("type") RestaurantType type,
                                              @PathVariable("foodId") Long foodId,
                                              @RequestParam(name = "pageNo", defaultValue = "0") int pageNo,
+                                             @RequestParam(name = "sort", required = false) String sort,
                                              @AuthenticationPrincipal CustomUserDetails user) {
         try {
-            Page<ReviewDTO> page = resolve(type).getAllReviewsByFoodIdPaged(foodId, pageNo, user);
+            ReviewSortType sortType = ReviewSortType.from(sort);
+            Page<ReviewDTO> page = resolve(type).getAllReviewsByFoodIdPaged(foodId, pageNo, sortType, user);
             return ResponseEntity.ok(page);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid restaurant type: " + type);

@@ -61,7 +61,11 @@ public class ESquareFoodService extends AbstractFoodService<ESquareFood, ESquare
     public ESquareFoodDTO findById(Long id) {
         ESquareFood food = esquareFoodRepository.findById(id).orElseThrow(
                 () -> new NoSuchElementException("해당 ID값의 이스퀘어 음식 찾을 수 없습니다."));
-        return mapToDto(food, ESquareFoodDTO.class);
+        ESquareFoodDTO dto = mapToDto(food, ESquareFoodDTO.class);
+        dto.setAverageRating(esquareFoodReviewRepository.findAverageRatingByESquareFoodId(id));
+        dto.setReviewCount((long) esquareFoodReviewRepository.getESquareReviewCount(id));
+
+        return dto;
     }
 
     /**
@@ -75,7 +79,13 @@ public class ESquareFoodService extends AbstractFoodService<ESquareFood, ESquare
         if (all.isEmpty()) {
             throw new NotFoundException("이스퀘어 음식 전체 찾기 실패(비어있음)");
         }
-        return mapToDtoList(all, ESquareFoodDTO.class);
+
+        Map<Long, Object[]> statsByFoodId = esquareFoodReviewRepository.findRatingStatsGroupByFoodId().stream()
+                .collect(Collectors.toMap(row -> (Long) row[0], row -> row));
+
+        return all.stream()
+                .map(food -> toDtoWithStats(food, statsByFoodId))
+                .collect(Collectors.toList());
     }
 
     /**

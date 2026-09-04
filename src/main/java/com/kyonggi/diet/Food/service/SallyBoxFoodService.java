@@ -64,7 +64,10 @@ public class SallyBoxFoodService extends AbstractFoodService<SallyBoxFood, Sally
     public SallyBoxFoodDTO findById(Long id) {
         SallyBoxFood food = sallyBoxFoodRepository.findById(id).orElseThrow(
                 () -> new NoSuchElementException("해당 ID값의 샐리박스 음식 찾을 수 없습니다."));
-        return mapToDto(food, SallyBoxFoodDTO.class);
+        SallyBoxFoodDTO dto = mapToDto(food, SallyBoxFoodDTO.class);
+        dto.setAverageRating(sallyBoxFoodReviewRepository.findAverageRatingBySallyBoxFoodId(id));
+        dto.setReviewCount((long) sallyBoxFoodReviewRepository.getSallyBoxReviewCount(id));
+        return dto;
     }
 
     /**
@@ -76,7 +79,11 @@ public class SallyBoxFoodService extends AbstractFoodService<SallyBoxFood, Sally
         if (all.isEmpty()) {
             throw new NotFoundException("샐리박스 음식 전체 찾기 실패(비어있음)");
         }
-        return mapToDtoList(all, SallyBoxFoodDTO.class);
+        Map<Long, Object[]> statsByFoodId = sallyBoxFoodReviewRepository.findRatingStatsGroupByFoodId().stream()
+                .collect(Collectors.toMap(row -> (Long) row[0], row -> row));
+        return all.stream()
+                .map(food -> toDtoWithStats(food, statsByFoodId))
+                .collect(Collectors.toList());
     }
 
     /**

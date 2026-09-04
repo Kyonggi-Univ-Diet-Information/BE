@@ -269,10 +269,14 @@ public class KyongsulFoodService extends AbstractFoodService<KyongsulFood, Kyong
            if (sort == null) return list;
            Comparator<KyongsulFoodDTO> comparator = switch (sort) {
                case RATING -> Comparator.comparing(KyongsulFoodDTO::getAverageRating,
-                       Comparator.nullsLast(Comparator.reverseOrder()));
+                               Comparator.nullsLast(Comparator.reverseOrder()))
+                       .thenComparing(KyongsulFoodDTO::getReviewCount,
+                               Comparator.nullsLast(Comparator.reverseOrder()));
                case NAME -> Comparator.comparing(KyongsulFoodDTO::getName);
                case REVIEW_COUNT -> Comparator.comparing(KyongsulFoodDTO::getReviewCount,
-                       Comparator.nullsLast(Comparator.reverseOrder()));
+                               Comparator.nullsLast(Comparator.reverseOrder()))
+                       .thenComparing(KyongsulFoodDTO::getAverageRating,
+                               Comparator.nullsLast(Comparator.reverseOrder()));
            };
            return list.stream().sorted(comparator).collect(Collectors.toList());
        }

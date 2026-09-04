@@ -189,10 +189,14 @@ public class ESquareFoodService extends AbstractFoodService<ESquareFood, ESquare
             if (sort == null) return list;
             Comparator<ESquareFoodDTO> comparator = switch (sort) {
                 case RATING -> Comparator.comparing(ESquareFoodDTO::getAverageRating,
-                        Comparator.nullsLast(Comparator.reverseOrder()));
+                                Comparator.nullsLast(Comparator.reverseOrder()))
+                        .thenComparing(ESquareFoodDTO::getReviewCount,
+                                Comparator.nullsLast(Comparator.reverseOrder()));
                 case NAME -> Comparator.comparing(ESquareFoodDTO::getName);
                 case REVIEW_COUNT -> Comparator.comparing(ESquareFoodDTO::getReviewCount,
-                        Comparator.nullsLast(Comparator.reverseOrder()));
+                                Comparator.nullsLast(Comparator.reverseOrder()))
+                        .thenComparing(ESquareFoodDTO::getAverageRating,
+                                Comparator.nullsLast(Comparator.reverseOrder()));
             };
             return list.stream().sorted(comparator).collect(Collectors.toList());
         }

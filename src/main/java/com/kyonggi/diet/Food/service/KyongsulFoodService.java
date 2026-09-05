@@ -9,6 +9,7 @@ import com.kyonggi.diet.Food.eumer.*;
 import com.kyonggi.diet.Food.repository.KyongsulFoodRepository;
 import com.kyonggi.diet.Food.repository.KyongsulSetFoodRepository;
 import com.kyonggi.diet.review.DTO.FoodNamesDTO;
+import com.kyonggi.diet.review.repository.KyongsulFoodReviewRepository;
 import com.kyonggi.diet.translation.service.TranslationService;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.Comparator;
 
 @Service
 @Transactional(readOnly = true)
@@ -27,15 +29,18 @@ public class KyongsulFoodService extends AbstractFoodService<KyongsulFood, Kyong
 
     private final KyongsulFoodRepository kyongsulFoodRepository;
     private final KyongsulSetFoodRepository kyongsulSetFoodRepository;
+    private final KyongsulFoodReviewRepository kyongsulFoodReviewRepository;
     private final TranslationService translationService;
 
     public KyongsulFoodService(ModelMapper modelMapper,
                                KyongsulFoodRepository kyongsulFoodRepository,
                                KyongsulSetFoodRepository kyongsulSetFoodRepository,
+                               KyongsulFoodReviewRepository kyongsulFoodReviewRepository,
                                TranslationService translationService) {
         super(modelMapper);
         this.kyongsulFoodRepository = kyongsulFoodRepository;
         this.kyongsulSetFoodRepository = kyongsulSetFoodRepository;
+        this.kyongsulFoodReviewRepository = kyongsulFoodReviewRepository;
         this.translationService = translationService;
     }
 
@@ -69,7 +74,10 @@ public class KyongsulFoodService extends AbstractFoodService<KyongsulFood, Kyong
     public KyongsulFoodDTO findById(Long id) {
         KyongsulFood food = kyongsulFoodRepository.findById(id).orElseThrow(
                 () -> new NoSuchElementException("해당 ID값의 경슐 음식 찾을 수 없습니다."));
-        return mapToDto(food, KyongsulFoodDTO.class);
+        KyongsulFoodDTO dto = mapToDto(food, KyongsulFoodDTO.class);
+        dto.setAverageRating(kyongsulFoodReviewRepository.findAverageRatingByKyongsulFoodId(id));
+        dto.setReviewCount((long) kyongsulFoodReviewRepository.getKyongsulReviewCount(id));
+        return dto;
     }
 
     /**
@@ -83,7 +91,11 @@ public class KyongsulFoodService extends AbstractFoodService<KyongsulFood, Kyong
         if (all.isEmpty()) {
             throw new NotFoundException("경슐랭 음식 전체 찾기 실패(비어있음)");
         }
-        return mapToDtoList(all, KyongsulFoodDTO.class);
+        Map<Long, Object[]> statsByFoodId = kyongsulFoodReviewRepository.findRatingStatsGroupByFoodId().stream()
+                .collect(Collectors.toMap(row -> (Long) row[0], row -> row));
+        return all.stream()
+                .map(food -> toDtoWithStats(food, statsByFoodId))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -97,8 +109,11 @@ public class KyongsulFoodService extends AbstractFoodService<KyongsulFood, Kyong
         if (foods.isEmpty()) {
             throw new NotFoundException("해당 서브 식당으로 경슐랭 음식 찾기 실패 (비어있음)");
         }
+        Map<Long, Object[]> statsByFoodId = kyongsulFoodReviewRepository.findRatingStatsGroupByFoodId().stream()
+                .collect(Collectors.toMap(row -> (Long) row[0], row -> row));
+
         return foods.stream()
-                .map(food -> mapToDto(food, KyongsulFoodDTO.class))
+                .map(food -> toDtoWithStats(food, statsByFoodId))
                 .collect(Collectors.toList());
     }
 
@@ -199,11 +214,15 @@ public class KyongsulFoodService extends AbstractFoodService<KyongsulFood, Kyong
     /**
      * 경슐랭 카테고리별 음식 출력
      */
-    public Map<SubRestaurant, Map<KyongsulCategory, List<KyongsulFoodDTO>>> findFoodByCategory() {
+    public Map<SubRestaurant, Map<KyongsulCategory, List<KyongsulFoodDTO>>>
+        findFoodByCategory(FoodSortType sort) {
         List<KyongsulFood> foods = kyongsulFoodRepository.findAll();
         if (foods.isEmpty()) {
             throw new NotFoundException("경슐랭 음식 목록이 비어있습니다.");
         }
+
+        Map<Long, Object[]> statsByFoodId = kyongsulFoodReviewRepository.findRatingStatsGroupByFoodId().stream()
+                        .collect(Collectors.toMap(row -> (Long) row[0], row -> row));
 
         Map<SubRestaurant, List<KyongsulFood>> bySubRestaurant =
                 foods.stream().collect(Collectors.groupingBy(KyongsulFood::getSubRestaurant));
@@ -216,14 +235,14 @@ public class KyongsulFoodService extends AbstractFoodService<KyongsulFood, Kyong
             Map<KyongsulCategory, List<KyongsulFoodDTO>> byCategory = restaurantFoods.stream()
                     .collect(Collectors.groupingBy(
                             KyongsulFood::getCategory,
-                            Collectors.mapping(food -> super.mapToDto(food, KyongsulFoodDTO.class), Collectors.toList())
+                            Collectors.mapping(food -> toDtoWithStats(food, statsByFoodId), Collectors.toList())
                     ));
 
             Map<KyongsulCategory, List<KyongsulFoodDTO>> filteredCategoryMap = byCategory.entrySet().stream()
                     .filter(entry -> !entry.getValue().isEmpty())
                     .collect(Collectors.toMap(
                             Map.Entry::getKey,
-                            Map.Entry::getValue,
+                            entry -> sortDtoList(entry.getValue(), sort),
                             (a, b) -> a,
                             LinkedHashMap::new
                     ));
@@ -234,4 +253,31 @@ public class KyongsulFoodService extends AbstractFoodService<KyongsulFood, Kyong
         }
         return result;
     }
+
+    private KyongsulFoodDTO toDtoWithStats(KyongsulFood food, Map<Long, Object[]> statsByFoodId) {
+           KyongsulFoodDTO dto = super.mapToDto(food, KyongsulFoodDTO.class);
+           Object[] stats = statsByFoodId.get(food.getId());
+           if (stats != null) {
+               dto.setAverageRating((Double) stats[1]);
+               dto.setReviewCount((Long) stats[2]);
+           }
+           return dto;
+       }
+
+       /** sort가 null(파라미터 없음/인식 불가)이면 기존 순서 그대로 반환 */
+       private List<KyongsulFoodDTO> sortDtoList(List<KyongsulFoodDTO> list, FoodSortType sort) {
+           if (sort == null) return list;
+           Comparator<KyongsulFoodDTO> comparator = switch (sort) {
+               case RATING -> Comparator.comparing(KyongsulFoodDTO::getAverageRating,
+                               Comparator.nullsLast(Comparator.reverseOrder()))
+                       .thenComparing(KyongsulFoodDTO::getReviewCount,
+                               Comparator.nullsLast(Comparator.reverseOrder()));
+               case NAME -> Comparator.comparing(KyongsulFoodDTO::getName);
+               case REVIEW_COUNT -> Comparator.comparing(KyongsulFoodDTO::getReviewCount,
+                               Comparator.nullsLast(Comparator.reverseOrder()))
+                       .thenComparing(KyongsulFoodDTO::getAverageRating,
+                               Comparator.nullsLast(Comparator.reverseOrder()));
+           };
+           return list.stream().sorted(comparator).collect(Collectors.toList());
+       }
 }

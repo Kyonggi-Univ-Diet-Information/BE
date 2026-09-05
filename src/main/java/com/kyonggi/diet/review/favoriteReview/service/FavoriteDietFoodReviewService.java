@@ -60,7 +60,8 @@ public class FavoriteDietFoodReviewService
                         .build();
                 favoriteDietFoodReviewRepository.save(review);
             } catch (Exception e) {
-                throw new RuntimeException("관심 음식 리뷰 생성 실패. " + e.getMessage(), e);
+                log.error("관심 음식 리뷰 생성 실패", e);
+                throw new RuntimeException("관심 음식 리뷰 생성 실패", e);
             }
         } else {
             throw new IllegalStateException("이미 좋아요를 한 상태입니다");

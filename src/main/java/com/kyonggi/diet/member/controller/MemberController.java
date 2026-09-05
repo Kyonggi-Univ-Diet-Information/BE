@@ -3,7 +3,9 @@ package com.kyonggi.diet.member.controller;
 import com.kyonggi.diet.auth.Provider;
 import com.kyonggi.diet.auth.util.JwtTokenUtil;
 import com.kyonggi.diet.controllerDocs.MemberControllerDocs;
+import com.kyonggi.diet.member.CustomUserDetails;
 import com.kyonggi.diet.member.DTO.MemberDTO;
+import com.kyonggi.diet.member.DTO.UpdateNicknameRequest;
 import com.kyonggi.diet.member.io.MemberRequest;
 import com.kyonggi.diet.member.io.MemberResponse;
 import com.kyonggi.diet.member.service.MemberService;
@@ -13,9 +15,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
@@ -78,5 +82,37 @@ public class MemberController implements MemberControllerDocs {
         return modelMapper.map(memberRequest, MemberDTO.class);
     }
 
+    @GetMapping("/nickname/check")
+    public ResponseEntity<?> checkNickname(@RequestParam String nickname) {
+        return ResponseEntity.ok(memberService.checkNicknameAvailable(nickname));
+    }
 
+    @PatchMapping("/nickname")
+    public ResponseEntity<?> updateNickname(
+            @AuthenticationPrincipal CustomUserDetails user,
+            @RequestBody UpdateNicknameRequest request
+
+    ) {
+        try {
+            String nickname = memberService.updateMemberNickname(user.getEmail(), request.getNickname());
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "닉네임 변경 완료: " + nickname
+            ));
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", e.getMessage()
+            ));
+
+        } catch (Exception e) {
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                    "success", false,
+                    "message", "서버 오류"
+            ));
+        }
+    }
 }

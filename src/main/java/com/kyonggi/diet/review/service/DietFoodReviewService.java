@@ -9,11 +9,16 @@ import com.kyonggi.diet.member.service.MemberService;
 import com.kyonggi.diet.review.DTO.CreateReviewDTO;
 import com.kyonggi.diet.review.DTO.ForTopReviewDTO;
 import com.kyonggi.diet.review.DTO.ReviewDTO;
+import com.kyonggi.diet.review.ReviewSortType;
 import com.kyonggi.diet.review.domain.DietFoodReview;
 import com.kyonggi.diet.review.domain.ESquareFoodReview;
 import com.kyonggi.diet.review.domain.KyongsulFoodReview;
 import com.kyonggi.diet.review.favoriteReview.domain.FavoriteDietFoodReview;
 import com.kyonggi.diet.review.favoriteReview.repository.FavoriteDietFoodReviewRepository;
+import com.kyonggi.diet.review.image.ReviewImageCommitService;
+import com.kyonggi.diet.review.image.domain.DietFoodReviewImage;
+import com.kyonggi.diet.review.image.dto.ReviewImageDTO;
+import com.kyonggi.diet.review.image.repository.DietFoodReviewImageRepository;
 import com.kyonggi.diet.review.repository.DietFoodReviewRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.*;
@@ -32,18 +37,24 @@ public class DietFoodReviewService
     private final DietFoodReviewRepository dietFoodReviewRepository;
     private final FavoriteDietFoodReviewRepository favoriteDietFoodReviewRepository;
     private final DietFoodRepository dietFoodRepository;
+    private final DietFoodReviewImageRepository dietFoodReviewImageRepository;
+    private final ReviewImageCommitService reviewImageCommitService;
 
     public DietFoodReviewService(
             MemberService memberService,
             ModelMapper modelMapper,
             DietFoodReviewRepository dietFoodReviewRepository,
             FavoriteDietFoodReviewRepository favoriteDietFoodReviewRepository,
-            DietFoodRepository dietFoodRepository
+            DietFoodRepository dietFoodRepository,
+            DietFoodReviewImageRepository dietFoodReviewImageRepository,
+            ReviewImageCommitService reviewImageCommitService
     ) {
         super(memberService, modelMapper); // 상위 클래스 주입
         this.dietFoodReviewRepository = dietFoodReviewRepository;
         this.favoriteDietFoodReviewRepository = favoriteDietFoodReviewRepository;
         this.dietFoodRepository = dietFoodRepository;
+        this.dietFoodReviewImageRepository = dietFoodReviewImageRepository;
+        this.reviewImageCommitService = reviewImageCommitService;
     }
 
     @Override
@@ -93,6 +104,29 @@ public class DietFoodReviewService
 
         dietFoodReviewRepository.save(review);
         dietFood.getDietFoodReviews().add(review);
+
+        saveNewImages(review, dto.getImageKeys());
+    }
+
+    private void saveNewImages(DietFoodReview review, List<String> tmpKeys) {
+        List<String> committedKeys = reviewImageCommitService.commitTmpImages(tmpKeys);
+        if (committedKeys.isEmpty()) return;
+
+        List<DietFoodReviewImage> existing =
+                dietFoodReviewImageRepository.findAllByReview_IdOrderBySortOrderAsc(review.getId());
+        int startSortOrder = existing.isEmpty()
+                ? 0
+                : existing.get(existing.size() - 1).getSortOrder() + 1;
+
+        List<DietFoodReviewImage> images = new ArrayList<>();
+        for (int i = 0; i < committedKeys.size(); i++) {
+            images.add(DietFoodReviewImage.builder()
+                    .review(review)
+                    .imageKey(committedKeys.get(i))
+                    .sortOrder(startSortOrder + i)
+                    .build());
+        }
+        dietFoodReviewImageRepository.saveAll(images);
     }
 
     @Override
@@ -103,8 +137,8 @@ public class DietFoodReviewService
     }
 
     @Override
-    public Page<ReviewDTO> getAllReviewsByFoodIdPaged(Long foodId, int pageNo, CustomUserDetails user) {
-        Pageable pageable = PageRequest.of(pageNo, 10, Sort.by(Sort.Direction.DESC, "id"));
+    public Page<ReviewDTO> getAllReviewsByFoodIdPaged(Long foodId, int pageNo, ReviewSortType sort, CustomUserDetails user) {
+        Pageable pageable = super.buildPageable(pageNo, sort);
         Page<DietFoodReview> reviews = dietFoodReviewRepository.findAllByDietFoodId(foodId, pageable);
         return super.toPagedDTO(reviews, pageNo, user);
     }
@@ -115,11 +149,51 @@ public class DietFoodReviewService
         DietFoodReview review = dietFoodReviewRepository.findById(reviewId)
                 .orElseThrow(() -> new NoSuchElementException("No review found"));
         review.updateReview(dto.getRating(), dto.getTitle(), dto.getContent());
+
+        deleteRemovedImages(reviewId, dto.getKeepImageIds());
+        saveNewImages(review, dto.getImageKeys());
+    }
+
+    private void deleteRemovedImages(Long reviewId, List<Long> keepImageIds) {
+        List<DietFoodReviewImage> existing =
+                dietFoodReviewImageRepository.findAllByReview_IdOrderBySortOrderAsc(reviewId);
+
+        Set<Long> keepIds = keepImageIds == null ? Set.of() : new HashSet<>(keepImageIds);
+        List<DietFoodReviewImage> toDelete = existing.stream()
+                .filter(image -> !keepIds.contains(image.getId()))
+                .toList();
+        if (toDelete.isEmpty()) return;
+
+        reviewImageCommitService.deleteReviewImages(
+                toDelete.stream().map(DietFoodReviewImage::getImageKey).toList());
+        dietFoodReviewImageRepository.deleteAllInBatch(toDelete);
+    }
+
+    @Override
+    protected List<ReviewImageDTO> loadImages(DietFoodReview review) {
+        return dietFoodReviewImageRepository.findAllByReview_IdOrderBySortOrderAsc(review.getId()).stream()
+                .map(image -> ReviewImageDTO.builder()
+                        .id(image.getId())
+                        .url(reviewImageCommitService.generateViewUrl(image.getImageKey()))
+                        .build())
+                .toList();
+    }
+
+    @Override
+    public List<String> getImageKeys(Long reviewId) {
+        return dietFoodReviewImageRepository.findAllByReview_IdOrderBySortOrderAsc(reviewId).stream()
+                .map(DietFoodReviewImage::getImageKey)
+                .toList();
     }
 
     @Override
     @Transactional
     public void deleteReview(Long reviewId) {
+        List<DietFoodReviewImage> images =
+                dietFoodReviewImageRepository.findAllByReview_IdOrderBySortOrderAsc(reviewId);
+        reviewImageCommitService.deleteReviewImages(
+                images.stream().map(DietFoodReviewImage::getImageKey).toList());
+
         dietFoodReviewRepository.deleteById(reviewId);
     }
 

@@ -1,6 +1,5 @@
 package com.kyonggi.diet.auth.kakao.service;
 
-import com.kyonggi.diet.auth.io.AuthResponse;
 import com.kyonggi.diet.auth.io.AuthResponseWithRefresh;
 import com.kyonggi.diet.auth.kakao.dto.KakaoTokenResponse;
 import com.kyonggi.diet.auth.kakao.dto.KakaoUserInfo;
@@ -36,15 +35,28 @@ public class KakaoLoginService {
     private static final Duration REFRESH_TOKEN_TTL = Duration.ofDays(30);
 
     /**
-     * 카카오 로그인 서비스
+     * code 기반 로그인
      */
     public AuthResponseWithRefresh login(String code) {
-        // 1. 카카오 토큰 발급
         KakaoTokenResponse tokenResponse = kakaoOAuthService.getToken(code);
+        return processLogin(tokenResponse.getAccessToken());
+    }
 
-        // 2. 사용자 정보 조회
+    /**
+     * SDK accessToken 기반 로그인
+     */
+    public AuthResponseWithRefresh loginWithAccessToken(String accessToken) {
+        return processLogin(accessToken);
+    }
+
+    /**
+     * 공통 로직
+     */
+    private AuthResponseWithRefresh processLogin(String accessToken) {
+
+        // 1. 사용자 정보 조회
         KakaoUserInfo userInfo =
-                kakaoOAuthService.getUserInfo(tokenResponse.getAccessToken());
+                kakaoOAuthService.getUserInfo(accessToken);
 
         SocialAccount social = socialAccountRepository
                 .findByProviderAndProviderSub(Provider.KAKAO, userInfo.getProviderId())
@@ -52,11 +64,10 @@ public class KakaoLoginService {
 
         MemberEntity member;
 
-        // 3. 회원 조회 / 생성
+        // 2. 회원 조회 / 생성
         if (social != null) {
             member = social.getMember();
         } else {
-            // email 기준 연결 or 신규
             member = memberRepository.findByEmail(userInfo.getEmail())
                     .orElseGet(() ->
                             memberRepository.save(
@@ -79,13 +90,12 @@ public class KakaoLoginService {
             member.updateEmail(userInfo.getEmail());
         }
 
-        if (tokenResponse.getAccessToken() != null &&
-                !tokenResponse.getAccessToken().isBlank()) {
-            social.updateToken(tokenResponse.getAccessToken());
+        // accessToken 저장
+        if (accessToken != null && !accessToken.isBlank()) {
+            social.updateToken(accessToken);
             socialAccountRepository.save(social);
         }
 
-        // 5. 우리 JWT 발급
         String accessJwt = jwtTokenUtil.generateAccessToken(
                 membersDetailService.loadUserByUsername(member.getEmail())
         );
@@ -103,7 +113,7 @@ public class KakaoLoginService {
     }
 
     /**
-     * 카카오 탈퇴 서비스
+     * 카카오 탈퇴
      */
     public void revoke(String authorizationHeader) {
         String jwt = authorizationHeader.substring(7);
@@ -114,7 +124,6 @@ public class KakaoLoginService {
                         new UsernameNotFoundException("Member not found: " + email)
                 );
 
-        // Kakao 소셜 계정 조회
         socialAccountRepository
                 .findByMemberIdAndProvider(member.getId(), Provider.KAKAO)
                 .ifPresent(sa -> {
@@ -124,10 +133,8 @@ public class KakaoLoginService {
 
         redisTemplate.delete("KAKAO_REFRESH:" + email);
 
-        // 다른 소셜 남아있는지 확인
         boolean hasOtherSocial = socialAccountRepository.existsByMemberId(member.getId());
 
-        // 아무 소셜도 없으면 Member 삭제
         if (!hasOtherSocial) {
             memberRepository.delete(member);
         }

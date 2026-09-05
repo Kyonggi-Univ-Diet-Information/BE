@@ -1,10 +1,12 @@
 package com.kyonggi.diet.dietContent.DTO;
 
 import com.kyonggi.diet.diet.DietDTO;
+import com.kyonggi.diet.dietContent.DietStatus;
 import com.kyonggi.diet.dietContent.DietTime;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -24,6 +26,10 @@ public class DietContentDTO {
     private DietTime time; // [BREAKFAST, LUNCH, DINNER]
 
     @Schema(description = "식단 DTO 리스트")
-    private List<DietDTO> contents;
+    @Builder.Default
+    private List<DietDTO> contents = new ArrayList<>();
+
+    @Schema(description = "식단 상태")
+    private DietStatus status;
 
 }

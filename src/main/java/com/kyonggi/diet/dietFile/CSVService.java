@@ -10,6 +10,7 @@ import com.kyonggi.diet.Food.repository.SallyBoxFoodRepository;
 import com.kyonggi.diet.Food.service.DietFoodService;
 import com.kyonggi.diet.diet.DietDTO;
 import com.kyonggi.diet.dietContent.DTO.DietContentDTO;
+import com.kyonggi.diet.dietContent.DietStatus;
 import com.kyonggi.diet.dietContent.DietTime;
 import com.kyonggi.diet.dietContent.service.DietContentService;
 import com.kyonggi.diet.Food.DTO.DietFoodDTO;
@@ -67,30 +68,38 @@ public class CSVService {
 
         try (CSVReader reader = new CSVReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
             String[] nextLine;
-
             reader.readNext();
+
             while ((nextLine = reader.readNext()) != null) {
-                // 날짜 데이터 검증 (공백 제거)
                 if (nextLine[0] == null || nextLine[0].trim().isEmpty()) continue;
-                String rawDate = nextLine[0].trim();
+                String dateOnly = nextLine[0].split(" ")[0]; // 날짜만 추출
 
                 for (int j = 1; j <= 3; j++) {
-                    // "미운영" 혹은 데이터 없음 스킵
-                    if (j >= nextLine.length || nextLine[j].contains("미운영") || nextLine[j].trim().isEmpty())
-                        continue;
-
-                    String dateOnly = nextLine[0].split(" ")[0]; // 날짜만 추출
                     DietTime currentTime = sortDietTime(j);
 
                     if (dietContentService.existsByDateAndTime(dateOnly, currentTime)) {
                         continue;
                     }
 
+                    boolean isClosed = (j >= nextLine.length ||
+                                        nextLine[j] == null ||
+                                        nextLine[j].trim().isEmpty() ||
+                                        nextLine[j].contains("미운영"));
+                    // 미운영 상태로 저장
+                    if (isClosed) {
+                        dietContentService.save(DietContentDTO.builder()
+                                .date(dateOnly)
+                                .time(currentTime)
+                                .status(DietStatus.CLOSED)
+                                .contents(new ArrayList<>())
+                                .build());
+                        continue;
+                    }
+
                     List<DietDTO> dietDTOS = new ArrayList<>();
                     String str = nextLine[j];
-
-                    // 메뉴 분리
                     StringTokenizer st = new StringTokenizer(str, "&/");
+
                     while (st.hasMoreTokens()) {
                         String foodName = st.nextToken().trim();
                         if (foodName.isEmpty()) continue;
@@ -99,41 +108,34 @@ public class CSVService {
                         DietFood savedEntity;
 
                         if (existing != null) {
-                            // 이미 존재하면 저장하지 않고 기존 것 사용 (영어 이름 없으면 업데이트)
                             if (existing.getNameEn() == null || existing.getNameEn().isBlank()) {
                                 existing.updateNameEn(translationService.translateToEnglish(foodName));
                             }
                             savedEntity = existing;
                         } else {
-                            // 존재하지 않을 때만 신규 저장
-                            String nameEn = translationService.translateToEnglish(foodName);
-                            DietFoodDTO dietFoodDTO = DietFoodDTO.builder()
+                            savedEntity = dietFoodService.save(DietFoodDTO.builder()
                                     .name(foodName)
-                                    .nameEn(nameEn)
-                                    .build();
-                            savedEntity = dietFoodService.save(dietFoodDTO);
+                                    .nameEn(translationService.translateToEnglish(foodName))
+                                    .build());
                         }
 
-                        DietFoodDTO savedDTO = DietFoodDTO.builder()
-                                .id(savedEntity.getId())
-                                .name(savedEntity.getName())
-                                .nameEn(savedEntity.getNameEn())
-                                .type(savedEntity.getDietFoodType())
-                                .build();
-
                         dietDTOS.add(DietDTO.builder()
-                                .dietFoodDTO(savedDTO)
+                                .dietFoodDTO(DietFoodDTO.builder()
+                                        .id(savedEntity.getId())
+                                        .name(savedEntity.getName())
+                                        .nameEn(savedEntity.getNameEn())
+                                        .type(savedEntity.getDietFoodType())
+                                        .build())
                                 .build());
                     }
 
                     if (!dietDTOS.isEmpty()) {
-
-                        DietContentDTO dietContentDTO = DietContentDTO.builder()
+                        dietContentService.save(DietContentDTO.builder()
                                 .date(dateOnly)
-                                .time(sortDietTime(j))
+                                .time(currentTime)
+                                .status(DietStatus.OPEN)
                                 .contents(dietDTOS)
-                                .build();
-                        dietContentService.save(dietContentDTO);
+                                .build());
                     }
                 }
             }
@@ -178,7 +180,7 @@ public class CSVService {
     }
 
     private KyongsulFood mapKyongsul(String[] nextLine) {
-        if (nextLine.length < 7 || nextLine[0].isEmpty()) return null;
+        if (nextLine.length < 9 || nextLine[0].isEmpty()) return null;
 
         String restaurantStr = nextLine[0];
         String name = nextLine[1].trim();
@@ -191,11 +193,15 @@ public class CSVService {
         FoodType foodType = FoodType.valueOf(nextLine[5].trim().toUpperCase());
         DetailedMenu detailedMenu = DetailedMenu.valueOf(nextLine[6].trim().toUpperCase());
         SubRestaurant subRestaurant = SubRestaurant.valueOf(restaurantStr);
+        KyongsulCategory category = KyongsulCategory.valueOf(nextLine[7].trim().toUpperCase());
+        String categoryKorean = nextLine[8].trim();
 
         Optional<KyongsulFood> exist = kyongsulFoodRepository.findByName(name);
         if (exist.isPresent()) {
             if (exist.get().getCuisine() == null)
                 exist.get().updateCategory(cuisine, foodType, detailedMenu);
+            if (exist.get().getCategory() == null)
+                exist.get().updateFoodCategory(category, categoryKorean);
             return null;
         }
 
@@ -207,6 +213,8 @@ public class CSVService {
                 .cuisine(cuisine)
                 .foodType(foodType)
                 .detailedMenu(detailedMenu)
+                .category(category)
+                .categoryKorean(categoryKorean)
                 .build();
     }
 
@@ -257,7 +265,7 @@ public class CSVService {
     }
 
     private ESquareFood mapESquare(String[] nextLine) {
-        if (nextLine.length < 6 || nextLine[0].isEmpty()) return null;
+        if (nextLine.length < 8 || nextLine[0].isEmpty()) return null;
 
         String name = nextLine[0].trim();
         Long price = parsePrice(nextLine[1]);
@@ -268,11 +276,15 @@ public class CSVService {
         Cuisine cuisine = Cuisine.valueOf(nextLine[3].trim().toUpperCase());
         FoodType foodType = FoodType.valueOf(nextLine[4].trim().toUpperCase());
         DetailedMenu detailedMenu = DetailedMenu.valueOf(nextLine[5].trim().toUpperCase());
+        ESquareCategory category = ESquareCategory.valueOf(nextLine[6].trim().toUpperCase());
+        String categoryKorean = nextLine[7].trim();
 
         Optional<ESquareFood> exist = esquareFoodRepository.findByName(name);
         if (exist.isPresent()) {
             if (exist.get().getCuisine() == null)
                 exist.get().updateCategory(cuisine, foodType, detailedMenu);
+            if (exist.get().getCategory() == null)
+                exist.get().updateFoodCategory(category, categoryKorean);
             return null;
         }
 
@@ -283,6 +295,8 @@ public class CSVService {
                 .cuisine(cuisine)
                 .foodType(foodType)
                 .detailedMenu(detailedMenu)
+                .category(category)
+                .categoryKorean(categoryKorean)
                 .build();
     }
 
@@ -293,7 +307,7 @@ public class CSVService {
     }
 
     private SallyBoxFood mapSallyBox(String[] nextLine) {
-        if (nextLine.length < 6 || nextLine[0].isEmpty()) return null;
+        if (nextLine.length < 8 || nextLine[0].isEmpty()) return null;
 
         String name = nextLine[0].trim();
         Long price = parsePrice(nextLine[1]);
@@ -304,11 +318,15 @@ public class CSVService {
         Cuisine cuisine = Cuisine.valueOf(nextLine[3].trim().toUpperCase());
         FoodType foodType = FoodType.valueOf(nextLine[4].trim().toUpperCase());
         DetailedMenu detailedMenu = DetailedMenu.valueOf(nextLine[5].trim().toUpperCase());
+        SallyBoxCategory category = SallyBoxCategory.valueOf(nextLine[6].trim().toUpperCase());
+        String categoryKorean = nextLine[7].trim();
 
         Optional<SallyBoxFood> exist = sallyBoxFoodRepository.findByName(name);
         if (exist.isPresent()) {
             if (exist.get().getCuisine() == null)
                 exist.get().updateCategory(cuisine, foodType, detailedMenu);
+            if (exist.get().getCategory() == null)
+                exist.get().updateFoodCategory(category, categoryKorean);
             return null;
         }
 
@@ -319,6 +337,8 @@ public class CSVService {
                 .cuisine(cuisine)
                 .foodType(foodType)
                 .detailedMenu(detailedMenu)
+                .category(category)
+                .categoryKorean(categoryKorean)
                 .build();
     }
 

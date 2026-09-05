@@ -34,4 +34,9 @@ public class ESquareFood extends ExtendedFood {
             orphanRemoval = true
     )
     private List<ESquareFoodReview> eSquareFoodReviews;
+
+    public void updateFoodCategory(ESquareCategory category, String categoryKorean) {
+            this.category = category;
+            this.categoryKorean = categoryKorean;
+        }
 }

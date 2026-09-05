@@ -22,6 +22,9 @@ public class MyPageDTO {
     @Schema(description = "이름")
     private String name;
 
+    @Schema(description = "닉네임")
+    private String nickname;
+
     @Schema(description = "생성일자")
     private String createdAt;
 }

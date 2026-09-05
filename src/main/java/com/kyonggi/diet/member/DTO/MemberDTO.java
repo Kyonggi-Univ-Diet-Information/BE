@@ -23,6 +23,9 @@ public class MemberDTO {
     @Schema(description = "이름")
     private String name;
 
+    @Schema(description = "닉네임")
+    private String nickname;
+
     @Schema(description = "프로필 URL")
     private String profileUrl;
 

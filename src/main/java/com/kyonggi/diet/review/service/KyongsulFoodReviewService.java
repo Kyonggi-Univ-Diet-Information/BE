@@ -10,11 +10,16 @@ import com.kyonggi.diet.member.service.MemberService;
 import com.kyonggi.diet.review.DTO.CreateReviewDTO;
 import com.kyonggi.diet.review.DTO.ForTopReviewDTO;
 import com.kyonggi.diet.review.DTO.ReviewDTO;
+import com.kyonggi.diet.review.ReviewSortType;
 import com.kyonggi.diet.review.domain.DietFoodReview;
 import com.kyonggi.diet.review.domain.ESquareFoodReview;
 import com.kyonggi.diet.review.domain.KyongsulFoodReview;
 import com.kyonggi.diet.review.favoriteReview.domain.FavoriteKyongsulFoodReview;
 import com.kyonggi.diet.review.favoriteReview.repository.FavoriteKyongsulFoodReviewRepository;
+import com.kyonggi.diet.review.image.ReviewImageCommitService;
+import com.kyonggi.diet.review.image.domain.KyongsulFoodReviewImage;
+import com.kyonggi.diet.review.image.dto.ReviewImageDTO;
+import com.kyonggi.diet.review.image.repository.KyongsulFoodReviewImageRepository;
 import com.kyonggi.diet.review.moderation.block.BlockService;
 import com.kyonggi.diet.review.repository.KyongsulFoodReviewRepository;
 import org.modelmapper.ModelMapper;
@@ -35,6 +40,8 @@ public class KyongsulFoodReviewService
     private final KyongsulFoodRepository kyongsulFoodRepository;
     private final FavoriteKyongsulFoodReviewRepository favoriteKyongsulFoodReviewRepository;
     private final BlockService blockService;
+    private final KyongsulFoodReviewImageRepository kyongsulFoodReviewImageRepository;
+    private final ReviewImageCommitService reviewImageCommitService;
 
     public KyongsulFoodReviewService(
             MemberService memberService,
@@ -42,13 +49,17 @@ public class KyongsulFoodReviewService
             KyongsulFoodReviewRepository kyongsulFoodReviewRepository,
             FavoriteKyongsulFoodReviewRepository favoriteKyongsulFoodReviewRepository,
             KyongsulFoodRepository kyongsulFoodRepository,
-            BlockService blockService
+            BlockService blockService,
+            KyongsulFoodReviewImageRepository kyongsulFoodReviewImageRepository,
+            ReviewImageCommitService reviewImageCommitService
     ) {
         super(memberService, modelMapper); // 상위 클래스 주입
         this.kyongsulFoodRepository = kyongsulFoodRepository;
         this.favoriteKyongsulFoodReviewRepository = favoriteKyongsulFoodReviewRepository;
         this.kyongsulFoodReviewRepository = kyongsulFoodReviewRepository;
         this.blockService = blockService;
+        this.kyongsulFoodReviewImageRepository = kyongsulFoodReviewImageRepository;
+        this.reviewImageCommitService = reviewImageCommitService;
     }
 
     public KyongsulFoodReview getReview(Long reviewId) {
@@ -96,6 +107,29 @@ public class KyongsulFoodReviewService
 
         kyongsulFoodReviewRepository.save(review);
         food.getKyongsulFoodReviews().add(review);
+
+        saveNewImages(review, dto.getImageKeys());
+    }
+
+    private void saveNewImages(KyongsulFoodReview review, List<String> tmpKeys) {
+        List<String> committedKeys = reviewImageCommitService.commitTmpImages(tmpKeys);
+        if (committedKeys.isEmpty()) return;
+
+        List<KyongsulFoodReviewImage> existing =
+                kyongsulFoodReviewImageRepository.findAllByReview_IdOrderBySortOrderAsc(review.getId());
+        int startSortOrder = existing.isEmpty()
+                ? 0
+                : existing.get(existing.size() - 1).getSortOrder() + 1;
+
+        List<KyongsulFoodReviewImage> images = new ArrayList<>();
+        for (int i = 0; i < committedKeys.size(); i++) {
+            images.add(KyongsulFoodReviewImage.builder()
+                    .review(review)
+                    .imageKey(committedKeys.get(i))
+                    .sortOrder(startSortOrder + i)
+                    .build());
+        }
+        kyongsulFoodReviewImageRepository.saveAll(images);
     }
 
     @Override
@@ -111,11 +145,51 @@ public class KyongsulFoodReviewService
         KyongsulFoodReview review = kyongsulFoodReviewRepository.findById(reviewId)
                 .orElseThrow(() -> new NoSuchElementException("No review found"));
         review.updateReview(dto.getRating(), dto.getTitle(), dto.getContent());
+
+        deleteRemovedImages(reviewId, dto.getKeepImageIds());
+        saveNewImages(review, dto.getImageKeys());
+    }
+
+    private void deleteRemovedImages(Long reviewId, List<Long> keepImageIds) {
+        List<KyongsulFoodReviewImage> existing =
+                kyongsulFoodReviewImageRepository.findAllByReview_IdOrderBySortOrderAsc(reviewId);
+
+        Set<Long> keepIds = keepImageIds == null ? Set.of() : new HashSet<>(keepImageIds);
+        List<KyongsulFoodReviewImage> toDelete = existing.stream()
+                .filter(image -> !keepIds.contains(image.getId()))
+                .toList();
+        if (toDelete.isEmpty()) return;
+
+        reviewImageCommitService.deleteReviewImages(
+                toDelete.stream().map(KyongsulFoodReviewImage::getImageKey).toList());
+        kyongsulFoodReviewImageRepository.deleteAllInBatch(toDelete);
+    }
+
+    @Override
+    protected List<ReviewImageDTO> loadImages(KyongsulFoodReview review) {
+        return kyongsulFoodReviewImageRepository.findAllByReview_IdOrderBySortOrderAsc(review.getId()).stream()
+                .map(image -> ReviewImageDTO.builder()
+                        .id(image.getId())
+                        .url(reviewImageCommitService.generateViewUrl(image.getImageKey()))
+                        .build())
+                .toList();
+    }
+
+    @Override
+    public List<String> getImageKeys(Long reviewId) {
+        return kyongsulFoodReviewImageRepository.findAllByReview_IdOrderBySortOrderAsc(reviewId).stream()
+                .map(KyongsulFoodReviewImage::getImageKey)
+                .toList();
     }
 
     @Override
     @Transactional
     public void deleteReview(Long reviewId) {
+        List<KyongsulFoodReviewImage> images =
+                kyongsulFoodReviewImageRepository.findAllByReview_IdOrderBySortOrderAsc(reviewId);
+        reviewImageCommitService.deleteReviewImages(
+                images.stream().map(KyongsulFoodReviewImage::getImageKey).toList());
+
         kyongsulFoodReviewRepository.deleteById(reviewId);
     }
 
@@ -175,8 +249,8 @@ public class KyongsulFoodReviewService
     }
 
     @Override
-    public Page<ReviewDTO> getAllReviewsByFoodIdPaged(Long foodId, int pageNo, CustomUserDetails user) {
-        Pageable pageable = PageRequest.of(pageNo, 10, Sort.by(Sort.Direction.DESC, "id"));
+    public Page<ReviewDTO> getAllReviewsByFoodIdPaged(Long foodId, int pageNo, ReviewSortType sort, CustomUserDetails user) {
+        Pageable pageable = super.buildPageable(pageNo, sort);
         Page<KyongsulFoodReview> reviews;
 
         if (user == null) {

@@ -47,13 +47,16 @@ public class DietContentServiceImpl implements DietContentService {
         DietContent dietContent = DietContent.builder()
                 .date(dietContentDTO.getDate())
                 .time(dietContentDTO.getTime())
+                .status(dietContentDTO.getStatus())
                 .build();
         dietContentRepository.save(dietContent);
 
-        List<Diet> findContents = dietContentDTO.getContents().stream()
-                .map(data -> convertToEntity(data, dietContent))
-                .collect(Collectors.toList());
-        dietRepository.saveAll(findContents);
+        if (dietContentDTO.getContents() != null && !dietContentDTO.getContents().isEmpty()) {
+            List<Diet> findContents = dietContentDTO.getContents().stream()
+                    .map(data -> convertToEntity(data, dietContent))
+                    .collect(Collectors.toList());
+            dietRepository.saveAll(findContents);
+        }
     }
 
     /**

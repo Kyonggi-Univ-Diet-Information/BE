@@ -197,11 +197,12 @@ public class ReviewController implements ReviewControllerDocs {
 
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", "ENUM 매핑 실패", "message", e.getMessage()));
+                    .body(Map.of("error", "ENUM 매핑 실패"));
 
         } catch (Exception e) {
+            log.error("top5-recent 조회 중 오류 발생", e);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", "요청 처리 중 오류 발생", "message", e.getMessage()));
+                    .body(Map.of("error", "요청 처리 중 오류가 발생했습니다."));
         }
     }
 

@@ -13,6 +13,7 @@ import com.kyonggi.diet.Food.service.SallyBoxFoodService;
 import com.kyonggi.diet.controllerDocs.FoodControllerDocs;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,6 +26,7 @@ import java.util.NoSuchElementException;
 @RequiredArgsConstructor
 @RequestMapping("/api/food")
 @Tag(name = "음식 API", description = "경슐랭 / 기숙사 / 이스퀘어 / 샐리박스 식당 음식 통합 API (조회, 생성, 삭제, 수정)")
+@Slf4j
 public class FoodController implements FoodControllerDocs {
 
     private final KyongsulFoodService kyongsulFoodService;
@@ -234,11 +236,12 @@ public class FoodController implements FoodControllerDocs {
 
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", "ENUM 매핑 실패", "message", e.getMessage()));
+                    .body(Map.of("error", "ENUM 매핑 실패"));
 
         } catch (Exception e) {
+            log.error("top5-menu 조회 중 오류 발생", e);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", "요청 처리 중 오류 발생", "message", e.getMessage()));
+                    .body(Map.of("error", "요청 처리 중 오류가 발생했습니다."));
         }
     }
 

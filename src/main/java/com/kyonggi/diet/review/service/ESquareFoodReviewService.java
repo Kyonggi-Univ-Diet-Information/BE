@@ -15,6 +15,10 @@ import com.kyonggi.diet.review.domain.KyongsulFoodReview;
 import com.kyonggi.diet.review.favoriteReview.domain.FavoriteESquareFoodReview;
 import com.kyonggi.diet.review.favoriteReview.repository.FavoriteESquareFoodReviewRepository;
 import com.kyonggi.diet.review.favoriteReview.service.FavoriteESquareFoodReviewService;
+import com.kyonggi.diet.review.image.ReviewImageCommitService;
+import com.kyonggi.diet.review.image.domain.ESquareFoodReviewImage;
+import com.kyonggi.diet.review.image.dto.ReviewImageDTO;
+import com.kyonggi.diet.review.image.repository.ESquareFoodReviewImageRepository;
 import com.kyonggi.diet.review.moderation.block.BlockService;
 import com.kyonggi.diet.review.repository.ESquareFoodReviewRepository;
 import org.modelmapper.ModelMapper;
@@ -26,10 +30,13 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.Set;
 
 @Service
 @Transactional(readOnly = true)
@@ -41,6 +48,8 @@ public class ESquareFoodReviewService
     private final ESquareFoodRepository esquareFoodRepository;
     private final FavoriteESquareFoodReviewRepository favoriteESquareFoodReviewRepository;
     private final BlockService blockService;
+    private final ESquareFoodReviewImageRepository esquareFoodReviewImageRepository;
+    private final ReviewImageCommitService reviewImageCommitService;
 
     ESquareFoodReviewService(
             ModelMapper modelMapper,
@@ -49,12 +58,16 @@ public class ESquareFoodReviewService
             ESquareFoodRepository eSquareFoodRepository,
             FavoriteESquareFoodReviewService favoriteESquareFoodReviewService,
             FavoriteESquareFoodReviewRepository favoriteESquareFoodReviewRepository,
-            BlockService blockService) {
+            BlockService blockService,
+            ESquareFoodReviewImageRepository esquareFoodReviewImageRepository,
+            ReviewImageCommitService reviewImageCommitService) {
         super(memberService, modelMapper);
         this.esquareFoodReviewRepository = esquareFoodReviewRepository;
         this.esquareFoodRepository = eSquareFoodRepository;
         this.favoriteESquareFoodReviewRepository = favoriteESquareFoodReviewRepository;
         this.blockService = blockService;
+        this.esquareFoodReviewImageRepository = esquareFoodReviewImageRepository;
+        this.reviewImageCommitService = reviewImageCommitService;
     }
 
     public ESquareFoodReview getReview(Long reviewId) {
@@ -102,6 +115,29 @@ public class ESquareFoodReviewService
 
         esquareFoodReviewRepository.save(review);
         food.getESquareFoodReviews().add(review);
+
+        saveNewImages(review, dto.getImageKeys());
+    }
+
+    private void saveNewImages(ESquareFoodReview review, List<String> tmpKeys) {
+        List<String> committedKeys = reviewImageCommitService.commitTmpImages(tmpKeys);
+        if (committedKeys.isEmpty()) return;
+
+        List<ESquareFoodReviewImage> existing =
+                esquareFoodReviewImageRepository.findAllByReview_IdOrderBySortOrderAsc(review.getId());
+        int startSortOrder = existing.isEmpty()
+                ? 0
+                : existing.get(existing.size() - 1).getSortOrder() + 1;
+
+        List<ESquareFoodReviewImage> images = new ArrayList<>();
+        for (int i = 0; i < committedKeys.size(); i++) {
+            images.add(ESquareFoodReviewImage.builder()
+                    .review(review)
+                    .imageKey(committedKeys.get(i))
+                    .sortOrder(startSortOrder + i)
+                    .build());
+        }
+        esquareFoodReviewImageRepository.saveAll(images);
     }
 
     @Override
@@ -117,11 +153,51 @@ public class ESquareFoodReviewService
         ESquareFoodReview review = esquareFoodReviewRepository.findById(reviewId)
                 .orElseThrow(() -> new NoSuchElementException("No review found"));
         review.updateReview(dto.getRating(), dto.getTitle(), dto.getContent());
+
+        deleteRemovedImages(reviewId, dto.getKeepImageIds());
+        saveNewImages(review, dto.getImageKeys());
+    }
+
+    private void deleteRemovedImages(Long reviewId, List<Long> keepImageIds) {
+        List<ESquareFoodReviewImage> existing =
+                esquareFoodReviewImageRepository.findAllByReview_IdOrderBySortOrderAsc(reviewId);
+
+        Set<Long> keepIds = keepImageIds == null ? Set.of() : new HashSet<>(keepImageIds);
+        List<ESquareFoodReviewImage> toDelete = existing.stream()
+                .filter(image -> !keepIds.contains(image.getId()))
+                .toList();
+        if (toDelete.isEmpty()) return;
+
+        reviewImageCommitService.deleteReviewImages(
+                toDelete.stream().map(ESquareFoodReviewImage::getImageKey).toList());
+        esquareFoodReviewImageRepository.deleteAllInBatch(toDelete);
+    }
+
+    @Override
+    protected List<ReviewImageDTO> loadImages(ESquareFoodReview review) {
+        return esquareFoodReviewImageRepository.findAllByReview_IdOrderBySortOrderAsc(review.getId()).stream()
+                .map(image -> ReviewImageDTO.builder()
+                        .id(image.getId())
+                        .url(reviewImageCommitService.generateViewUrl(image.getImageKey()))
+                        .build())
+                .toList();
+    }
+
+    @Override
+    public List<String> getImageKeys(Long reviewId) {
+        return esquareFoodReviewImageRepository.findAllByReview_IdOrderBySortOrderAsc(reviewId).stream()
+                .map(ESquareFoodReviewImage::getImageKey)
+                .toList();
     }
 
     @Override
     @Transactional
     public void deleteReview(Long reviewId) {
+        List<ESquareFoodReviewImage> images =
+                esquareFoodReviewImageRepository.findAllByReview_IdOrderBySortOrderAsc(reviewId);
+        reviewImageCommitService.deleteReviewImages(
+                images.stream().map(ESquareFoodReviewImage::getImageKey).toList());
+
         esquareFoodReviewRepository.deleteById(reviewId);
     }
 

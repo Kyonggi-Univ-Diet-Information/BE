@@ -64,11 +64,14 @@ public class ReviewController implements ReviewControllerDocs {
                     .title(dto.getTitle())
                     .content(dto.getContent())
                     .rating(dto.getRating())
+                    .imageKeys(dto.getImageKeys())
                     .build();
             resolve(type).createReview(review, foodId, email);
             return ResponseEntity.ok("Review Created");
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid restaurant type: " + type);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
 
@@ -116,8 +119,10 @@ public class ReviewController implements ReviewControllerDocs {
             }
             service.modifyReview(reviewId, dto);
             return ResponseEntity.ok("Review Modified");
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid restaurant type: " + type);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
 
@@ -134,8 +139,10 @@ public class ReviewController implements ReviewControllerDocs {
             }
             service.deleteReview(reviewId);
             return ResponseEntity.ok("Review Deleted");
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid restaurant type: " + type);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
 
@@ -252,7 +259,8 @@ public class ReviewController implements ReviewControllerDocs {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("이미 신고한 게시물입니다.");
         }
 
-        Review review = resolve(type).getReview(reviewId);
+        ReviewService<?> service = resolve(type);
+        Review review = service.getReview(reviewId);
         try {
             if (reasonType != ReportReasonType.ETC
                     && reason != null
@@ -268,7 +276,8 @@ public class ReviewController implements ReviewControllerDocs {
                 dto.setEtcReason(reason.getEtcReason());
             }
 
-            reportService.report(me, type, review, reviewId, dto);
+            List<String> imageKeys = service.getImageKeys(reviewId);
+            reportService.report(me, type, review, reviewId, dto, imageKeys);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest()
                     .body(e.getMessage());

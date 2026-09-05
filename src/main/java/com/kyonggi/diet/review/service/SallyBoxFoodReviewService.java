@@ -14,6 +14,10 @@ import com.kyonggi.diet.review.domain.ESquareFoodReview;
 import com.kyonggi.diet.review.domain.SallyBoxFoodReview;
 import com.kyonggi.diet.review.favoriteReview.domain.FavoriteSallyBoxFoodReview;
 import com.kyonggi.diet.review.favoriteReview.repository.FavoriteSallyBoxFoodReviewRepository;
+import com.kyonggi.diet.review.image.ReviewImageCommitService;
+import com.kyonggi.diet.review.image.domain.SallyBoxFoodReviewImage;
+import com.kyonggi.diet.review.image.dto.ReviewImageDTO;
+import com.kyonggi.diet.review.image.repository.SallyBoxFoodReviewImageRepository;
 import com.kyonggi.diet.review.moderation.block.BlockService;
 import com.kyonggi.diet.review.repository.SallyBoxFoodReviewRepository;
 import org.modelmapper.ModelMapper;
@@ -25,10 +29,13 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.Set;
 
 @Service
 @Transactional(readOnly = true)
@@ -39,6 +46,8 @@ public class SallyBoxFoodReviewService
     private final SallyBoxFoodRepository sallyBoxFoodRepository;
     private final FavoriteSallyBoxFoodReviewRepository favoriteSallyBoxFoodReviewRepository;
     private final BlockService blockService;
+    private final SallyBoxFoodReviewImageRepository sallyBoxFoodReviewImageRepository;
+    private final ReviewImageCommitService reviewImageCommitService;
 
     SallyBoxFoodReviewService(
             ModelMapper modelMapper,
@@ -46,12 +55,16 @@ public class SallyBoxFoodReviewService
             SallyBoxFoodReviewRepository sallyBoxFoodReviewRepository,
             SallyBoxFoodRepository sallyBoxFoodRepository,
             FavoriteSallyBoxFoodReviewRepository favoriteSallyBoxFoodReviewRepository,
-            BlockService blockService) {
+            BlockService blockService,
+            SallyBoxFoodReviewImageRepository sallyBoxFoodReviewImageRepository,
+            ReviewImageCommitService reviewImageCommitService) {
         super(memberService, modelMapper);
         this.sallyBoxFoodReviewRepository = sallyBoxFoodReviewRepository;
         this.sallyBoxFoodRepository = sallyBoxFoodRepository;
         this.favoriteSallyBoxFoodReviewRepository = favoriteSallyBoxFoodReviewRepository;
         this.blockService = blockService;
+        this.sallyBoxFoodReviewImageRepository = sallyBoxFoodReviewImageRepository;
+        this.reviewImageCommitService = reviewImageCommitService;
     }
 
     public SallyBoxFoodReview getReview(Long reviewId) {
@@ -99,6 +112,29 @@ public class SallyBoxFoodReviewService
 
         sallyBoxFoodReviewRepository.save(review);
         food.getSallyBoxFoodReviews().add(review);
+
+        saveNewImages(review, dto.getImageKeys());
+    }
+
+    private void saveNewImages(SallyBoxFoodReview review, List<String> tmpKeys) {
+        List<String> committedKeys = reviewImageCommitService.commitTmpImages(tmpKeys);
+        if (committedKeys.isEmpty()) return;
+
+        List<SallyBoxFoodReviewImage> existing =
+                sallyBoxFoodReviewImageRepository.findAllByReview_IdOrderBySortOrderAsc(review.getId());
+        int startSortOrder = existing.isEmpty()
+                ? 0
+                : existing.get(existing.size() - 1).getSortOrder() + 1;
+
+        List<SallyBoxFoodReviewImage> images = new ArrayList<>();
+        for (int i = 0; i < committedKeys.size(); i++) {
+            images.add(SallyBoxFoodReviewImage.builder()
+                    .review(review)
+                    .imageKey(committedKeys.get(i))
+                    .sortOrder(startSortOrder + i)
+                    .build());
+        }
+        sallyBoxFoodReviewImageRepository.saveAll(images);
     }
 
     @Override
@@ -114,11 +150,51 @@ public class SallyBoxFoodReviewService
         SallyBoxFoodReview review = sallyBoxFoodReviewRepository.findById(reviewId)
                 .orElseThrow(() -> new NoSuchElementException("No review found"));
         review.updateReview(dto.getRating(), dto.getTitle(), dto.getContent());
+
+        deleteRemovedImages(reviewId, dto.getKeepImageIds());
+        saveNewImages(review, dto.getImageKeys());
+    }
+
+    private void deleteRemovedImages(Long reviewId, List<Long> keepImageIds) {
+        List<SallyBoxFoodReviewImage> existing =
+                sallyBoxFoodReviewImageRepository.findAllByReview_IdOrderBySortOrderAsc(reviewId);
+
+        Set<Long> keepIds = keepImageIds == null ? Set.of() : new HashSet<>(keepImageIds);
+        List<SallyBoxFoodReviewImage> toDelete = existing.stream()
+                .filter(image -> !keepIds.contains(image.getId()))
+                .toList();
+        if (toDelete.isEmpty()) return;
+
+        reviewImageCommitService.deleteReviewImages(
+                toDelete.stream().map(SallyBoxFoodReviewImage::getImageKey).toList());
+        sallyBoxFoodReviewImageRepository.deleteAllInBatch(toDelete);
+    }
+
+    @Override
+    protected List<ReviewImageDTO> loadImages(SallyBoxFoodReview review) {
+        return sallyBoxFoodReviewImageRepository.findAllByReview_IdOrderBySortOrderAsc(review.getId()).stream()
+                .map(image -> ReviewImageDTO.builder()
+                        .id(image.getId())
+                        .url(reviewImageCommitService.generateViewUrl(image.getImageKey()))
+                        .build())
+                .toList();
+    }
+
+    @Override
+    public List<String> getImageKeys(Long reviewId) {
+        return sallyBoxFoodReviewImageRepository.findAllByReview_IdOrderBySortOrderAsc(reviewId).stream()
+                .map(SallyBoxFoodReviewImage::getImageKey)
+                .toList();
     }
 
     @Override
     @Transactional
     public void deleteReview(Long reviewId) {
+        List<SallyBoxFoodReviewImage> images =
+                sallyBoxFoodReviewImageRepository.findAllByReview_IdOrderBySortOrderAsc(reviewId);
+        reviewImageCommitService.deleteReviewImages(
+                images.stream().map(SallyBoxFoodReviewImage::getImageKey).toList());
+
         sallyBoxFoodReviewRepository.deleteById(reviewId);
     }
 

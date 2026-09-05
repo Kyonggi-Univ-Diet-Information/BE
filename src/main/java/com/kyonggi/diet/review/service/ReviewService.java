@@ -53,4 +53,7 @@ public interface ReviewService<R extends Review> {
     Page<ReviewDTO> findAllByMemberFavoritedPaged(MemberEntity member, int pageNo);
 
     R getReview(Long reviewId);
+
+    /** 리뷰에 등록된 이미지 key 목록을 sortOrder 순으로 반환 (없으면 빈 리스트) */
+    List<String> getImageKeys(Long reviewId);
 }

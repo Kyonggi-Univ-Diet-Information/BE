@@ -6,6 +6,7 @@ import com.kyonggi.diet.member.service.MemberService;
 import com.kyonggi.diet.review.DTO.ForTopReviewDTO;
 import com.kyonggi.diet.review.DTO.ReviewDTO;
 import com.kyonggi.diet.review.domain.Review;
+import com.kyonggi.diet.review.image.dto.ReviewImageDTO;
 import com.kyonggi.diet.review.ReviewSortType;
 import lombok.NoArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -50,6 +51,9 @@ public abstract class AbstractReviewService<R extends Review, ID> {
     protected abstract List<R> findAllReviewsByMember(MemberEntity member);
     protected abstract List<R> extractFavoritedReviews(MemberEntity member);
 
+    /** 하위 클래스에서 리뷰에 등록된 이미지(조회용 URL 포함) 목록 조회 구현 */
+    protected abstract List<ReviewImageDTO> loadImages(R review);
+
     /**
      * Review -> ReviewDTO
      * @param review (Review)
@@ -71,6 +75,7 @@ public abstract class AbstractReviewService<R extends Review, ID> {
         if (review.getUpdatedAt() != null) {
             dto.setUpdatedAt(review.getUpdatedAt().toLocalDateTime().format(formatter));
         }
+        dto.setImages(loadImages(review));
         return dto;
     }
 
@@ -84,6 +89,7 @@ public abstract class AbstractReviewService<R extends Review, ID> {
         if (review.getUpdatedAt() != null) {
             dto.setUpdatedAt(review.getUpdatedAt().toLocalDateTime().format(formatter));
         }
+        dto.setImages(loadImages(review));
         return dto;
     }
 
@@ -194,6 +200,7 @@ public abstract class AbstractReviewService<R extends Review, ID> {
                 .memberName(memberName)
                 .createdAt(String.valueOf(review.getCreatedAt()))
                 .updatedAt(String.valueOf(review.getUpdatedAt()))
+                .images(loadImages(review))
                 .build();
     }
 

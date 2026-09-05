@@ -28,6 +28,9 @@ public class TopReviewedFoodDTO {
     @Schema(description = "가격")
     private Long price;
 
+    @Schema(description = "리뷰 평점 평균")
+    private Double averageRating;
+
     @Schema(description = "요리 방법")
     private Cuisine cuisine;
 

@@ -34,4 +34,9 @@ public class SallyBoxFood extends ExtendedFood {
             orphanRemoval = true
     )
     private List<SallyBoxFoodReview> sallyBoxFoodReviews;
+
+    public void updateFoodCategory(SallyBoxCategory category, String categoryKorean) {
+            this.category = category;
+            this.categoryKorean = categoryKorean;
+        }
 }

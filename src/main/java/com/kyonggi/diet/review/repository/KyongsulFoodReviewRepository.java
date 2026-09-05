@@ -18,6 +18,9 @@ public interface KyongsulFoodReviewRepository extends JpaRepository<KyongsulFood
     @Query("select avg(r.rating) from KyongsulFoodReview r where r.kyongsulFood.id = :id")
     Double findAverageRatingByKyongsulFoodId(@Param("id") Long id);
 
+    @Query("select r.kyongsulFood.id, avg(r.rating), count(r) from KyongsulFoodReview r group by r.kyongsulFood.id")
+    List<Object[]> findRatingStatsGroupByFoodId();
+
     @Query("select r from KyongsulFoodReview r where r.kyongsulFood.id = :kyongsulFoodId")
     Page<KyongsulFoodReview> findAllByKyongsulFoodId(Long kyongsulFoodId, Pageable pageable);
 

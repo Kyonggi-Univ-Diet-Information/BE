@@ -19,6 +19,9 @@ public interface ESquareFoodReviewRepository extends JpaRepository<ESquareFoodRe
     @Query("select avg(r.rating) from ESquareFoodReview r where r.eSquareFood.id = :id")
     Double findAverageRatingByESquareFoodId(@Param("id") Long id);
 
+    @Query("select r.eSquareFood.id, avg(r.rating), count(r) from ESquareFoodReview r group by r.eSquareFood.id")
+    List<Object[]> findRatingStatsGroupByFoodId();
+
     @Query("select r from ESquareFoodReview r where r.eSquareFood.id = :eSquareFoodId")
     Page<ESquareFoodReview> findAllByESquareFoodId(Long eSquareFoodId, Pageable pageable);
 

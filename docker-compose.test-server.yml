@@ -7,6 +7,9 @@ services:
       - "8080:8080"
     env_file:
       - .env
+    environment:
+      # application-test.yml 을 활성화해 compose 의 postgres 를 사용한다.
+      SPRING_PROFILES_ACTIVE: test
     depends_on:
       postgres:
         condition: service_healthy

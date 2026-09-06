@@ -1,0 +1,63 @@
+# CI 스모크 테스트 전용 프로필 (feature-smoke-test.yml).
+# 외부 DB 없이 기동만 확인하므로 H2 인메모리를 사용한다.
+spring:
+  application:
+    name: diet
+
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop   # 테스트마다 스키마 새로 생성
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+
+  sql:
+    init:
+      mode: never
+      encoding: UTF-8
+
+server:
+  port: 8080
+
+logging:
+  level:
+    org.hibernate.SQL: info
+    org.hibernate.orm.jdbc.bind: warn
+
+jwt:
+  secret: ${JWT_KEY}
+
+cloud:
+  aws:
+    s3:
+      bucketName:
+        diet: ${BUCKET_NAME}
+        kyongsul: ${KYONGSUL_BUCKET_NAME}
+    credentials:
+      accessKey: ${ACCESS_KEY}
+      secretKey: ${SECRET_KEY}
+    region.static: ${REGION}
+    stack.auto: false
+
+kakao:
+  client_id: ${REST_API_KEY}
+  redirect_uri: https://www.kiryong.kr/auth
+
+openai:
+  api-key: ${OPENAI_API_KEY}
+  base-url: https://api.openai.com/v1
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+  endpoint:
+    health:
+      show-details: always

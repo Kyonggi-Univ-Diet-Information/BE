@@ -51,7 +51,7 @@ jobs:
         run: ./gradlew clean build -x test --no-daemon
 
       - name: Run Spring Boot (test profile)
-        run: nohup java -jar build/libs/*.jar --spring.profiles.active=test > app.log 2>&1 &
+        run: nohup java -jar build/libs/*.jar --spring.profiles.active=ci > app.log 2>&1 &
 
       - name: Wait for server to start
         run: |

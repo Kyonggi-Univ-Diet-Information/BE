@@ -9,6 +9,7 @@ import com.kyonggi.diet.review.DTO.ReviewDTO;
 import com.kyonggi.diet.review.domain.KyongsulFoodReview;
 import com.kyonggi.diet.review.domain.Review;
 import org.springframework.data.domain.Page;
+import com.kyonggi.diet.review.ReviewSortType;
 
 import java.util.List;
 import java.util.Map;
@@ -25,7 +26,7 @@ public interface ReviewService<R extends Review> {
 
     ReviewDTO findReviewDTO(Long reviewId, CustomUserDetails user);
 
-    Page<ReviewDTO> getAllReviewsByFoodIdPaged(Long foodId, int pageNo, CustomUserDetails user);
+    Page<ReviewDTO> getAllReviewsByFoodIdPaged(Long foodId, int pageNo, ReviewSortType sort, CustomUserDetails user);
 
     void modifyReview(Long reviewId, CreateReviewDTO dto);
 
@@ -52,4 +53,7 @@ public interface ReviewService<R extends Review> {
     Page<ReviewDTO> findAllByMemberFavoritedPaged(MemberEntity member, int pageNo);
 
     R getReview(Long reviewId);
+
+    /** 리뷰에 등록된 이미지 key 목록을 sortOrder 순으로 반환 (없으면 빈 리스트) */
+    List<String> getImageKeys(Long reviewId);
 }

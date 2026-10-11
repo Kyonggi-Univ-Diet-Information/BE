@@ -38,6 +38,9 @@ public class ESquareFoodDTO {
     @Schema(description = "리뷰 수")
     private Long reviewCount;
 
+    @Schema(description = "리뷰 평점 평균")
+    private Double averageRating;
+
     /** /////////// */
     @Schema(description = "이스퀘어 음식 카테고리")
     private ESquareCategory category;

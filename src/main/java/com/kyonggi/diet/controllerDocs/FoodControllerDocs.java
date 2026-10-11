@@ -66,7 +66,9 @@ public interface FoodControllerDocs {
     )
     ResponseEntity<?> getFoodByCategory(
             @Parameter(name = "type", description = "식당 종류", in = ParameterIn.PATH)
-            RestaurantType type
+            RestaurantType type,
+            @Parameter(name = "sort", description = "정렬 기준: rating(평점순) / name(가나다순) / review_count(리뷰많은순). 미지정·오타 시 기존 등록순 유지", required = false)
+            String sort
     );
 
     // ---------------------- 요리 방식별 음식 조회 ----------------------

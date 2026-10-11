@@ -161,6 +161,8 @@ public interface ReviewControllerDocs {
             @PathVariable Long foodId,
             @Parameter(name = "pageNo", description = "페이지 번호 (0부터 시작)", in = ParameterIn.QUERY)
             @RequestParam(name = "pageNo", defaultValue = "0") int pageNo,
+            @Parameter(name = "sort", description = "정렬 기준: recent(최신순) / rating-desc(평점 높은순) / rating-asc(평점 낮은순). 평점 동률 시 최신순 2차 정렬. 미지정·오타 시 기존 정렬 유지", in = ParameterIn.QUERY)
+            @RequestParam(name = "sort", required = false) String sort,
             @AuthenticationPrincipal CustomUserDetails user
             );
 

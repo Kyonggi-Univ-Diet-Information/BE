@@ -79,9 +79,11 @@ public class GoogleAuthController {
             return ResponseEntity.ok()
                     .header("Set-Cookie", cookie.toString())
                     .body("Revoked");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(e.getMessage());
+            log.error("Google revoke failed", e);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("탈퇴 처리 중 오류가 발생했습니다.");
         }
     }
 }

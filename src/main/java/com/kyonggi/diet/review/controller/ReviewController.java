@@ -5,6 +5,7 @@ import com.kyonggi.diet.auth.util.JwtTokenUtil;
 import com.kyonggi.diet.controllerDocs.ReviewControllerDocs;
 import com.kyonggi.diet.member.CustomUserDetails;
 import com.kyonggi.diet.review.DTO.*;
+import com.kyonggi.diet.review.ReviewSortType;
 import com.kyonggi.diet.review.domain.Review;
 import com.kyonggi.diet.review.moderation.block.BlockService;
 import com.kyonggi.diet.review.moderation.report.ReportReasonType;
@@ -63,11 +64,14 @@ public class ReviewController implements ReviewControllerDocs {
                     .title(dto.getTitle())
                     .content(dto.getContent())
                     .rating(dto.getRating())
+                    .imageKeys(dto.getImageKeys())
                     .build();
             resolve(type).createReview(review, foodId, email);
             return ResponseEntity.ok("Review Created");
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid restaurant type: " + type);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
 
@@ -90,9 +94,11 @@ public class ReviewController implements ReviewControllerDocs {
     public ResponseEntity<?> getPagedReviews(@PathVariable("type") RestaurantType type,
                                              @PathVariable("foodId") Long foodId,
                                              @RequestParam(name = "pageNo", defaultValue = "0") int pageNo,
+                                             @RequestParam(name = "sort", required = false) String sort,
                                              @AuthenticationPrincipal CustomUserDetails user) {
         try {
-            Page<ReviewDTO> page = resolve(type).getAllReviewsByFoodIdPaged(foodId, pageNo, user);
+            ReviewSortType sortType = ReviewSortType.from(sort);
+            Page<ReviewDTO> page = resolve(type).getAllReviewsByFoodIdPaged(foodId, pageNo, sortType, user);
             return ResponseEntity.ok(page);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid restaurant type: " + type);
@@ -113,8 +119,10 @@ public class ReviewController implements ReviewControllerDocs {
             }
             service.modifyReview(reviewId, dto);
             return ResponseEntity.ok("Review Modified");
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid restaurant type: " + type);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
 
@@ -131,8 +139,10 @@ public class ReviewController implements ReviewControllerDocs {
             }
             service.deleteReview(reviewId);
             return ResponseEntity.ok("Review Deleted");
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid restaurant type: " + type);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
 
@@ -187,11 +197,12 @@ public class ReviewController implements ReviewControllerDocs {
 
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", "ENUM 매핑 실패", "message", e.getMessage()));
+                    .body(Map.of("error", "ENUM 매핑 실패"));
 
         } catch (Exception e) {
+            log.error("top5-recent 조회 중 오류 발생", e);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", "요청 처리 중 오류 발생", "message", e.getMessage()));
+                    .body(Map.of("error", "요청 처리 중 오류가 발생했습니다."));
         }
     }
 
@@ -249,7 +260,8 @@ public class ReviewController implements ReviewControllerDocs {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("이미 신고한 게시물입니다.");
         }
 
-        Review review = resolve(type).getReview(reviewId);
+        ReviewService<?> service = resolve(type);
+        Review review = service.getReview(reviewId);
         try {
             if (reasonType != ReportReasonType.ETC
                     && reason != null
@@ -265,7 +277,8 @@ public class ReviewController implements ReviewControllerDocs {
                 dto.setEtcReason(reason.getEtcReason());
             }
 
-            reportService.report(me, type, review, reviewId, dto);
+            List<String> imageKeys = service.getImageKeys(reviewId);
+            reportService.report(me, type, review, reviewId, dto, imageKeys);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest()
                     .body(e.getMessage());

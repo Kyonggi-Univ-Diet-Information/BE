@@ -39,6 +39,9 @@ public class SallyBoxFoodDTO {
     @Schema(description = "리뷰 수")
     private Long reviewCount;
 
+    @Schema(description = "리뷰 평점 평균")
+    private Double averageRating;
+
     /** /////////// */
 
     @Schema(description = "샐리박스 음식 카테고리")

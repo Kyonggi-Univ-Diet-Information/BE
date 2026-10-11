@@ -18,6 +18,9 @@ public interface SallyBoxFoodReviewRepository extends JpaRepository<SallyBoxFood
     @Query("select avg(r.rating) from SallyBoxFoodReview r where r.sallyBoxFood.id = :id")
     Double findAverageRatingBySallyBoxFoodId(@Param("id") Long id);
 
+    @Query("select r.sallyBoxFood.id, avg(r.rating), count(r) from SallyBoxFoodReview r group by r.sallyBoxFood.id")
+    List<Object[]> findRatingStatsGroupByFoodId();
+
     @Query("select r from SallyBoxFoodReview r where r.sallyBoxFood.id = :sallyBoxFoodId")
     Page<SallyBoxFoodReview> findAllBySallyBoxFoodId(Long sallyBoxFoodId, Pageable pageable);
 

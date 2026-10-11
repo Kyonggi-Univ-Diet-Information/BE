@@ -1,63 +1,42 @@
-version: '3.9'
-
 services:
+  # 스프링 부트 앱 추가
+  springboot:
+    build: .             # 현재 폴더의 Dockerfile을 읽어서 빌드하라는 의미
+    container_name: local-springboot
+    restart: always
+    ports:
+      - "8080:8080"      # 스프링 부트 기본 포트 (필요시 변경)
+    env_file:
+      - .env             # 스프링 부트에서 사용할 환경변수 파일
+    depends_on:          # DB와 Redis가 먼저 켜진 후에 실행되도록 보장
+      - postgres
+      - redis
+    networks:
+      - web
+
   postgres:
     image: postgres:15
     container_name: local-postgres
     restart: always
     env_file:
-      - /opt/kiryong/.env
+      - .env
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    networks: [web]
+    networks:
+      - web
 
   redis:
     image: redis:7.2
-    hostname: redis
     container_name: diet-redis
+    env_file:
+      - .env
     ports:
       - "6379:6379"
     volumes:
       - redis_data:/data
-    restart: always
     networks: [ web ]
-
-  kiryong:
-    image: 381305464439.dkr.ecr.ap-northeast-2.amazonaws.com/kiryong:latest
-    container_name: kiryong
-    restart: unless-stopped
-    ports:
-      - "8080:8080"
-    env_file:
-      - /opt/kiryong/.env
-    # healthcheck의 curl이 이미지에 없으면 실패함 → 없으면 제거하거나 다른 방식으로 변경
-    healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/health || exit 1"]
-      interval: 10s
-      timeout: 3s
-      retries: 10
-    depends_on:
-      - postgres
-      - redis
-    networks: [web]
-
-  nginx:
-    image: nginx:1.27-alpine
-    container_name: nginx
-    restart: unless-stopped
-    depends_on:
-      - kiryong
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/conf.d:/etc/nginx/conf.d:ro
-      - /opt/kiryong/www:/var/www/certbot
-      - /etc/letsencrypt:/etc/letsencrypt:ro
-    networks: [web]
 
 networks:
   web:
@@ -66,4 +45,3 @@ networks:
 volumes:
   postgres_data:
   redis_data:
-  letsencrypt:

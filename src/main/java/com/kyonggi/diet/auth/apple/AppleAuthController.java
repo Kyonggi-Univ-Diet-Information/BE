@@ -13,6 +13,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Duration;
@@ -107,8 +108,11 @@ public class AppleAuthController {
             return ResponseEntity.ok()
                     .header("Set-Cookie", cookie.toString())
                     .body("Revoked");
-        } catch (Exception e) {
+        } catch (UsernameNotFoundException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+        } catch (Exception e) {
+            log.error("Apple revoke failed", e);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("탈퇴 처리 중 오류가 발생했습니다.");
         }
     }
 }

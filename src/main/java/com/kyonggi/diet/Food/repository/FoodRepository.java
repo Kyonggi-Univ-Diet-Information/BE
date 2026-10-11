@@ -29,7 +29,8 @@ public class FoodRepository {
                 f_food_type AS food_type,
                 f_detailed_menu AS detailed_menu,
                 f_sub_restaurant AS sub_restaurant,
-                review_count
+                review_count,
+                avg_rating
             FROM (
                 SELECT 
                     kf.kyongsul_food_id AS f_id,
@@ -41,7 +42,8 @@ public class FoodRepository {
                     kf.food_type AS f_food_type,
                     kf.detailed_menu AS f_detailed_menu,
                     kf.sub_restaurant AS f_sub_restaurant,
-                    COUNT(kfr.kyongsul_food_review_id) AS review_count
+                    COUNT(kfr.kyongsul_food_review_id) AS review_count,
+                    AVG(kfr.rating) AS avg_rating
                 FROM kyongsul_food kf
                 LEFT JOIN kyongsul_food_review kfr ON kf.kyongsul_food_id = kfr.kyongsul_food_id
                 GROUP BY kf.kyongsul_food_id
@@ -58,7 +60,8 @@ public class FoodRepository {
                     ef.food_type AS f_food_type,
                     ef.detailed_menu AS f_detailed_menu,
                     NULL AS f_sub_restaurant,
-                    COUNT(efr.e_square_food_review_id) AS review_count
+                    COUNT(efr.e_square_food_review_id) AS review_count,
+                    AVG(efr.rating) AS avg_rating
                 FROM esquare_food ef
                 LEFT JOIN esquare_food_review efr ON ef.e_square_food_id = efr.e_square_food_id
                 GROUP BY ef.e_square_food_id
@@ -75,7 +78,8 @@ public class FoodRepository {
                     sf.food_type AS f_food_type,
                     sf.detailed_menu AS f_detailed_menu,
                     NULL AS f_sub_restaurant,
-                    COUNT(sfr.sally_box_food_review_id) AS review_count
+                    COUNT(sfr.sally_box_food_review_id) AS review_count,
+                    AVG(sfr.rating) AS avg_rating
                 FROM sally_box_food sf
                 LEFT JOIN sally_box_food_review sfr ON sf.sally_box_food_id = sfr.sally_box_food_id
                 GROUP BY sf.sally_box_food_id
@@ -98,6 +102,7 @@ public class FoodRepository {
                 .detailedMenu(row[7] != null ? DetailedMenu.valueOf((String) row[7]) : null)
                 .subRestaurant(row[8] != null ? SubRestaurant.valueOf((String) row[8]) : null)
                 .reviewCount(((Number) row[9]).longValue())
+                .averageRating(row[10] != null ? ((Number) row[10]).doubleValue() : null)
                 .build())
             .toList();
     }

@@ -36,7 +36,7 @@ public class WebSecurityConfig {
                         //.requestMatchers("swagger-ui/**", "/v3/api-docs/**").denyAll()
                         .requestMatchers(
                                 // Basic API
-                                "/health", "/", "/actuator/health",
+                                "/health", "/", "/actuator/health", "/error",
 
                                 // Auth API
                                 "/api/login", "api/register", "/api/kakao-form",

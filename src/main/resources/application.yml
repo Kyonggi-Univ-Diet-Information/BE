@@ -69,6 +69,7 @@ social-login:
     apple:
       key-id: ${APPLE_KEY_ID}
       team-id: ${APPLE_TEAM_ID}
+      app-client-id: ${APPLE_APP_CLIENT_ID:apple.auth.diet.kyonggi.com}
       key-path: apple/AuthKey_${APPLE_KEY_ID}.p8
       redirect-uri: ${APPLE_REDIRECT_URL}
 

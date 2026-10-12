@@ -73,7 +73,7 @@ public class AppleAuthController {
         }
 
         redisTemplate.delete("APPLE_STATE:" + state);
-        AuthResponseWithRefresh tokens = appleLoginService.appleLogin(code, user, storedNonce);
+        AuthResponseWithRefresh tokens = appleLoginService.appleLogin(code, user, storedNonce, request.isIosApp());
         redisTemplate.opsForValue().set(
                 "APPLE_REFRESH:" + tokens.getEmail(),
                 tokens.getRefreshToken(),

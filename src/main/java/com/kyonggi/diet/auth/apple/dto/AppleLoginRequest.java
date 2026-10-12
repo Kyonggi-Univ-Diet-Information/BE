@@ -10,6 +10,11 @@ public class AppleLoginRequest {
     private String code;
     private String state;
     private AppleUser user;
+    private String platform;
+
+    public boolean isIosApp() {
+        return "ios".equals(platform);
+    }
 
     @Getter
     public static class AppleUser {

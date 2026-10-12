@@ -100,11 +100,13 @@ jobs:
               cd "$APP_DIR"
             fi
 
-            # 2) ECR 로그인
-            aws ecr get-login-password --region ap-northeast-2 \
-              | docker login --username AWS --password-stdin "$REG"
-            # 롤백용으로 SHA 태그 이미지를 보관 (정리 단계에서 최근 5개만 유지)
-            docker pull "$REG/$REPO:$TAG"
+            # 2) ECR 이미지 pull (롤백용으로 SHA 태그 이미지 보관, 정리 단계에서 최근 5개만 유지)
+            # credential helper로 바로 pull되면 login 생략, 실패할 때만 login 후 재시도
+            if ! docker pull "$REG/$REPO:$TAG"; then
+              aws ecr get-login-password --region ap-northeast-2 \
+                | docker login --username AWS --password-stdin "$REG"
+              docker pull "$REG/$REPO:$TAG"
+            fi
 
             # 3) compose의 이미지 태그 반영
             # sed -i "s|$REG/$REPO:[A-Za-z0-9._-]\\+|$REG/$REPO:${TAG}|g" docker-compose.yml

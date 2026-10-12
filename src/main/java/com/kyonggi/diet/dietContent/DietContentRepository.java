@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 public interface DietContentRepository extends JpaRepository<DietContent, Long> {
 
@@ -26,4 +27,6 @@ public interface DietContentRepository extends JpaRepository<DietContent, Long> 
     );
 
     boolean existsByDateAndTime(String date, DietTime time);
+
+    Optional<DietContent> findByDateAndTime(String date, DietTime time);
 }

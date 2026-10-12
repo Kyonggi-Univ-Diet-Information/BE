@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -163,6 +164,18 @@ public class DietContentServiceImpl implements DietContentService {
      */
     private DietContentDTO mapToDietContentDTO(DietContent dietContent) {
         return modelMapper.map(dietContent, DietContentDTO.class);
+    }
+
+    @Override
+    public Optional<DietContent> findByDateAndTime(String date, DietTime time) {
+        return dietContentRepository.findByDateAndTime(date, time);
+    }
+
+    @Transactional
+    @Override
+    public void deleteAndFlush(DietContent dietContent) {
+        dietContentRepository.delete(dietContent);
+        dietContentRepository.flush();
     }
 }
 

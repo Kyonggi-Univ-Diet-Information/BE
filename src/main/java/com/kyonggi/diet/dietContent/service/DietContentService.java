@@ -7,6 +7,7 @@ import com.kyonggi.diet.dietContent.DietTime;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 public interface DietContentService {
 
@@ -33,4 +34,8 @@ public interface DietContentService {
     List<DietContentDTO> findDietContentsAtDay(DayOfWeek targetDay, LocalDate startOfWeek, LocalDate endOfWeek);
 
     boolean existsByDateAndTime(String date, DietTime time);
+
+    Optional<DietContent> findByDateAndTime(String date, DietTime time);
+
+    void deleteAndFlush(DietContent dietContent);
 }

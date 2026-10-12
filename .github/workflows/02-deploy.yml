@@ -101,10 +101,10 @@ jobs:
             fi
 
             # 2) ECR 로그인
-            if ! docker pull "$REG/$REPO:$TAG" >/dev/null 2>&1; then
-              aws ecr get-login-password --region ap-northeast-2 \
-                | docker login --username AWS --password-stdin "$REG"
-            fi
+            aws ecr get-login-password --region ap-northeast-2 \
+              | docker login --username AWS --password-stdin "$REG"
+            # 롤백용으로 SHA 태그 이미지를 보관 (정리 단계에서 최근 5개만 유지)
+            docker pull "$REG/$REPO:$TAG"
 
             # 3) compose의 이미지 태그 반영
             # sed -i "s|$REG/$REPO:[A-Za-z0-9._-]\\+|$REG/$REPO:${TAG}|g" docker-compose.yml
@@ -119,6 +119,12 @@ jobs:
             # 4) 배포
             docker compose pull
             docker compose up -d --force-recreate
+
+            # 이전 이미지 정리: kiryong 이미지는 최근 5개만 남기고 삭제
+            docker images "$REG/$REPO" --format '{{.ID}}' \
+              | awk '!seen[$0]++' \
+              | tail -n +6 \
+              | xargs -r docker rmi -f || true
             docker image prune -f
 
             # 5) 헬스체크 (200이면 성공)

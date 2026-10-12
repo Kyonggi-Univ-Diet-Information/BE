@@ -10,6 +10,7 @@ import com.kyonggi.diet.Food.repository.SallyBoxFoodRepository;
 import com.kyonggi.diet.Food.service.DietFoodService;
 import com.kyonggi.diet.diet.DietDTO;
 import com.kyonggi.diet.dietContent.DTO.DietContentDTO;
+import com.kyonggi.diet.dietContent.DietContent;
 import com.kyonggi.diet.dietContent.DietStatus;
 import com.kyonggi.diet.dietContent.DietTime;
 import com.kyonggi.diet.dietContent.service.DietContentService;
@@ -77,14 +78,19 @@ public class CSVService {
                 for (int j = 1; j <= 3; j++) {
                     DietTime currentTime = sortDietTime(j);
 
-                    if (dietContentService.existsByDateAndTime(dateOnly, currentTime)) {
-                        continue;
-                    }
-
                     boolean isClosed = (j >= nextLine.length ||
                                         nextLine[j] == null ||
                                         nextLine[j].trim().isEmpty() ||
                                         nextLine[j].contains("미운영"));
+
+                    Optional<DietContent> existingContent = dietContentService.findByDateAndTime(dateOnly, currentTime);
+                    if (existingContent.isPresent()) {
+                        // 이미 OPEN이거나, 새 데이터도 비어있으면 스킵
+                        if (existingContent.get().getStatus() == DietStatus.OPEN || isClosed) {
+                            continue;
+                        }
+                        dietContentService.deleteAndFlush(existingContent.get());
+                    }
                     // 미운영 상태로 저장
                     if (isClosed) {
                         dietContentService.save(DietContentDTO.builder()

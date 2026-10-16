@@ -32,9 +32,9 @@ public class AppleLoginService {
      * 애플 로그인
      */
     public AuthResponseWithRefresh appleLogin(
-            String code, AppleLoginRequest.AppleUser user, String expectedNonce
+            String code, AppleLoginRequest.AppleUser user, String expectedNonce, boolean iosApp
     ) throws Exception {
-        AppleDto appleDto = appleOAuthClient.getAppleInfo(code, expectedNonce);
+        AppleDto appleDto = appleOAuthClient.getAppleInfo(code, expectedNonce, iosApp);
         String name = extractNameFromUser(user);
 
         SocialAccount social = socialAccountRepository

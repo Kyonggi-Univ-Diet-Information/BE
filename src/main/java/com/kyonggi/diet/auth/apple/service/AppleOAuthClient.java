@@ -59,6 +59,10 @@ public class AppleOAuthClient {
     @Value("${spring.security.oauth2.client.registration.apple.client-id}")
     private String clientId;
 
+    // iOS 앱의 네이티브 Sign in with Apple은 서비스 ID가 아니라 앱 번들 ID로 code를 발급해요
+    @Value("${social-login.provider.apple.app-client-id}")
+    private String appClientId;
+
     @Value("${social-login.provider.apple.redirect-uri}")
     private String redirectUri;
 
@@ -85,9 +89,10 @@ public class AppleOAuthClient {
     }
 
 
-    public AppleDto getAppleInfo(String code, String expectedNonce) throws Exception {
-        String clientSecret = createClientSecret();
-        String tokenResponseJson = requestToken(code, clientSecret);
+    public AppleDto getAppleInfo(String code, String expectedNonce, boolean iosApp) throws Exception {
+        String audience = iosApp ? appClientId : clientId;
+        String clientSecret = createClientSecret(audience);
+        String tokenResponseJson = requestToken(code, clientSecret, audience, iosApp ? null : redirectUri);
 
         JsonNode tokenNode = objectMapper.readTree(tokenResponseJson);
 
@@ -110,7 +115,7 @@ public class AppleOAuthClient {
         }
 
         // audience 검증
-        if (!clientId.equals(claims.getAudience().get(0))) {
+        if (!audience.equals(claims.getAudience().get(0))) {
             throw new IllegalStateException("Invalid audience");
         }
 
@@ -168,7 +173,7 @@ public class AppleOAuthClient {
     /**
      * Apple Token API 호출
      */
-    private String requestToken(String code, String clientSecret) {
+    private String requestToken(String code, String clientSecret, String clientId, String redirectUri) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
@@ -177,7 +182,9 @@ public class AppleOAuthClient {
         params.add("client_id", clientId);
         params.add("client_secret", clientSecret);
         params.add("code", code);
-        params.add("redirect_uri", redirectUri);
+        if (redirectUri != null) {
+            params.add("redirect_uri", redirectUri);
+        }
 
         HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(params, headers);
 
@@ -199,7 +206,7 @@ public class AppleOAuthClient {
     /**
      * client_secret 생성 (ES256)
      */
-    private String createClientSecret() throws Exception {
+    private String createClientSecret(String clientId) throws Exception {
         Date now = new Date();
 
         JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.ES256)
@@ -304,13 +311,18 @@ public class AppleOAuthClient {
         }
     }
 
+    // 어느 플랫폼에서 발급된 토큰인지 저장하지 않아서, 발급 주체(client_id)를 차례로 시도해요
     public void userRevoke(String appleRefreshToken) {
-        revokeAppleToken(appleRefreshToken);
+        try {
+            revokeAppleToken(appleRefreshToken, clientId);
+        } catch (IllegalStateException webClientFailure) {
+            revokeAppleToken(appleRefreshToken, appClientId);
+        }
     }
 
-    private void revokeAppleToken(String appleRefreshToken) {
+    private void revokeAppleToken(String appleRefreshToken, String clientId) {
         try {
-            String clientSecret = createClientSecret();
+            String clientSecret = createClientSecret(clientId);
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);

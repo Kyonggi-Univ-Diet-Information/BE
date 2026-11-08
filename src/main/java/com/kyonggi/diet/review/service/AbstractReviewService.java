@@ -1,5 +1,6 @@
 package com.kyonggi.diet.review.service;
 
+import com.kyonggi.diet.review.keyword.KeywordLevel;
 import com.kyonggi.diet.member.CustomUserDetails;
 import com.kyonggi.diet.member.MemberEntity;
 import com.kyonggi.diet.member.service.MemberService;
@@ -41,6 +42,17 @@ public abstract class AbstractReviewService<R extends Review, ID> {
         this.modelMapper = modelMapper;
     }
     protected abstract ID extractId(R review);
+
+    /**
+     * 키워드 검증: 4개 카테고리 중 최소 1개는 선택되어야 한다.
+     * (카테고리당 최대 1개는 필드 구조상 항상 보장된다)
+     */
+    protected void requireAtLeastOneKeyword(KeywordLevel salt, KeywordLevel spicy,
+                                            KeywordLevel portion, KeywordLevel value) {
+        if (salt == null && spicy == null && portion == null && value == null) {
+            throw new IllegalArgumentException("키워드를 최소 1개 이상 선택해야 합니다.");
+        }
+    }
 
     /** 하위 클래스에서 Repository 주입 */
     protected abstract JpaRepository<R, Long> getRepository();
@@ -197,6 +209,10 @@ public abstract class AbstractReviewService<R extends Review, ID> {
                 .title(review.getTitle())
                 .content(review.getContent())
                 .rating(review.getRating())
+                .saltLevel(review.getSaltLevel())
+                .spicyLevel(review.getSpicyLevel())
+                .portionLevel(review.getPortionLevel())
+                .valueLevel(review.getValueLevel())
                 .memberName(memberName)
                 .createdAt(String.valueOf(review.getCreatedAt()))
                 .updatedAt(String.valueOf(review.getUpdatedAt()))

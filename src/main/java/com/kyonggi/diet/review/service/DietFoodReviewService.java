@@ -90,6 +90,7 @@ public class DietFoodReviewService
     @Override
     @Transactional
     public void createReview(ReviewDTO dto, Long foodId, String email) {
+        requireAtLeastOneKeyword(dto.getSaltLevel(), dto.getSpicyLevel(), dto.getPortionLevel(), dto.getValueLevel());
         DietFood dietFood = dietFoodRepository.findById(foodId)
                 .orElseThrow(() -> new NoSuchElementException("No found Diet food"));
         MemberEntity member = Objects.requireNonNull(memberService).getMemberByEmail(email);
@@ -98,6 +99,10 @@ public class DietFoodReviewService
                 .title(dto.getTitle())
                 .content(dto.getContent())
                 .rating(dto.getRating())
+                .saltLevel(dto.getSaltLevel())
+                .spicyLevel(dto.getSpicyLevel())
+                .portionLevel(dto.getPortionLevel())
+                .valueLevel(dto.getValueLevel())
                 .dietFood(dietFood)
                 .member(member)
                 .build();
@@ -146,9 +151,11 @@ public class DietFoodReviewService
     @Override
     @Transactional
     public void modifyReview(Long reviewId, CreateReviewDTO dto) {
+        requireAtLeastOneKeyword(dto.getSaltLevel(), dto.getSpicyLevel(), dto.getPortionLevel(), dto.getValueLevel());
         DietFoodReview review = dietFoodReviewRepository.findById(reviewId)
                 .orElseThrow(() -> new NoSuchElementException("No review found"));
         review.updateReview(dto.getRating(), dto.getTitle(), dto.getContent());
+        review.updateKeywords(dto.getSaltLevel(), dto.getSpicyLevel(), dto.getPortionLevel(), dto.getValueLevel());
 
         deleteRemovedImages(reviewId, dto.getKeepImageIds());
         saveNewImages(review, dto.getImageKeys());

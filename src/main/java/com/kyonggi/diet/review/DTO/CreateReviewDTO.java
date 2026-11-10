@@ -1,5 +1,6 @@
 package com.kyonggi.diet.review.DTO;
 
+import com.kyonggi.diet.review.keyword.KeywordLevel;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,6 +24,18 @@ public class CreateReviewDTO {
 
     @Schema(description = "리뷰 내용")
     private String content;
+
+    @Schema(description = "간 키워드 (LOW=싱거워요, MID=적당해요, HIGH=짜요, 선택 안 함 = null)")
+    private KeywordLevel saltLevel;
+
+    @Schema(description = "맵기 키워드 (LOW=안 매워요, MID=적당해요, HIGH=매워요, 선택 안 함 = null)")
+    private KeywordLevel spicyLevel;
+
+    @Schema(description = "양 키워드 (LOW=적어요, MID=적당해요, HIGH=많아요, 선택 안 함 = null)")
+    private KeywordLevel portionLevel;
+
+    @Schema(description = "가성비 키워드 (LOW=아쉬워요, MID=적당해요, HIGH=좋아요, 선택 안 함 = null)")
+    private KeywordLevel valueLevel;
 
     @Schema(description = "새로 추가할 이미지 tmp key 목록 (presigned URL로 업로드한 tmp/{uuid}.webp)")
     private List<String> imageKeys;

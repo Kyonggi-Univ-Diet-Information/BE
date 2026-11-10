@@ -65,6 +65,10 @@ public class ReviewController implements ReviewControllerDocs {
                     .content(dto.getContent())
                     .rating(dto.getRating())
                     .imageKeys(dto.getImageKeys())
+                    .saltLevel(dto.getSaltLevel())
+                    .spicyLevel(dto.getSpicyLevel())
+                    .portionLevel(dto.getPortionLevel())
+                    .valueLevel(dto.getValueLevel())
                     .build();
             resolve(type).createReview(review, foodId, email);
             return ResponseEntity.ok("Review Created");
